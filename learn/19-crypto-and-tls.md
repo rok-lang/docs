@@ -7,7 +7,7 @@ rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, 
 
 ## Hashes and MACs
 
-The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, …), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts `List<u8>`, `Slice<u8>`, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
+The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts `List<u8>`, `Slice<u8>`, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};
@@ -193,7 +193,7 @@ server read 4 bytes, SNI localhost
 
 ## Further reading
 
-- Standard library spec: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `crypto::random`](../spec/refs-standard-libraries/300-std/310-crypto.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13--nettls)
+- Standard library spec: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `crypto::random`](../spec/refs-standard-libraries/300-std/310-crypto.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13---nettls)
 - API: [rok::core::crypto](../std/core/crypto.html), [rok::std::net::tls](../std/std/net/tls.html)
 - [Examples](../examples/index.html)
-- Next: [20. How Do I…](20-cookbook.html), short recipes for everyday tasks
+- Next: [20. How Do I...](20-cookbook.html), short recipes for everyday tasks

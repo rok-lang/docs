@@ -81,7 +81,7 @@ gcd(100!, 2^200) = 2^97
 
 ## Walkthrough
 
-- `int` is an integer with no size limit. Small values are held in a single `i64` and switch to a digit array only when they overflow, so for small numbers it is about as fast as a fixed-width integer ([2.1.2 `int`](../spec/refs-standard-libraries/200-core/201-numbers.html#212-int--arbitrary-precision-integer), [`Int`](../std/core/num/bigint.html#struct.Int)).
+- `int` is an integer with no size limit. Small values are held in a single `i64` and switch to a digit array only when they overflow, so for small numbers it is about as fast as a fixed-width integer ([2.1.2 `int`](../spec/refs-standard-libraries/200-core/201-numbers.html#212-int---arbitrary-precision-integer), [`Int`](../std/core/num/bigint.html#struct.Int)).
 - `int` and `i64` don't mix in arithmetic. You convert explicitly, as in `int::from(k)`, so the code shows at a glance which operations can overflow ([2.1.6 arithmetic result types](../spec/refs-standard-libraries/200-core/201-numbers.html#216-arithmetic-result-types)).
 - On the `i64` side, `checked_mul` returns `none` on overflow. The trailing `?` returns that `none` straight out of the function, so `factorial_i64` reports its result as `i64 | none` ([Sum types](../learn/05-sum-types.html)).
 - Integer literals beyond the `i64` range can be written directly in an `int` slot (`let big: int = 123_456_...`).

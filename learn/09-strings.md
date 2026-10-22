@@ -139,7 +139,7 @@ As in the last example, a `\` at the end of a line removes both the newline and 
 
 ## Byte strings `b"..."`
 
-Protocols and file formats speak bytes, not text. A byte string `b"..."` is a fixed array `[u8; N]` of its bytes. Write ASCII directly and anything else as `\xHH` (any value `\x00`–`\xFF`). Where a `Slice<u8>` is expected, the same literal is a view of that array, so it can be passed straight to functions that take bytes.
+Protocols and file formats speak bytes, not text. A byte string `b"..."` is a fixed array `[u8; N]` of its bytes. Write ASCII directly and anything else as `\xHH` (any value `\x00`-`\xFF`). Where a `Slice<u8>` is expected, the same literal is a view of that array, so it can be passed straight to functions that take bytes.
 
 ```rok
 let magic = b"\x7FELF";                  // [u8; 4]

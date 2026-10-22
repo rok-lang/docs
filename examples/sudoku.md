@@ -118,6 +118,6 @@ solved after 4208 placements:
 
 - The board is a fixed-size array `[[u8; 9]; 9]`. The size is part of the type, so `cells[r][c]` reads and writes directly with no separate allocation ([Values and types](../learn/02-values-and-types.html)).
 - `solve` fixes the board in place through `ref self` and bumps the caller's counter through `ref steps`. The caller writes `ref` too, `board.solve(ref steps)`, so it is visible that the value changes ([4.7 The `ref` keyword](../spec/refs-lang/004-functions/407-ref-keyword.html), [Functions](../learn/03-functions.html)).
-- The heart of backtracking is three lines: place a digit (`self.cells[r][c] = d`), recursively try to solve the rest, and clear the cell again on failure. If all of 1–9 fail in the first empty cell, `false` returns and the level above tries another digit.
+- The heart of backtracking is three lines: place a digit (`self.cells[r][c] = d`), recursively try to solve the rest, and clear the cell again on failure. If all of 1-9 fail in the first empty cell, `false` returns and the level above tries another digit.
 - The literal range `0..9` defaults to `i32`, so a loop variable passed as a `usize` argument gets its type from a suffix: `0usize..9` ([1.6 Numeric literals](../spec/refs-lang/001-lexical/106-numeric-literals.html)).
 - The puzzle string reader takes only digits and `.` and skips spaces and newlines, so the board can be laid out readably ([Strings](../learn/09-strings.html)).

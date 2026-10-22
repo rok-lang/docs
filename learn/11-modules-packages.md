@@ -224,7 +224,7 @@ A package on the registry is called a stone, and the default registry is [roksto
 ```text
 $ rok search json
     Updating index https://github.com/rok-lang/rokstones.io-index
-json 0.1.0 — JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
+json 0.1.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
 $ rok add json@^0.1
        Added json to deps of rok.rokon
 ```

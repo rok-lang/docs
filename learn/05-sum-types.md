@@ -240,6 +240,6 @@ none
 
 - [2.6. Sum types](../spec/refs-lang/002-types/206-sum-types.html), [2.1.5a. Optional type `T?`](../spec/refs-lang/002-types/201-type-expressions.html#215a-optional-types-t)
 - [2.2.6. Narrowing](../spec/refs-lang/002-types/202-any-slot.html#226-narrowing), [3.10.5. `if let`](../spec/refs-lang/003-expressions/310-if-expression.html#3105-if-let-combining-with-pattern-matching), [3.16. `let-else`](../spec/refs-lang/003-expressions/316-let-else.html), [3.11. Patterns](../spec/refs-lang/003-expressions/311-patterns.html)
-- [3.8. Optional chaining and null coalescing](../spec/refs-lang/003-expressions/308-optional-chaining-and-coalescing.html), [3.14.10. The `?` operator](../spec/refs-lang/003-expressions/314-error-control-flow.html#31410-the--operator--early-return-of-none)
+- [3.8. Optional chaining and null coalescing](../spec/refs-lang/003-expressions/308-optional-chaining-and-coalescing.html), [3.14.10. The `?` operator](../spec/refs-lang/003-expressions/314-error-control-flow.html#31410-the--operator---early-return-of-none)
 - [2.7. Niche optimization](../spec/refs-lang/002-types/207-niche-optimization.html)
 - Next chapter: [6. Structs, Enums, and Traits](06-structs-enums-traits.html)

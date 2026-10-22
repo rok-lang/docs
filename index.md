@@ -4,7 +4,7 @@
 # rok docs
 
 <div class="lead">The guide, examples, language reference and standard library of rok, for the version in the menu above.</div>
-<div class="install"><pre><code>curl -fsSL https://rok-lang.org/install.sh | sh</code></pre><p>macOS and Linux. On Windows, use <a href="learn/01-getting-started.html#install-script">install.ps1</a>.</p></div>
+<div class="install"><pre><code>curl -fsSL https://rok-lang.org/<wbr>install.sh | sh</code></pre><p>macOS and Linux. On Windows, use <a href="learn/01-getting-started.html#install-script">install.ps1</a>.</p></div>
 </div>
 
 <div class="cards">

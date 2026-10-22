@@ -220,24 +220,24 @@ println("");
 You can skip this section on a first read. Dotted operators such as `.+`, `.*`, and `.>` are element-wise operations. They desugar to traits such as `DotAdd`, `DotMul`, and `DotGt`, so implementing those for your type makes the operators available right away.
 
 ```rok
-struct Vec { xs: List<f64>; }
+struct Vector { xs: List<f64>; }
 
-impl DotAdd for Vec {
-    type Output = Vec;
-    fn dot_add(self, o: Vec) -> Vec {
-        Vec { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
+impl DotAdd for Vector {
+    type Output = Vector;
+    fn dot_add(self, o: Vector) -> Vector {
+        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
     }
 }
 
-impl DotMul<f64> for Vec {
-    type Output = Vec;
-    fn dot_mul(self, k: f64) -> Vec {
-        Vec { xs: self.xs.iter().map(|x| x * k).collect() }
+impl DotMul<f64> for Vector {
+    type Output = Vector;
+    fn dot_mul(self, k: f64) -> Vector {
+        Vector { xs: self.xs.iter().map(|x| x * k).collect() }
     }
 }
 
-let a = Vec { xs: [1.0, 2.0, 3.0] };
-let b = Vec { xs: [10.0, 20.0, 30.0] };
+let a = Vector { xs: [1.0, 2.0, 3.0] };
+let b = Vector { xs: [10.0, 20.0, 30.0] };
 let c = a .+ b .* 2.0;
 println(f"{c.xs:?}");
 ```
@@ -270,8 +270,9 @@ println(f"{c:?} {d:?} {r:?}");
 - Chain adapters after `iter()` and consume with `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
 - `yield fn` and `yield { }` make iterators easy to write.
 
-## Learn more
+## Further reading
 
+- Next chapter: [9. Strings and f-strings](09-strings.html)
 - [stdlib 2.9. Collections](../spec/refs-standard-libraries/200-core/209-collections.html), [Reference handles](../spec/refs-standard-libraries/200-core/209-collections.html#reference-handles)
 - [3.6. Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)
 - [stdlib 2.7. iter](../spec/refs-standard-libraries/200-core/207-iter.html), [4.11. Generators](../spec/refs-lang/004-functions/411-generators.html)

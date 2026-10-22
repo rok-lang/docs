@@ -105,4 +105,4 @@ leaves: ["a", "b", "c", "d", "e"]
 - `leaves` calls itself and re-yields the values of each subtree. Recursive generators are a common way to flatten nested structures ([Sum types](../learn/05-sum-types.html)).
 
 > [!NOTE]
-> Defining the tree as an enum that contains itself directly, like `Node(Tree, i64, Tree)`, currently makes the compiler stop with a stack overflow. This example keeps the children in a `List<Tree>` to express the same structure.
+> An enum that contains itself directly, like `Node(Tree, i64, Tree)`, has infinite size, so the compiler rejects it (`a struct / enum can't contain itself by value`). This example keeps the children in a `List<Tree>`, a reference type, to express the same structure.

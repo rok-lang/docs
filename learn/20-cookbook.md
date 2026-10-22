@@ -27,7 +27,7 @@ three
 
 ## Read stdin line by line
 
-Each item of `io::stdin().lines()` is a line without its newline, or the error that ended the input; `try item.get()` takes the line out ([chapter 13](13-io.html#standard-io-and-the-environment)).
+Each item of `io::stdin().lines()` is a line without its newline, or the error that ended the input; `try item.get()` takes the line out ([chapter 13](13-io.html#standard-io-and-the-environment)). The output below is `0 lines` because this page builds with no input; run it locally and pipe a file in (`rok run count.rok < file`).
 
 ```rok
 use rok::std::io;
@@ -49,7 +49,7 @@ Run it as `printf 'a\nb\n' | rok run lines.rok` to see it number the lines.
 
 ## Get command-line arguments
 
-`env::args()` is a `List<str>`; element 0 is the program itself. Pass arguments after `--`: `rok run greet.rok -- ada grace` ([chapter 13](13-io.html#standard-io-and-the-environment), [example](../examples/cli-args.html)).
+`env::args()` is a `List<str>`; element 0 is the program itself. Pass arguments after `--`: `rok run greet.rok -- ada grace` ([chapter 13](13-io.html#standard-io-and-the-environment), [example](../examples/cli-args.html)). The output below is `0 arguments` because this page builds with none; run it locally with some.
 
 ```rok
 use rok::std::env;

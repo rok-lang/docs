@@ -188,4 +188,4 @@ for src in program {
 - A `lambda` captures the `Env` it was created in. `Dict` is a shared reference, so the function returned by `make-adder` remembers `k`, and `fact` can find itself even though it is defined afterwards.
 
 > [!NOTE]
-> An enum that contains itself directly (`Lambda(..., Value, ...)`) makes the compiler stop, so lambda bodies are kept in a `List<Value>`.
+> An enum that contains itself directly (`Lambda(..., Value, ...)`) would have infinite size, so the compiler rejects it; lambda bodies are kept in a `List<Value>` instead.

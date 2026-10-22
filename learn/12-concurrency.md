@@ -116,6 +116,8 @@ error[E200]: `g` holds a `MutexGuard` that is never released: only `using` relea
 
 ### Read-only data: `Frozen`
 
+You can skip this subsection on a first read.
+
 Data that is made once and then only read, such as settings, lookup tables or trust anchors, needs no lock. Wrap it in `Frozen<T>`: any thread can read it at any time. `Frozen::new` keeps its own copy, so nothing outside can change what it holds, and `get()` gives each reader a copy of its own, so a reader that changes its copy changes nothing the others see.
 
 ```rok
@@ -149,6 +151,8 @@ demo [10, 20, 30] 42
 Each `get` copies the collections inside the value, so keep big read-only parts out of that copy: give them a `Frozen` field of their own and read it only where it is needed, as in `table: Frozen<List<Entry>>`. Parts that are `Sync` already, such as a `Mutex` or a cache that locks itself, are shared, not copied.
 
 ## Handing values to other threads
+
+This section is about the rule the compiler enforces when a value moves between threads. You can skim it on a first read and come back when the compiler points you here.
 
 `Mutex::new(xs)`, `RwLock::new(xs)` and `tx.send(xs)` *hand `xs` over*: from then on it belongs to the lock or to the receiver. rok has no move semantics, so the compiler tracks hand-offs instead: using `xs` afterwards is a compile error, because it would race with whoever owns it now. The check follows the value through copies (`let ys = xs`), struct fields, the objects that hold it, the elements of collections, closure captures and function calls.
 
@@ -635,6 +639,7 @@ println(f"{compute()}");
 
 ## Further reading
 
+- Next chapter: [13. File and Network IO](13-io.html)
 - Spec: [Async (`async` / `await`)](../spec/refs-lang/004-functions/412-async.html), [Operator precedence](../spec/refs-lang/003-expressions/302-precedence-and-associativity.html), [Streams](../spec/refs-lang/004-functions/413-stream.html), [`using`](../spec/refs-lang/003-expressions/317-using-expression.html), [Captures across threads](../spec/refs-lang/004-functions/406-capture-semantics.html), [`static`](../spec/refs-lang/005-modules/503-static.html)
 - Standard library spec: [sync](../spec/refs-standard-libraries/200-core/216-sync.html), [channel](../spec/refs-standard-libraries/200-core/217-channel.html), [task](../spec/refs-standard-libraries/200-core/218-task.html), [par](../spec/refs-standard-libraries/200-core/219-par.html)
 - API: [`thread::spawn`](../std/std/thread.html#fn.spawn), [`task::spawn`](../std/core/task.html#fn.spawn), [`task::join`](../std/core/task.html#fn.join), [`channel`](../std/core/channel.html#fn.channel), [`Mutex`](../std/core/sync.html#struct.Mutex), [`Atomic`](../std/core/sync.html#struct.Atomic), [`par::map`](../std/core/par.html#fn.map), [`par::scope`](../std/core/par.html#fn.scope)

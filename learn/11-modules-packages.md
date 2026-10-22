@@ -321,6 +321,7 @@ $ rok install tool@0.2
 
 ## Further reading
 
+- Next chapter: [12. Concurrency](12-concurrency.html)
 - Spec: [Modules](../spec/refs-lang/005-modules/504-modules.html), [`use`](../spec/refs-lang/005-modules/505-use.html), [Visibility](../spec/refs-lang/005-modules/506-visibility.html), [Paths](../spec/refs-lang/005-modules/507-paths.html), [Re-exports](../spec/refs-lang/005-modules/508-re-export.html)
 - Tools: [`rok` front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [`rok.rokon` / `rok.lock`](../spec/refs-lang/009-tools/910-rok-frontend.html#9103-rokrokon--roklock), [Stones and rokstones.io](../spec/refs-lang/009-tools/910-rok-frontend.html#9104a-stones-and-rokstonesio), [Environments](../spec/refs-lang/009-tools/910-rok-frontend.html#9105-environments), [Inline manifests](../spec/refs-lang/009-tools/910-rok-frontend.html#9107-inline-manifest-for-single-file-scripts)
 - [1. Getting Started](01-getting-started.html)

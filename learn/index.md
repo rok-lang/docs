@@ -1,6 +1,6 @@
 # Learn rok
 
-A guide for newcomers to rok, from installation to concurrency and FFI. Each chapter has a short explanation and code you can run right away.
+A guide for newcomers to rok, from installation through error handling, concurrency, FFI, ROKON, tools, stones, cryptography, and a cookbook. Each chapter has a short explanation and code you can run right away.
 
 Every code block in this guide is compiled and run with the real toolchain when the site is built, and its output is checked against the one shown. Copy any of them and run it with `rok run file.rok`.
 

@@ -55,7 +55,7 @@ true 3 😀
 
 ## Common methods
 
-Methods on `str` do not modify the original; they return a new value. Operations that may find nothing return `T | none`, so they pair well with `??` and `if let` from chapters 4 and 5.
+Methods on `str` do not modify the original; they return a new value. Operations that may find nothing return `T | none`, so they pair well with `??` and `if let` from chapter 5.
 
 ```rok
 let line = "  name = rok  ";

@@ -260,7 +260,7 @@ show_sum(1.5, 2.0);   // 3.5
 - `const N: usize` takes a value as a type parameter.
 - Generics are static (monomorphized); `any` is a dynamic slot that exists only where you write it.
 
-## Learn more
+## Further reading
 
 - [2.10. Generics](../spec/refs-lang/002-types/210-generics.html): [2.10.3. Trait bounds](../spec/refs-lang/002-types/210-generics.html#2103-trait-bounds), [2.10.4. where clauses](../spec/refs-lang/002-types/210-generics.html#2104-where-clauses), [2.10.9. Body checking](../spec/refs-lang/002-types/210-generics.html#2109-body-checking), [2.10.7. Interaction with gradual typing](../spec/refs-lang/002-types/210-generics.html#2107-combination-with-gradual-typing)
 - [2.8.3. Associated types](../spec/refs-lang/002-types/208-trait.html#283-associated-types)

@@ -164,7 +164,7 @@ Hello, linus!
 3 people greeted
 ```
 
-`f"..."` is a format string: each expression inside `{}` is evaluated and inserted in place. `greet` is declared below its use, yet the call works, because declarations such as functions are visible regardless of order.
+`f"..."` is an f-string: each expression inside `{}` is evaluated and inserted in place. `greet` is declared below its use, yet the call works, because declarations such as functions are visible regardless of order.
 
 Instead of top-level statements, you can use `fn main()` as the entry point. Use one or the other.
 

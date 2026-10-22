@@ -319,7 +319,7 @@ false
 In rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
 
 ```text
-error: trait `Animal` cannot be used as a type directly - use a closed sum (`A | B`)
+error[E200]: trait `Animal` cannot be used as a type directly - use a closed sum (`A | B`)
        or a generic parameter (`<T: Animal>`) instead
 ```
 
@@ -397,7 +397,7 @@ The `Display` impl has a fixed shape you can copy: `ref f` lets `fmt` write into
 - Traits are not types. Use a generic or a sum type (or, advanced, `any Trait`).
 - Operators and `{x}` printing also come from implementing traits (`Add`, `Display`, and so on).
 
-## Learn more
+## Further reading
 
 - [2.3. `struct`](../spec/refs-lang/002-types/203-struct.html), [2.3.8. Value semantics](../spec/refs-lang/002-types/203-struct.html#238-value-semantics), [4.7. `ref`](../spec/refs-lang/004-functions/407-ref-keyword.html), [2.4. `enum`](../spec/refs-lang/002-types/204-enum.html), [2.5. `union`](../spec/refs-lang/002-types/205-union.html)
 - [2.8. `trait`](../spec/refs-lang/002-types/208-trait.html), [2.9. `impl`](../spec/refs-lang/002-types/209-impl.html), [4.9. Methods](../spec/refs-lang/004-functions/409-method.html)

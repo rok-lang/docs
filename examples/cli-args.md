@@ -20,7 +20,7 @@ const USAGE: str = "usage: mgrep [-i] [-n] [-c] [-m NUM] PATTERN [FILE]...
 // Used when no FILE is given (the demo never reads stdin).
 const SAMPLE: str = "Roses are red,
 violets are blue.
-Rok is fast,
+rok is fast,
 and so are you.";
 
 enum ArgError {

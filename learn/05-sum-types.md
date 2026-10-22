@@ -236,7 +236,7 @@ none
 - `x is T` both tests and narrows. Extract values with `if let x: T = ...`, `let x: T = ... else { return .. };`, and the `n: T` / `none` patterns in `match`.
 - `??` supplies a default, `?.` skips the access on none, and postfix `?` returns from the function on none.
 
-## Learn more
+## Further reading
 
 - [2.6. Sum types](../spec/refs-lang/002-types/206-sum-types.html), [2.1.5a. Optional type `T?`](../spec/refs-lang/002-types/201-type-expressions.html#215a-optional-types-t)
 - [2.2.6. Narrowing](../spec/refs-lang/002-types/202-any-slot.html#226-narrowing), [3.10.5. `if let`](../spec/refs-lang/003-expressions/310-if-expression.html#3105-if-let-combining-with-pattern-matching), [3.16. `let-else`](../spec/refs-lang/003-expressions/316-let-else.html), [3.11. Patterns](../spec/refs-lang/003-expressions/311-patterns.html)

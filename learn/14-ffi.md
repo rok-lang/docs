@@ -248,6 +248,7 @@ println(f"zlib {unsafe { zlibVersion() }}");
 
 ## Further reading
 
+- Next chapter: [15. ROKON](15-rokon.html)
 - Spec: [5.9 extern blocks](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html), [6.2.3 the link attribute](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#623-link-naming-an-external-library), [C-compatible characters](../spec/refs-lang/001-lexical/108-character-literals.html)
 - Standard library spec: [FFI](../spec/refs-standard-libraries/100-bare/107-ffi.html), [Pointers](../spec/refs-standard-libraries/100-bare/101-ptr.html)
 - API: [rok::bare::ptr](../std/bare/ptr.html), [rok::bare::alloc](../std/bare/alloc.html), [rok::bare::mem](../std/bare/mem.html)

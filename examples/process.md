@@ -59,7 +59,7 @@ fn main() throws (IoError) {
 
     // 7. A missing program is an IoError, not a crash.
     let ok = try Command::new("no-such-program").status().success() catch e {
-        println(f"spawn failed: {e.kind:?}");
+        println(f"spawn failed: {e.kind():?}");
         false
     };
     println(f"ok={ok}");

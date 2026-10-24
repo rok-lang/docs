@@ -371,7 +371,7 @@ impl Add for V2 {
 
 impl Display for V2 {
     fn fmt(self, ref f: Formatter) throws (FmtError) {
-        try f.write_str(f"({self.x}, {self.y})")
+        try f.write_str(f"({self.x}, {self.y})");
     }
 }
 
@@ -383,7 +383,7 @@ println(f"v = {v}");
 v = (11, 22)
 ```
 
-`type Output = V2;` sets the trait's **associated type**. We'll see these again in the next chapter.
+`type Output = V2;` sets the trait's **associated type**. You will see these again in the next chapter.
 
 The `Display` impl has a fixed shape you can copy: `ref f` lets `fmt` write into the caller's `Formatter`, and writing can fail, so `fmt` is `throws (FmtError)` and the call is marked with `try`. Errors are the subject of [chapter 10](10-errors.html).
 

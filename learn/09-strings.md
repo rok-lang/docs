@@ -1,6 +1,6 @@
 # 9. Strings and f-strings
 
-Strings show up in almost every program. This chapter covers `str` and `StrBuf`, the commonly used methods, the different kinds of literals, and the format specifiers of the f-strings we have been using all along.
+Strings show up in almost every program. This chapter covers `str` and `StrBuf`, the commonly used methods, the different kinds of literals, and the format specifiers of the f-strings you have been using all along.
 
 ## `str`: immutable UTF-8
 
@@ -84,7 +84,7 @@ ababab NAME = ROK name = ROK
 43
 ```
 
-`parse` is a function that throws an error on failure, so we added `try!`. Errors are covered in the [next chapter](10-errors.html). Other methods include `lines()`, `split_whitespace()`, `strip_prefix()`, and `trim_start()` ([`str` API](../std/core/str.html#impl.str)).
+`parse` is a function that throws an error on failure, so the example adds `try!`. Errors are covered in the [next chapter](10-errors.html). Other methods include `lines()`, `split_whitespace()`, `strip_prefix()`, and `trim_start()` ([`str` API](../std/core/str.html#impl.str)).
 
 ## `StrBuf`: building piece by piece
 

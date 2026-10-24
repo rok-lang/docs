@@ -26,7 +26,7 @@ impl Grid {
 
     fn alive(self, x: usize, y: usize) -> bool { self.cells[y][x] }
 
-    fn neighbours(self, x: usize, y: usize) -> usize {
+    fn neighbors(self, x: usize, y: usize) -> usize {
         let n = 0usize;
         for dy in [H - 1, 0, 1] {
             for dx in [W - 1, 0, 1] {
@@ -42,7 +42,7 @@ impl Grid {
         let next = [[false; W]; H];
         for y in 0..H {
             for x in 0..W {
-                next[y][x] = match (self.alive(x, y), self.neighbours(x, y)) {
+                next[y][x] = match (self.alive(x, y), self.neighbors(x, y)) {
                     (true, 2) | (true, 3) => true,
                     (false, 3) => true,
                     _ => false,

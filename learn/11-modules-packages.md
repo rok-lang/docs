@@ -92,7 +92,7 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
    = help: import it under another name, `use shapes::square as shapes_square;`, or remove this `use` if the module does not need it
 ```
 
-Names like `List`, `Dict`, and `println`, which we have used so far without `use`, work thanks to the `use rok::core::**;` implicitly present in every file. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
+Names like `List`, `Dict`, and `println`, which you have used so far without `use`, work thanks to the `use rok::core::**;` (a recursive glob: `*` plus submodules) implicitly present in every file. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
 
 ## Visibility
 
@@ -247,7 +247,7 @@ Package { name: "app", version: "0.1.0", deps: {
 
 A path is not a version: write `Dep::path("../geom")`, not `"../geom"`.
 
-A library can offer **features** that its users turn on and off, and you can publish your own library as a stone with `rok login` and `rok publish`. Both are covered in [chapter 18](18-features-and-stones.html), together with the stones the rok project maintains (`json`, `toml`, `http`, `markdown`).
+A library can offer **features** that its users turn on and off, and you can publish your own library as a stone with `rok login` and `rok publish`. Both are covered in [chapter 18](18-features-and-stones.html), together with the stones the rok project maintains (`json`, `toml`, `http`, `markdown`, `rok-syntax`).
 
 ## Single-file scripts and environments
 

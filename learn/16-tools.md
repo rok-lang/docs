@@ -232,7 +232,7 @@ In other editors such as VS Code, register `rokls` with a generic LSP client ext
 
 ## REPL and Jupyter
 
-A closer look at the REPL (`rok` or `rok repl`) from Chapter 1. Each cell runs once, and top-level `let` bindings and `fn` / `struct` definitions carry over to later cells. An expression cell shows `type: value`; a `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. Unlike regular source, you can `let` the same name again, and redefining an `fn` replaces it. A cell that errors leaves no trace.
+A closer look at the REPL (`rok` or `rok repl`) from chapter 1. Each cell runs once, and top-level `let` bindings and `fn` / `struct` definitions carry over to later cells. An expression cell shows `type: value`; a `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. Unlike regular source, you can `let` the same name again, and redefining an `fn` replaces it. A cell that errors leaves no trace.
 
 ```text
 $ rok repl

@@ -9,7 +9,7 @@ Which of these need a `use`? Everything in `rok::core` is always in scope: `task
 
 ## Threads
 
-`rok::std::thread::spawn` runs a closure on a new OS thread and returns a `JoinHandle`. `join()` waits for that thread to finish and takes out the closure's return value. If the thread ended in a panic, it throws `JoinError`, so we add `try`.
+`rok::std::thread::spawn` runs a closure on a new OS thread and returns a `JoinHandle`. `join()` waits for that thread to finish and takes out the closure's return value. If the thread ended in a panic, it throws `JoinError`, so the example adds `try`.
 
 ```rok
 use rok::std::thread;
@@ -36,7 +36,7 @@ println(try named.join());
 worker
 ```
 
-Because we `join` only after creating all the handles, the four threads run concurrently. Results are collected in handle order, so the output order is fixed.
+Because the example joins only after creating all the handles, the four threads run concurrently. Results are collected in handle order, so the output order is fixed.
 
 ## Channels
 

@@ -213,7 +213,7 @@ struct Site
 
 ## Reading and writing configuration files
 
-Combined with `fs` from Chapter 13, this handles configuration files. The program that builds this site does exactly that: it reads `site.rokon` from the site repository into a `#[derive(Rokon)] struct Site`, and fields with defaults can be omitted from the file.
+Combined with `fs` from chapter 13, this handles configuration files. The program that builds this site does exactly that: it reads `site.rokon` from the site repository into a `#[derive(Rokon)] struct Site`, and fields with defaults can be omitted from the file.
 
 The example below writes a configuration to a temporary file, reads it, modifies it, and writes it back. `load` can throw both `IoError` and `RokonError`, and the caller catches each kind separately.
 

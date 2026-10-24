@@ -179,7 +179,7 @@ rok yank --vers 0.1.0 --undo
 - Optional dependencies (`optional: true`) are built only when a feature enables them.
 - Choose features with `--features`, `--no-default-features`, `--all-features`, and per dependency with `features:` / `default_features: false`. Features are unified across the build, so they must only add.
 - Code tests them with `#[cfg(feature = "..")]` and `cfg!(feature = "..")`.
-- `json`, `toml`, `http` and `markdown` are the rok project's stones.
+- `json`, `toml`, `http`, `markdown` and `rok-syntax` are the rok project's stones.
 - Publish with `rok login` (a rokstones.io token), `rok publish` (dry run) and `rok publish --commit`; withdraw with `rok yank`. Publishing is open to maintainers only for now.
 
 ## Further reading

@@ -288,3 +288,4 @@ Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once
 - Spec: [String literals and f-strings](../spec/refs-lang/001-lexical/107-string-literals.html), [Character literals](../spec/refs-lang/001-lexical/108-character-literals.html), [Byte strings](../spec/refs-lang/001-lexical/107-string-literals.html#175-byte-strings), [File embedding](../spec/refs-lang/006-meta-system/611-include.html)
 - Standard library spec: [fmt](../spec/refs-standard-libraries/200-core/210-fmt.html), [Strings](../spec/refs-standard-libraries/200-core/215-string.html)
 - API: [`str` methods](../std/core/str.html#impl.str), [`StrBuf`](../std/core/str.html#struct.StrBuf), [`Display`](../std/core/fmt.html#trait.Display), [`Formatter`](../std/core/fmt.html#struct.Formatter)
+- Next chapter: [10. Error Handling](10-errors.html)

@@ -208,3 +208,4 @@ for (x, y) in points {
 - [Loop expressions](../spec/refs-lang/003-expressions/313-loop-expressions.html), [range expressions](../spec/refs-lang/003-expressions/307-range-expressions.html), [labeled blocks](../spec/refs-lang/003-expressions/309-block-expressions.html)
 - [Destructuring assignment](../spec/refs-lang/003-expressions/315-destructuring.html), [`let-else`](../spec/refs-lang/003-expressions/316-let-else.html)
 - [`is` and type tests on slots](../spec/refs-lang/002-types/202-any-slot.html), [sum types](../spec/refs-lang/002-types/206-sum-types.html)
+- Next chapter: [5. Sum Types and none](05-sum-types.html)

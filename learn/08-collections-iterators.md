@@ -272,9 +272,9 @@ println(f"{c:?} {d:?} {r:?}");
 
 ## Further reading
 
-- Next chapter: [9. Strings and f-strings](09-strings.html)
 - [stdlib 2.9. Collections](../spec/refs-standard-libraries/200-core/209-collections.html), [Reference handles](../spec/refs-standard-libraries/200-core/209-collections.html#reference-handles)
 - [3.6. Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)
 - [stdlib 2.7. iter](../spec/refs-standard-libraries/200-core/207-iter.html), [4.11. Generators](../spec/refs-lang/004-functions/411-generators.html)
 - [3.3. Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html), [stdlib 2.6. broadcast](../spec/refs-standard-libraries/200-core/206-broadcast.html)
 - API: [`List`](../std/core/collections/list.html#struct.List), [`Dict`](../std/core/collections/dict.html#struct.Dict), [`Set`](../std/core/collections/set.html#struct.Set), [`OrderedDict`](../std/core/collections/ordered_dict.html#struct.OrderedDict), [`OrderedSet`](../std/core/collections/ordered_set.html#struct.OrderedSet), [`Deque`](../std/core/collections/deque.html#struct.Deque), [`Slice`](../std/core/collections/slice.html#struct.Slice), [`Iterator`](../std/core/iter.html#trait.Iterator), [`GenIter`](../std/core/iter.html#struct.GenIter)
+- Next chapter: [9. Strings and f-strings](09-strings.html)

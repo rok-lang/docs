@@ -639,7 +639,7 @@ println(f"{compute()}");
 
 ## Further reading
 
-- Next chapter: [13. File and Network IO](13-io.html)
 - Spec: [Async (`async` / `await`)](../spec/refs-lang/004-functions/412-async.html), [Operator precedence](../spec/refs-lang/003-expressions/302-precedence-and-associativity.html), [Streams](../spec/refs-lang/004-functions/413-stream.html), [`using`](../spec/refs-lang/003-expressions/317-using-expression.html), [Captures across threads](../spec/refs-lang/004-functions/406-capture-semantics.html), [`static`](../spec/refs-lang/005-modules/503-static.html)
 - Standard library spec: [sync](../spec/refs-standard-libraries/200-core/216-sync.html), [channel](../spec/refs-standard-libraries/200-core/217-channel.html), [task](../spec/refs-standard-libraries/200-core/218-task.html), [par](../spec/refs-standard-libraries/200-core/219-par.html)
 - API: [`thread::spawn`](../std/std/thread.html#fn.spawn), [`task::spawn`](../std/core/task.html#fn.spawn), [`task::join`](../std/core/task.html#fn.join), [`channel`](../std/core/channel.html#fn.channel), [`Mutex`](../std/core/sync.html#struct.Mutex), [`Atomic`](../std/core/sync.html#struct.Atomic), [`par::map`](../std/core/par.html#fn.map), [`par::scope`](../std/core/par.html#fn.scope)
+- Next chapter: [13. File and Network IO](13-io.html)

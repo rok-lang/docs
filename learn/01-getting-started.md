@@ -224,11 +224,10 @@ List<i32>
 - The top-level statements of `src/main.rok` are the program. You can also use `fn main()`.
 - `rok run file.rok` runs a script; `rok` alone starts the REPL.
 
-The next chapter, [2. Values and Types](02-values-and-types.html), covers variables and basic types.
-
 ## Further reading
 
 - [Install layout](../spec/refs-lang/009-tools/902-aot-pipeline.html#9219-installation-layout), [pinning the toolchain](../spec/refs-lang/009-tools/910-rok-frontend.html#9106-toolchain)
 - [`rok` front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [`rokc` CLI](../spec/refs-lang/009-tools/901-rokc-cli.html)
 - [Entry point](../spec/refs-lang/004-functions/416-entry-point.html)
 - [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html)
+- Next chapter: [2. Values and Types](02-values-and-types.html)

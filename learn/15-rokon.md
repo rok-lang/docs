@@ -276,6 +276,6 @@ Notice also that rewriting with `to_string` drops comments. Files that people ed
 
 ## Further reading
 
-- Next chapter: [16. Tools](16-tools.html)
 - Spec: [3.9 ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html), [Field defaults](../spec/refs-lang/002-types/203-struct.html#233-field-default-values), [The rok.rokon manifest](../spec/refs-lang/009-tools/910-rok-frontend.html)
 - API: [rok::std::rokon](../std/std/rokon.html)
+- Next chapter: [16. Tools](16-tools.html)

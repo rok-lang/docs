@@ -266,11 +266,10 @@ println(f"{shifted(1)} {scale(base, 3)}");
 - A function value has type `fn(A) -> R`. A closure in the last argument position can be written in trailing form.
 - A top-level `let` is a local of the implicit `main`, so other functions cannot see it.
 
-The next chapter, [4. Control Flow](04-control-flow.html), covers `if`, `match`, and loops.
-
 ## Further reading
 
 - [Function declarations](../spec/refs-lang/004-functions/401-function-declaration.html), [parameters](../spec/refs-lang/004-functions/402-parameters.html), [return](../spec/refs-lang/004-functions/403-return.html)
 - [Function types](../spec/refs-lang/004-functions/404-function-type.html), [closures](../spec/refs-lang/004-functions/405-closure.html), [capture semantics](../spec/refs-lang/004-functions/406-capture-semantics.html)
 - [Trailing closures](../spec/refs-lang/004-functions/408-trailing-closure.html), [methods](../spec/refs-lang/004-functions/409-method.html), [nested functions](../spec/refs-lang/004-functions/410-nested-functions.html)
 - [Entry point](../spec/refs-lang/004-functions/416-entry-point.html), [block expressions](../spec/refs-lang/003-expressions/309-block-expressions.html)
+- Next chapter: [4. Control Flow](04-control-flow.html)

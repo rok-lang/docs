@@ -347,7 +347,7 @@ for n in [4, 5] {
 
 ## Further reading
 
-- Next chapter: [11. Modules and Packages](11-modules-packages.html)
 - Spec: [Error control flow](../spec/refs-lang/003-expressions/314-error-control-flow.html), [`throws` signatures](../spec/refs-lang/004-functions/414-throws.html), [`using` expressions](../spec/refs-lang/003-expressions/317-using-expression.html), [Panics and fatal errors](../spec/refs-lang/003-expressions/314-error-control-flow.html#3148-panics-and-fatal-errors)
 - Standard library spec: [error](../spec/refs-standard-libraries/200-core/214-error.html)
 - API: [`Error`](../std/core/error.html#trait.Error), [`ValueError`](../std/core/error.html#struct.ValueError), [`Result`](../std/core/error.html#enum.Result), [`Drop`](../std/core/marker.html#trait.Drop)
+- Next chapter: [11. Modules and Packages](11-modules-packages.html)

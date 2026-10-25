@@ -296,8 +296,6 @@ welcome: 58 seats left
 - `[...]` is a `List`; with a `[T; N]` type it is a fixed array. Print a `List` with `{:?}`.
 - `int` is an unbounded integer; `const` is a compile-time constant.
 
-The next chapter, [3. Functions](03-functions.html), covers functions and closures.
-
 ## Further reading
 
 - [Variable declarations](../spec/refs-lang/005-modules/501-variable-declaration.html), [`const`](../spec/refs-lang/005-modules/502-const.html)
@@ -305,3 +303,4 @@ The next chapter, [3. Functions](03-functions.html), covers functions and closur
 - [Casts and conversions](../spec/refs-lang/002-types/214-cast-and-conversion.html), [type expressions](../spec/refs-lang/002-types/201-type-expressions.html)
 - [Numeric types and `int`](../spec/refs-standard-libraries/200-core/201-numbers.html), [formatted output](../spec/refs-standard-libraries/200-core/210-fmt.html)
 - Standard library API: [`str`](../std/core/str.html), [`List`](../std/core/collections/list.html)
+- Next chapter: [3. Functions](03-functions.html)

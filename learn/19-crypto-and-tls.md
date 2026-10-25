@@ -196,4 +196,4 @@ server read 4 bytes, SNI localhost
 - Standard library spec: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `crypto::random`](../spec/refs-standard-libraries/300-std/310-crypto.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13---nettls)
 - API: [rok::core::crypto](../std/core/crypto.html), [rok::std::net::tls](../std/std/net/tls.html)
 - [Examples](../examples/index.html)
-- Next: [20. How Do I...](20-cookbook.html), short recipes for everyday tasks
+- Next chapter: [20. How Do I...](20-cookbook.html)

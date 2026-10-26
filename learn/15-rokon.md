@@ -1,6 +1,6 @@
 # 15. ROKON
 
-This chapter shows how to read and write configuration files in ROKON (Rok Object Notation), rok's data format. There is no new syntax to learn: a ROKON file uses the same literal syntax you write values with in rok source. The package manifest `rok.rokon` uses this format too.
+This chapter shows how to read and write configuration files in ROKON (Rok Object Notation), Rok's data format. There is no new syntax to learn: a ROKON file uses the same literal syntax you write values with in Rok source. The package manifest `rok.rokon` uses this format too.
 
 ## The format at a glance
 
@@ -267,7 +267,7 @@ Notice also that rewriting with `to_string` drops comments. Files that people ed
 
 ## Summary
 
-- ROKON is a data format that uses rok literal syntax as is; the file extension is `.rokon`.
+- ROKON is a data format that uses Rok literal syntax as is; the file extension is `.rokon`.
 - Add `#[derive(Rokon)]`, read with `rokon::from_str`, write with `rokon::to_string`.
 - A missing field takes its `= default`, or `none` if its type is `T | none`; otherwise it is an error. Unknown fields are errors too.
 - Error messages have the form `line:column: description`.

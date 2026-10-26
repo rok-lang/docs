@@ -160,7 +160,7 @@ A * I == A: true
 
 ## Walkthrough
 
-- Every operator in rok is a trait method call. With `impl Add for Matrix`, `a + a` desugars to `Add::add(a, a)` ([3.1 Operator dispatch](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../std/core/ops.html#trait.Add), [`Mul`](../std/core/ops.html#trait.Mul)).
+- Every operator in Rok is a trait method call. With `impl Add for Matrix`, `a + a` desugars to `Add::add(a, a)` ([3.1 Operator dispatch](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../std/core/ops.html#trait.Add), [`Mul`](../std/core/ops.html#trait.Mul)).
 - The same operator can be implemented several times with different right-hand types. `impl Mul for Matrix` is the matrix product and `impl Mul<f64> for Matrix` is scalar multiplication; the compiler picks the impl from the operand types.
 - Dot-prefixed operators such as `.*` desugar to a separate trait family for element-wise operations ([`DotMul`](../std/core/ops.html#trait.DotMul)), so the matrix product `*` and the Hadamard product `.*` can live side by side ([3.3 Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
 - Comma indices are grouped into a tuple, so reading `m[i, j]` goes through [`Index<(usize, usize)>`](../std/core/index.html#trait.Index) and writing `m[i, j] = v` through [`IndexSet`](../std/core/index.html#trait.IndexSet). The write method takes `ref self` to modify the matrix in place ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).

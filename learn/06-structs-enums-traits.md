@@ -316,7 +316,7 @@ false
 
 ## Traits are not types
 
-In rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
+In Rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
 
 ```text
 error[E200]: trait `Animal` cannot be used as a type directly - use a closed sum (`A | B`)

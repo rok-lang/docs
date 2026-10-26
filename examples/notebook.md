@@ -1,6 +1,6 @@
 # Exploring data in a Jupyter notebook
 
-Install the rok kernel in Jupyter and explore temperature data cell by cell, alongside a single runnable program that does the same work.
+Install the Rok kernel in Jupyter and explore temperature data cell by cell, alongside a single runnable program that does the same work.
 
 In a notebook you work step by step: one cell loads the data, another defines functions, another checks the results. The program below is those cells joined in order from top to bottom. From four weeks of daily highs it computes summary statistics, weekly averages and a text histogram.
 
@@ -99,7 +99,7 @@ histogram:
 
 ## Running it
 
-First register the rok kernel with Jupyter. `rok jupyter install` writes the kernelspec (`kernels/rok/kernel.json`) into the Jupyter data directory (`~/Library/Jupyter` on macOS, `~/.local/share/jupyter` elsewhere) ([9.8.3 Installing the kernelspec](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-installation)).
+First register the Rok kernel with Jupyter. `rok jupyter install` writes the kernelspec (`kernels/rok/kernel.json`) into the Jupyter data directory (`~/Library/Jupyter` on macOS, `~/.local/share/jupyter` elsewhere) ([9.8.3 Installing the kernelspec](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-installation)).
 
 ```bash
 rok jupyter install

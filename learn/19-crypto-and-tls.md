@@ -1,6 +1,6 @@
 # 19. Cryptography and TLS
 
-rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, HMAC and HKDF, authenticated encryption, key exchange, signatures), `rok::std::crypto::random` reads the operating system's secure random source, and `rok::std::net::tls` is a TLS 1.3 client and server built on the two. No OpenSSL or other system library is involved, so the same code behaves the same on every target.
+Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, HMAC and HKDF, authenticated encryption, key exchange, signatures), `rok::std::crypto::random` reads the operating system's secure random source, and `rok::std::net::tls` is a TLS 1.3 client and server built on the two. No OpenSSL or other system library is involved, so the same code behaves the same on every target.
 
 > [!WARNING]
 > This code is new and has not been audited. It is tested against the published test vectors and written to run in constant time on secret data, but it has not had the independent review that cryptography needs before you trust it with real secrets. Use it to learn and to experiment, and keep an audited library for anything that matters for now.

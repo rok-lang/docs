@@ -1,6 +1,6 @@
 # 4. Control Flow
 
-This chapter covers branching (`if`, `match`), looping (`while`, `for`, `loop`), and destructuring. The key point is that `if`, `match`, and `loop` in rok are all expressions that produce values.
+This chapter covers branching (`if`, `match`), looping (`while`, `for`, `loop`), and destructuring. The key point is that `if`, `match`, and `loop` in Rok are all expressions that produce values.
 
 ## `if` is an expression
 

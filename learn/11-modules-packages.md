@@ -1,6 +1,6 @@
 # 11. Modules and Packages
 
-As a program grows, you need to split the code up and use libraries written by other people. In rok, the unit for dividing code is the **module**, and the unit for building and distributing is the **package**. A package published to the registry is called a **stone**.
+As a program grows, you need to split the code up and use libraries written by other people. In Rok, the unit for dividing code is the **module**, and the unit for building and distributing is the **package**. A package published to the registry is called a **stone**.
 
 ## `mod` and paths
 
@@ -247,7 +247,7 @@ Package { name: "app", version: "0.1.0", deps: {
 
 A path is not a version: write `Dep::path("../geom")`, not `"../geom"`.
 
-A library can offer **features** that its users turn on and off, and you can publish your own library as a stone with `rok login` and `rok publish`. Both are covered in [chapter 18](18-features-and-stones.html), together with the stones the rok project maintains (`json`, `toml`, `http`, `markdown`, `rok-syntax`).
+A library can offer **features** that its users turn on and off, and you can publish your own library as a stone with `rok login` and `rok publish`. Both are covered in [chapter 18](18-features-and-stones.html), together with the stones the Rok project maintains (`json`, `toml`, `http`, `markdown`, `rok-syntax`).
 
 ## Single-file scripts and environments
 

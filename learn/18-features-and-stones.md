@@ -1,6 +1,6 @@
 # 18. Features and Stones
 
-[Chapter 11](11-modules-packages.html) built a package and added dependencies. This chapter goes further: **features**, which let the users of a library turn parts of it on and off; the stones the rok project maintains; and publishing your own library to [rokstones.io](https://rokstones.io).
+[Chapter 11](11-modules-packages.html) built a package and added dependencies. This chapter goes further: **features**, which let the users of a library turn parts of it on and off; the stones the Rok project maintains; and publishing your own library to [rokstones.io](https://rokstones.io).
 
 ## Defining features
 
@@ -87,9 +87,9 @@ Features are **unified**: each package has one feature set for the whole build, 
 
 The lockfile pins every package of the graph, optional ones included, so switching features never changes `rok.lock`.
 
-## The rok stones
+## The Rok stones
 
-The rok project maintains a few libraries as stones of their own, outside the standard library. Each is pure rok with no dependencies beyond `rok::std`.
+The Rok project maintains a few libraries as stones of their own, outside the standard library. Each is pure Rok with no dependencies beyond `rok::std`.
 
 | Stone      | What it is                                                                    |
 |------------|-------------------------------------------------------------------------------|
@@ -97,7 +97,7 @@ The rok project maintains a few libraries as stones of their own, outside the st
 | `toml`     | TOML 1.1.0: a `Value` tree with typed date-times, a parser with `line:col` errors, a writer, typed encode / decode with `#[derive(Toml)]` |
 | `http`     | HTTP/1.1 and HTTP/2 client and server: strict parsing, HPACK, streaming bodies, connection pooling, `https` over std's TLS. Features `http1`, `http2`, `tls`, all on by default |
 | `markdown` | CommonMark plus GitHub extensions (tables, callouts, footnotes, heading anchors) to HTML. It renders this site |
-| `rok-syntax` | A tokenizer and HTML highlighter for rok and ROKON source. It highlights the code on this site |
+| `rok-syntax` | A tokenizer and HTML highlighter for Rok and ROKON source. It highlights the code on this site |
 
 `json` and `toml` follow the shape of std's [`rokon`](15-rokon.html) module: `parse` / `to_string` / `from_str` / `encode` / `decode`, and a derive for your own types.
 
@@ -179,7 +179,7 @@ rok yank --vers 0.1.0 --undo
 - Optional dependencies (`optional: true`) are built only when a feature enables them.
 - Choose features with `--features`, `--no-default-features`, `--all-features`, and per dependency with `features:` / `default_features: false`. Features are unified across the build, so they must only add.
 - Code tests them with `#[cfg(feature = "..")]` and `cfg!(feature = "..")`.
-- `json`, `toml`, `http`, `markdown` and `rok-syntax` are the rok project's stones.
+- `json`, `toml`, `http`, `markdown` and `rok-syntax` are the Rok project's stones.
 - Publish with `rok login` (a rokstones.io token), `rok publish` (dry run) and `rok publish --commit`; withdraw with `rok yank`. Publishing is open to maintainers only for now.
 
 ## Further reading

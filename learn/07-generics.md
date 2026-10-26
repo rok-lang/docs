@@ -1,6 +1,6 @@
 # 7. Generics
 
-Use generics when you want the same logic to work for many types. rok generics are compiled separately for each concrete type they're called with (monomorphization), so they run as fast as hand-written per-type functions.
+Use generics when you want the same logic to work for many types. Rok generics are compiled separately for each concrete type they're called with (monomorphization), so they run as fast as hand-written per-type functions.
 
 ## Generic functions
 

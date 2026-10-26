@@ -1,6 +1,6 @@
 # 17. Conditional Compilation
 
-One source tree often has to build in several shapes: per operating system, debug against release, with or without an optional feature. rok decides this at compile time with `#[cfg(..)]`. Code whose condition is false is removed right after parsing, as if it had never been written, so it costs nothing at run time and may even refer to names that do not exist in that build.
+One source tree often has to build in several shapes: per operating system, debug against release, with or without an optional feature. Rok decides this at compile time with `#[cfg(..)]`. Code whose condition is false is removed right after parsing, as if it had never been written, so it costs nothing at run time and may even refer to names that do not exist in that build.
 
 ## Conditions
 

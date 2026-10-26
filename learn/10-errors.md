@@ -1,6 +1,6 @@
 # 10. Error Handling
 
-Things that can fail, like a missing file or bad input, are everywhere. rok has a single error model. A function that can throw writes `throws` in its signature, and the caller marks that call with `try`. As a result, every point where an error can flow is visible in the code.
+Things that can fail, like a missing file or bad input, are everywhere. Rok has a single error model. A function that can throw writes `throws` in its signature, and the caller marks that call with `try`. As a result, every point where an error can flow is visible in the code.
 
 ## `throws`, `throw`, and `try`
 

@@ -3,7 +3,7 @@
 Encrypt a message so only its recipient can read it, and sign it so the recipient knows who sent it, with nothing but `rok::core::crypto` and the OS random source.
 
 > [!WARNING]
-> rok's cryptography is new and unaudited. This program shows how the pieces fit; do not protect real secrets with it yet.
+> Rok's cryptography is new and unaudited. This program shows how the pieces fit; do not protect real secrets with it yet.
 
 ## Code
 

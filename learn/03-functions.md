@@ -1,6 +1,6 @@
 # 3. Functions
 
-This chapter covers declaring and calling functions, default values and named arguments, and closures you can pass around as values. In rok, a function body is also a block expression, so its last expression is the return value.
+This chapter covers declaring and calling functions, default values and named arguments, and closures you can pass around as values. In Rok, a function body is also a block expression, so its last expression is the return value.
 
 ## Declarations and return values
 

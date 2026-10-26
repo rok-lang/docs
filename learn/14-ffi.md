@@ -1,6 +1,6 @@
 # 14. FFI Basics
 
-This chapter shows how to call functions written in C from rok, and how to hand rok functions to C. Operating systems and countless libraries expose their functionality through the C ABI, so knowing FFI (foreign function interface) lets you use features the standard library does not provide.
+This chapter shows how to call functions written in C from Rok, and how to hand Rok functions to C. Operating systems and countless libraries expose their functionality through the C ABI, so knowing FFI (foreign function interface) lets you use features the standard library does not provide.
 
 All examples really run against libc on macOS / Linux.
 
@@ -26,7 +26,7 @@ abs: 42
 pid positive: true
 ```
 
-Write C types as primitive types of the same size: `int` is `i32`, `size_t` is `usize`, `double` is `f64`. A `str` parameter is passed as a NUL-terminated `char*`; rok makes a NUL-terminated copy when needed.
+Write C types as primitive types of the same size: `int` is `i32`, `size_t` is `usize`, `double` is `f64`. A `str` parameter is passed as a NUL-terminated `char*`; Rok makes a NUL-terminated copy when needed.
 
 `extern` blocks may only appear at module top level, and must name the ABI string (`"C"`).
 
@@ -42,11 +42,11 @@ error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe 
    |            ^^^^^^^
 ```
 
-An `unsafe` block says "I guarantee safety here." Good practice is to keep these blocks small and wrap dangerous calls in safe rok functions, so only a safe API is visible from outside.
+An `unsafe` block says "I guarantee safety here." Good practice is to keep these blocks small and wrap dangerous calls in safe Rok functions, so only a safe API is visible from outside.
 
 ## C characters and nullable pointers
 
-A C `char` is one byte; in rok it is the `c_char` type with `c'A'` literals. It is a different type from the Unicode `char` (`'A'`), so code touching the FFI boundary stands out.
+A C `char` is one byte; in Rok it is the `c_char` type with `c'A'` literals. It is a different type from the Unicode `char` (`'A'`), so code touching the FFI boundary stands out.
 
 ```rok
 extern "C" {
@@ -103,7 +103,7 @@ hello
 No such file or directory
 ```
 
-For a function that never returns NULL, such as `strerror`, declare the return type as `str` and rok measures the length with `strlen` and converts it to a string.
+For a function that never returns NULL, such as `strerror`, declare the return type as `str` and Rok measures the length with `strlen` and converts it to a string.
 
 ## Pointers and memory: `rok::bare::ptr`
 
@@ -153,7 +153,7 @@ println(f"17 / 5 = {r.quot} rem {r.rem}");
 
 ## Callbacks: `extern "C" fn`
 
-For C functions that take a function pointer, such as `qsort`, compile a rok function with the C ABI and pass it. Just put `extern "C"` before the function definition. Such a function is not a closure, so it cannot capture surrounding variables, and its parameters and return type must be FFI-compatible (integers, floats, pointers, `#[repr(C)]` structs).
+For C functions that take a function pointer, such as `qsort`, compile a Rok function with the C ABI and pass it. Just put `extern "C"` before the function definition. Such a function is not a closure, so it cannot capture surrounding variables, and its parameters and return type must be FFI-compatible (integers, floats, pointers, `#[repr(C)]` structs).
 
 ```rok
 use rok::bare::ptr::{Ptr, ConstPtr, size_of};
@@ -187,7 +187,7 @@ println(f"{sorted:?}");
 
 `str` is not an FFI type, so it cannot be a parameter of an `extern "C" fn`. The compiler tells you to use a `Ptr<u8>` and a length instead.
 
-To let C find a rok function by name, set its symbol name with `#[export_name]`. The example below declares that symbol again as a C function in the same program and calls it.
+To let C find a Rok function by name, set its symbol name with `#[export_name]`. The example below declares that symbol again as a C function in the same program and calls it.
 
 ```rok
 #[export_name("rok_add")]

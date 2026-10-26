@@ -72,7 +72,7 @@ println(f"{got:?}");
 ["w0-0", "w0-1", "w1-0", "w1-1", "w2-0", "w2-1"]
 ```
 
-rok values are managed by the GC, so a `Sender` is not closed automatically when it goes out of scope. The side that has finished sending must call `close()` itself for the receiver to know it is done. To bound the channel's capacity, use `channel_bounded(n)`.
+Rok values are managed by the GC, so a `Sender` is not closed automatically when it goes out of scope. The side that has finished sending must call `close()` itself for the receiver to know it is done. To bound the channel's capacity, use `channel_bounded(n)`.
 
 ## `Mutex` and `Atomic`
 
@@ -154,7 +154,7 @@ Each `get` copies the collections inside the value, so keep big read-only parts 
 
 This section is about the rule the compiler enforces when a value moves between threads. You can skim it on a first read and come back when the compiler points you here.
 
-`Mutex::new(xs)`, `RwLock::new(xs)` and `tx.send(xs)` *hand `xs` over*: from then on it belongs to the lock or to the receiver. rok has no move semantics, so the compiler tracks hand-offs instead: using `xs` afterwards is a compile error, because it would race with whoever owns it now. The check follows the value through copies (`let ys = xs`), struct fields, the objects that hold it, the elements of collections, closure captures and function calls.
+`Mutex::new(xs)`, `RwLock::new(xs)` and `tx.send(xs)` *hand `xs` over*: from then on it belongs to the lock or to the receiver. Rok has no move semantics, so the compiler tracks hand-offs instead: using `xs` afterwards is a compile error, because it would race with whoever owns it now. The check follows the value through copies (`let ys = xs`), struct fields, the objects that hold it, the elements of collections, closure captures and function calls.
 
 ```rok norun
 let xs = [1, 2, 3];

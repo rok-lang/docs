@@ -1,6 +1,6 @@
 # 2. Values and Types
 
-This chapter covers `let` for declaring variables, basic types such as numbers and strings, and tuples and lists for grouping values. rok is statically typed, but most types are inferred, so you rarely write them out.
+This chapter covers `let` for declaring variables, basic types such as numbers and strings, and tuples and lists for grouping values. Rok is statically typed, but most types are inferred, so you rarely write them out.
 
 ## `let` and reassignment
 
@@ -77,7 +77,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 
 ## No implicit conversions: `as`
 
-rok never mixes different numeric types automatically. Adding an `i32` and an `i64` is an error.
+Rok never mixes different numeric types automatically. Adding an `i32` and an `i64` is an error.
 
 ```text
 error[E200]: operator `+` cannot be applied to `i32` and `i64`

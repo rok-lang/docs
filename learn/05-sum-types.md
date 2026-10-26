@@ -1,6 +1,6 @@
 # 5. Sum Types and none
 
-When a value is "either this or that", rok joins the types with `|`, as in `A | B`. This chapter covers sum types and the tools for working with the most common one, `T | none`, which means "there may be no value".
+When a value is "either this or that", Rok joins the types with `|`, as in `A | B`. This chapter covers sum types and the tools for working with the most common one, `T | none`, which means "there may be no value".
 
 ## Sum types `A | B`
 
@@ -49,7 +49,7 @@ println(f"{half(7)} {half(1.5)}");
 
 ## `none` and `T?`
 
-`none` is the literal for "no value". Where other languages use `Option<T>` or `null`, rok uses the sum type `T | none`, written `T?` for short. There is no `Some(..)` wrapper, so you return the value as is.
+`none` is the literal for "no value". Where other languages use `Option<T>` or `null`, Rok uses the sum type `T | none`, written `T?` for short. There is no `Some(..)` wrapper, so you return the value as is.
 
 ```rok
 fn find(xs: List<i32>, target: i32) -> usize? {

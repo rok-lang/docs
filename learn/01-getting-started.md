@@ -12,7 +12,7 @@ In this chapter you install the rok toolchain, create and run your first package
 - Linux: nothing. The toolchain and the programs it builds need glibc 2.34 or later (Ubuntu 22.04, Debian 12, RHEL 9 and newer).
 - Windows: nothing.
 
-Release archives are built for macOS arm64, Linux x86_64 and arm64 (both glibc and static musl), and Windows x86_64. Other hosts, such as macOS x86_64 and Windows arm64, have no release archive yet; build rok from source.
+Release archives are built for macOS arm64, Linux x86_64 and arm64 (both glibc and static musl), and Windows x86_64. Other hosts, such as macOS x86_64 and Windows arm64, have no release archive yet; build Rok from source.
 
 ### Install script
 

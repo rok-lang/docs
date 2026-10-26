@@ -107,7 +107,7 @@ bench result: ok. 1 measured; 0 failed; 0 filtered out; finished in 0.36s
 
 ## `rok fmt`: the formatter
 
-`rok fmt` rewrites the package's `.rok` and `.rokon` files into the standard format. rok's formatter is deliberately conservative: it **leaves tokens, spacing within a line, and comments alone**, and only fixes indentation (4 spaces per bracket depth), trailing whitespace, and runs of blank lines. So the formatter never changes the meaning of code or alignment a person set up by hand.
+`rok fmt` rewrites the package's `.rok` and `.rokon` files into the standard format. Rok's formatter is deliberately conservative: it **leaves tokens, spacing within a line, and comments alone**, and only fixes indentation (4 spaces per bracket depth), trailing whitespace, and runs of blank lines. So the formatter never changes the meaning of code or alignment a person set up by hand.
 
 Checking a `fib` with messed-up indentation, mixed tabs, and trailing whitespace using `--check` leaves the file untouched, shows the lines that would change, and exits with code 1. This mode is a good fit for CI.
 
@@ -302,7 +302,7 @@ define i32 @_Y2cfee941__square_(i32 %0) {
 define void @_Y2cfee941__main_() {
 ```
 
-Names starting with `_Y` are rok's mangled symbols. When you meet one in a debugger or profiler, decode it with `rokc demangle`.
+Names starting with `_Y` are Rok's mangled symbols. When you meet one in a debugger or profiler, decode it with `rokc demangle`.
 
 ```text
 $ rokc demangle _Y2cfee941__square_
@@ -331,6 +331,6 @@ $ rokc --print lldbinit >> ~/.lldbinit      # or load them every time
 
 ## Further reading
 
-- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
+- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [Rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
 - API: [assert functions in rok::core](../std/core/panic.html)
 - Next chapter: [17. Conditional Compilation](17-conditional-compilation.html)

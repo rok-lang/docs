@@ -240,7 +240,7 @@ let path = (env::temp_dir() / f"rok_learn15_{env::pid()}.rokon").as_str();
 try! fs::write(path, r#"// Site configuration
 Site {
     title: "rok",
-    tagline: "small language, rich library",
+    tagline: "statically typed, rich library",
 }
 "#);
 let site = try! load(path);
@@ -258,7 +258,7 @@ try load(path) catch e: IoError { println(f"missing: {e.kind():?}"); };
 
 ```output
 rok -> public
-Site { title: "rok", tagline: "small language, rich library", spec: "../spec/ko", out: "dist" }
+Site { title: "rok", tagline: "statically typed, rich library", spec: "../spec/ko", out: "dist" }
 bad config: 1:15: expected str, found integer
 missing: NotFound
 ```

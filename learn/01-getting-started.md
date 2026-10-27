@@ -36,7 +36,7 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.0-aarch64-apple-darwin/
+    └── 0.1.1-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -71,7 +71,7 @@ Three executables are installed.
 
 ```bash
 rok toolchain list                     # installed toolchains
-rok toolchain default 0.1.0            # change the default
+rok toolchain default 0.1.1            # change the default
 rok toolchain install 0.2.0 --from rok-0.2.0-aarch64-apple-darwin.tar.gz
 rok toolchain update                   # download the latest release and make it the default
 ```
@@ -203,13 +203,15 @@ Scripts can use dependencies too: `rok add json hi.rok` writes them into a `//!`
 
 ## REPL
 
-Running `rok` with no arguments opens the REPL. Enter an expression and it shows the value and type; a `let` just defines the name.
+Running `rok` with no arguments opens the REPL. Enter an expression and it prints the value; end it with `?` to print the `Debug` form instead. A value with no `Display` prints only its type, and a `let` just defines the name.
 
 ```text
 $ rok
 > let xs = [1, 2, 3];
 > xs.len() * 2
-usize: 6
+6
+> xs?
+[1, 2, 3]
 > :type xs
 List<i32>
 > :quit

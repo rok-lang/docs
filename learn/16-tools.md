@@ -232,25 +232,26 @@ In other editors such as VS Code, register `rokls` with a generic LSP client ext
 
 ## REPL and Jupyter
 
-A closer look at the REPL (`rok` or `rok repl`) from chapter 1. Each cell runs once, and top-level `let` bindings and `fn` / `struct` definitions carry over to later cells. An expression cell shows `type: value`; a `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. Unlike regular source, you can `let` the same name again, and redefining an `fn` replaces it. A cell that errors leaves no trace.
+A closer look at the REPL (`rok` or `rok repl`) from chapter 1. Each cell runs once, and top-level `let` bindings and `fn` / `struct` definitions carry over to later cells. An expression cell prints its value with `Display`; end it with `?` to print the `Debug` form instead, and a value with no `Display` prints only its type. A `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. Unlike regular source, you can `let` the same name again, and redefining an `fn` replaces it. A cell that errors leaves no trace.
 
 ```text
 $ rok repl
 > let xs = [3, 1, 2];
 > xs.len()
-usize: 3
-> xs.sort(); xs
-List<i32>: [1, 2, 3]
+3
+> xs.sort(); xs?
+[1, 2, 3]
 > :type xs
 List<i32>
 > fn twice(x: i32) -> i32 { x * 2 }
 > twice(21)
-i32: 42
+42
 > :quit
 ```
 
 | Command | What it does |
 |------|---------|
+| `expr?` | Print the `Debug` form instead of `Display` |
 | `:type expr` | Print the type without evaluating |
 | `:reset` | Forget all cells and start over |
 | `:add name`, `:add name --path path` | Add a dependency to the current session (installed into the environment, or added to the package; never into a script) |

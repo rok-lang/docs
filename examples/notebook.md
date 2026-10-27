@@ -108,7 +108,7 @@ jupyter lab            # pick the "rok" kernel in a new notebook
 
 To keep a separate kernel per environment, install with `rok jupyter install --env <name>`. That creates another kernel shown as `rok (<name>)`.
 
-In the notebook, the program above runs split into a few cells. The last expression of a cell is its result and is shown as `type: value`.
+In the notebook, the program above runs split into a few cells. The last expression of a cell is its result and is shown with `Display`; end it with `?` to see the `Debug` form.
 
 ```text
 In [1]:  let temps: List<f64> = [12.5, 14.0, 13.2, 15.8, 17.1, 16.4, 18.9,
@@ -116,7 +116,7 @@ In [1]:  let temps: List<f64> = [12.5, 14.0, 13.2, 15.8, 17.1, 16.4, 18.9,
                                  20.8, 19.4, 21.6, 23.9, 25.2, 26.0, 24.4,
                                  22.1, 20.5, 18.7, 17.9, 19.2, 21.3, 22.8];
          temps.len()
-Out[1]:  usize: 28
+Out[1]:  28
 
 In [2]:  fn mean(xs: List<f64>) -> f64 {
              let sum = 0.0;
@@ -124,14 +124,14 @@ In [2]:  fn mean(xs: List<f64>) -> f64 {
              sum / xs.len() as f64
          }
          mean(temps)
-Out[2]:  f64: 20.16071428571428
+Out[2]:  20.16071428571428
 
-In [3]:  temps[0:7]
-Out[3]:  Slice<f64>: [12.5, 14, 13.2, 15.8, 17.1, 16.4, 18.9]
+In [3]:  temps[0:7]?
+Out[3]:  [12.5, 14, 13.2, 15.8, 17.1, 16.4, 18.9]
 
 In [4]:  let week1: List<f64> = temps[0:7].iter().collect();
          mean(week1)
-Out[4]:  f64: 15.414285714285715
+Out[4]:  15.414285714285715
 ```
 
 `let temps` and `fn mean` stay defined in later cells, so cells `[3]` and `[4]` use the values and functions created earlier. If you fix a function and re-run its cell, the following cells use the new definition ([9.7 JIT cell execution](../spec/refs-lang/009-tools/907-jit-cells.html)). To use the same kind of cell session in a terminal, run `rok repl` ([Tools](../learn/16-tools.html)).

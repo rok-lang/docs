@@ -36,7 +36,7 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.2-aarch64-apple-darwin/
+    └── 0.1.3-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -71,7 +71,7 @@ Three executables are installed.
 
 ```bash
 rok toolchain list                     # installed toolchains
-rok toolchain default 0.1.2            # change the default
+rok toolchain default 0.1.3            # change the default
 rok toolchain install 0.2.0 --from rok-0.2.0-aarch64-apple-darwin.tar.gz
 rok toolchain update                   # download the latest release and make it the default
 ```

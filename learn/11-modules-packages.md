@@ -82,10 +82,10 @@ fn square(x: f64) -> f64 { x * x }
 
 ```text
 error[E102]: `square` is both imported from `shapes::square` and defined in this module
-  --> main.rok:1:13
+  --> main.rok:1:5
    |
  1 | use shapes::square;
-   |             ^^^^^^ imported here
+   |     ^^^^^^ imported here
  2 | fn square(x: f64) -> f64 { x * x }
    | -- defined here, which would hide the import
    |

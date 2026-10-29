@@ -48,11 +48,16 @@ The script also puts `~/.rok/bin` on your `PATH`. It writes `~/.rok/env` (and `~
 ```text
  Downloading rok 0.1.4 (aarch64-apple-darwin)
    Installed rok 0.1.4 to ~/.rok
+
     Modified ~/.zshenv (PATH)
 
 A new shell finds rok on PATH; to use it in this one, run:
   . "$HOME/.rok/env"            (sh, bash, zsh)
   source "$HOME/.rok/env.fish"  (fish)
+
+Next steps:
+  rok --version
+  rok new hello && cd hello && rok run
 ```
 
 Running the script again changes nothing. To keep your shell files as they are, pass `--no-modify-path` (`-NoModifyPath` for `install.ps1`) or set `ROK_NO_MODIFY_PATH=1`; the script then prints the line to add to `PATH` yourself. Shell completion for `rok` and `rokc` is installed too (bash, zsh, fish, PowerShell). `rok completions <shell>` prints the script if you want to install it elsewhere.
@@ -214,7 +219,7 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-Rok 0.1.4 (3f2a1c9 2026-10-28) on aarch64-apple-darwin
+Rok 0.1.4 (25ec2b30c 2026-10-29) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

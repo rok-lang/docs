@@ -236,6 +236,7 @@ A closer look at the REPL (`rok` or `rok repl`) from chapter 1. On a terminal it
 
 ```text
 $ rok repl
+Rok 0.1.4 (25ec2b30c 2026-10-29) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()

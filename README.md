@@ -1,6 +1,6 @@
 # Rok docs
 
-The guide, examples and cookbook for [Rok](https://rok-lang.org), in English and Korean. The site at docs.rok-lang.org renders these files; this repository holds only content.
+The guide, examples and cookbook for [Rok](https://rok-lang.org), in English. (The language spec, in English and Korean, is in [rok-lang/spec](https://github.com/rok-lang/spec).) The site at docs.rok-lang.org renders these files; this repository holds only content.
 
 ## Branches
 

@@ -34,6 +34,8 @@ println(f"17 = 5 * {q} + {r}");
 
 To return several values, group them in a tuple and destructure it at the call site.
 
+Statements inside a block end with `;`, but the last one before `}` may leave it out, with the same meaning. So `while i < n { i += 1 }` is the same as `{ i += 1; }`, and a last `let`, `return`, `break` or `throw` works the same way. Only a last expression gives the block its value, as `a + b` does above.
+
 Return and parameter types can be omitted. An omitted return type is inferred from the last expression (`()` if it ends with `;`). An untyped parameter makes the function generic, compiled separately for each argument type it is called with.
 
 ```rok

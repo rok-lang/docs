@@ -36,19 +36,26 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.3-aarch64-apple-darwin/
+    └── 0.1.4-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
 
-The toolchain you just installed becomes the default. The three executables in `~/.rok/bin` are **proxies**: the real work is done by the executable of the same name in the active toolchain. This lets you install several toolchains side by side and pick one (the same approach as rustup). Add this directory to `PATH` (on Windows the installer already did).
+The toolchain you just installed becomes the default. The three executables in `~/.rok/bin` are **proxies**: the real work is done by the executable of the same name in the active toolchain. This lets you install several toolchains side by side and pick one (the same approach as rustup).
 
-```bash
-# bash / zsh
-echo 'export PATH="$HOME/.rok/bin:$PATH"' >> ~/.zshrc
-# fish
-fish_add_path ~/.rok/bin
+The script also puts `~/.rok/bin` on your `PATH`. It writes `~/.rok/env` (and `~/.rok/env.fish`), loads it from your shell's startup files such as `~/.zshenv`, `~/.bashrc` or `~/.profile`, and adds `~/.config/fish/conf.d/rok.fish` for fish. It names every file it changed:
+
+```text
+ Downloading rok 0.1.4 (aarch64-apple-darwin)
+   Installed rok 0.1.4 to ~/.rok
+    Modified ~/.zshenv (PATH)
+
+A new shell finds rok on PATH; to use it in this one, run:
+  . "$HOME/.rok/env"            (sh, bash, zsh)
+  source "$HOME/.rok/env.fish"  (fish)
 ```
+
+Running the script again changes nothing. To keep your shell files as they are, pass `--no-modify-path` (`-NoModifyPath` for `install.ps1`) or set `ROK_NO_MODIFY_PATH=1`; the script then prints the line to add to `PATH` yourself. Shell completion for `rok` and `rokc` is installed too (bash, zsh, fish, PowerShell). `rok completions <shell>` prints the script if you want to install it elsewhere.
 
 Check the version in a new shell.
 
@@ -71,7 +78,7 @@ Three executables are installed.
 
 ```bash
 rok toolchain list                     # installed toolchains
-rok toolchain default 0.1.3            # change the default
+rok toolchain default 0.1.4            # change the default
 rok toolchain install 0.2.0 --from rok-0.2.0-aarch64-apple-darwin.tar.gz
 rok toolchain update                   # download the latest release and make it the default
 ```
@@ -207,21 +214,23 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-> let xs = [1, 2, 3];
-> xs.len() * 2
+Rok 0.1.4 (3f2a1c9 2026-10-28) on aarch64-apple-darwin
+Type :help for help, :exit to quit.
+>>> let xs = [1, 2, 3]
+>>> xs.len() * 2
 6
-> xs?
+>>> xs?
 [1, 2, 3]
-> :type xs
+>>> :type xs
 List<i32>
-> :quit
+>>> :exit
 ```
 
-`:type expr` reports the type of an expression without running it. Whenever you wonder about a type while reading this guide, check it in the REPL. Unlike regular source, the REPL lets you redeclare the same name with `let` ([JIT cells](../spec/refs-lang/009-tools/907-jit-cells.html)).
+`:type expr` reports the type of an expression without running it. Whenever you wonder about a type while reading this guide, check it in the REPL. Unlike regular source, the REPL lets you redeclare the same name with `let`, and a cell's last `let` needs no `;`. [Chapter 16](16-tools.html#repl-and-jupyter) covers the rest ([JIT cells](../spec/refs-lang/009-tools/907-jit-cells.html)).
 
 ## Summary
 
-- Install into `~/.rok` with `curl -fsSL https://rok-lang.org/install.sh | sh` (`install.ps1` on Windows) and add `~/.rok/bin` to `PATH`.
+- Install into `~/.rok` with `curl -fsSL https://rok-lang.org/install.sh | sh` (`install.ps1` on Windows). The script puts `~/.rok/bin` on `PATH` and installs shell completion.
 - `rok new name` creates `rok.rokon` and `src/main.rok`; `rok run` builds and runs.
 - The top-level statements of `src/main.rok` are the program. You can also use `fn main()`.
 - `rok run file.rok` runs a script; `rok` alone starts the REPL.

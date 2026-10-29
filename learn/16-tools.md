@@ -232,42 +232,83 @@ In other editors such as VS Code, register `rokls` with a generic LSP client ext
 
 ## REPL and Jupyter
 
-A closer look at the REPL (`rok` or `rok repl`) from chapter 1. Each cell runs once, and top-level `let` bindings and `fn` / `struct` definitions carry over to later cells. An expression cell prints its value with `Display`; end it with `?` to print the `Debug` form instead, and a value with no `Display` prints only its type. A `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. Unlike regular source, you can `let` the same name again, and redefining an `fn` replaces it. A cell that errors leaves no trace.
+A closer look at the REPL (`rok` or `rok repl`) from chapter 1. On a terminal it starts with two lines: the toolchain version and host, and a hint. `rok repl -q` leaves them out, and piped input never gets them.
 
 ```text
 $ rok repl
-> let xs = [3, 1, 2];
-> xs.len()
+Rok 0.1.4 (3f2a1c9 2026-10-28) on aarch64-apple-darwin
+Type :help for help, :exit to quit.
+>>> let xs = [3, 1, 2]
+>>> xs.len()
 3
-> xs.sort(); xs?
+>>> it * 10
+30
+>>> xs.sort(); xs?
 [1, 2, 3]
-> :type xs
+>>> :type xs
 List<i32>
-> fn twice(x: i32) -> i32 { x * 2 }
-> twice(21)
+>>> fn twice(x: i32) -> i32 {
+...     x * 2
+... }
+>>> twice(21)
 42
-> :quit
+>>> exit
+```
+
+The prompt is `>>>`, and `...` while a cell goes on. A cell ends at the end of a line unless the input is clearly unfinished: a bracket, string or block comment is still open, the line ends in an operator, `.`, `,` or `=`, or it is an item header such as `fn f(x: i32)` still waiting for its body. When the cell's last statement is a `let` or an assignment, you can leave out its `;`.
+
+Each cell runs once. Top-level `let` bindings and `fn` / `struct` / `impl` definitions carry over to later cells, and a cell may `await` at the top level. An expression cell prints its value with `Display`, else with `Debug`, else just its type. End it with `?` to print the `Debug` form instead. A `let` cell shows nothing. A cell of several statements shows the value of its last expression, if it ends in one. The value a cell shows is kept as `it`, so the next cell can use it; once you define your own `it`, yours wins.
+
+Unlike regular source, you can `let` the same name again, even with another type. Defining an `fn` or a `struct` again replaces it, and code from earlier cells calls the new version. A cell that fails to compile, panics or throws leaves the session as it was. Output it already wrote stays written. `:reset` starts over from an empty session.
+
+Errors point into the cell you typed as `<repl>:line:col`. Panics, and errors in an `fn` from an earlier cell, name that cell as `<repl cell N>:line:col`, where N counts the cells entered so far.
+
+```text
+>>> fn boom(n: i32) {
+...     panic(f"boom {n}");
+... }
+>>> boom(5)
+thread 'main' panicked at <repl cell 1>:2:5:
+boom 5
+error: the cell panicked; the session is unchanged
 ```
 
 | Command | What it does |
 |------|---------|
 | `expr?` | Print the `Debug` form instead of `Display` |
-| `:type expr` | Print the type without evaluating |
+| `:type expr` (`:t`) | Print the type without running it |
+| `:doc name` | Print the signature and doc comment of a name; `:doc xs.len` for a method |
+| `:time expr` | Run the expression and print how long each stage took |
+| `:vars` | List the bindings as `name: type`, then the items |
+| `:load file`, `:reload` | Load a program into the session; load the last one again |
+| `:edit` | Write cells in `$VISUAL` / `$EDITOR`, then run them |
+| `:save file` | Write the session out as a script |
+| `:opt [level]` | Show or set the optimization level for later cells (`0` to `3`, `s`, `z`) |
 | `:reset` | Forget all cells and start over |
-| `:add name`, `:add name --path path` | Add a dependency to the current session (installed into the environment, or added to the package; never into a script) |
-| `:help`, `:quit` | Help, quit |
+| `:add name ..` | Add dependencies: `rok install` into the environment, or `rok add` in a package |
+| `:help` (`:h`) | List every command |
+| `:exit`, `:quit` (`:q`) | Quit; so does `exit` or `quit` alone, or end of input |
 
 A closure that captures variables can't be kept in a cell's top-level `let`, because each closure has its own unnamed type. The cell is rejected:
 
 ```text
-> let x = 3;
-> let f = |n: i32| n * x;
+>>> let x = 3
+>>> let f = |n: i32| n * x
 error: `f: closure(i32) -> i32` cannot be kept for later cells (its type has no name)
 ```
 
-Give the binding a function type, `let f: fn(i32) -> i32 = |n: i32| n * x;`, which carries over. (An `fn` carries over too, but it cannot see cell variables such as `x`; pass them as arguments.) Closures used inside a cell, as in `xs.iter().map(|n| n * x)`, work as usual.
+Give the binding a function type, `let f: fn(i32) -> i32 = |n: i32| n * x`, which carries over. (An `fn` carries over too, but it cannot see cell variables such as `x`; pass them as arguments.) Closures used inside a cell, as in `xs.iter().map(|n| n * x)`, work as usual.
 
-`rok repl --package path` starts with a library package attached and `use name::*;` already in place. Handy for trying out functions while building a library.
+On a terminal the REPL edits the line itself:
+
+- Tab completes names: the session's bindings and items, the core library, keywords, and after `x.` the fields and methods of `x`. At the start of a line, Tab indents.
+- History keeps whole cells, also across sessions (`$ROK_HOME/repl_history`). Up and Down walk it; with some text typed, they step only through cells that start with it. Ctrl-R searches backwards.
+- A pasted block becomes one cell when you press Enter, instead of running line by line.
+- Input is coloured as in this guide. Set `NO_COLOR` to turn colours off.
+
+A cell that reads standard input reads the terminal. When the REPL's own input is piped, a cell sees an empty input.
+
+`rok repl path` loads a package or a file into the session. For a library, the package is added as a dependency and `use name::*;` runs first, again after `:reset`. Handy for trying out functions while you build a library. For a program, it runs the program, then keeps its bindings and items in the session. Inside a package, `rok repl .` loads the current one; a plain `rok repl` starts empty.
 
 The same cell engine is available in Jupyter notebooks. Register the kernel once, and you can pick the `rok` kernel in Jupyter, VS Code notebooks, and so on.
 
@@ -276,7 +317,9 @@ $ rok jupyter install
    Installed kernel `rok` (/Users/me/Library/Jupyter/kernels/rok/kernel.json)
 ```
 
-It is installed under `~/Library/Jupyter` on macOS and `~/.local/share/jupyter` elsewhere; `JUPYTER_DATA_DIR` changes the location.
+It is installed under `~/Library/Jupyter` on macOS, `%APPDATA%\jupyter` on Windows, and `~/.local/share/jupyter` elsewhere; `JUPYTER_DATA_DIR` changes the location. `rok jupyter install --env name` installs a kernel for a named environment.
+
+A notebook cell follows the REPL's rules and shows the value of its last expression. Output appears while the cell runs, not only at the end. A cell that reads standard input gets an input box in the notebook. Tab completion and Shift-Tab help use the same names as the REPL. Code is highlighted with Rust rules until notebook front ends know Rok.
 
 ## Looking inside the compiler
 
@@ -327,11 +370,11 @@ $ rokc --print lldbinit >> ~/.lldbinit      # or load them every time
 - `rok lint` runs lints; `rok check` goes as far as code generation. Lint levels resolve in the order `rok.rokon` < `-A/-W/-D` < source attributes.
 - From `///` and `//!` doc comments, `rok doc` generates HTML in `target/doc/`.
 - Register `rokls` as the LSP server in your editor.
-- The REPL has `:type` / `:reset` / `:add`; for notebooks, `rok jupyter install`.
+- The REPL prompts with `>>>`, keeps the last value in `it`, and has commands such as `:type`, `:doc`, `:vars` and `:reset`. `rok repl .` loads the current package; for notebooks, `rok jupyter install`.
 - To dig into problems: `-v`, `--emit`, `rokc demangle`, `-g` (with `rokc --print lldbinit` for lldb).
 
 ## Further reading
 
-- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [Rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
+- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [Rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [REPL line editing](../spec/refs-lang/009-tools/907-jit-cells.html#line-editing), [REPL commands](../spec/refs-lang/009-tools/909-debug-tools.html#999-repl--jupyter-debugging), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
 - API: [assert functions in rok::core](../std/core/panic.html)
 - Next chapter: [17. Conditional Compilation](17-conditional-compilation.html)

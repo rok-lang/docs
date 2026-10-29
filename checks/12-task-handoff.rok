@@ -1,0 +1,9 @@
+async fn total(xs: List<i32>) -> i32 {
+    let t = 0;
+    for x in xs { t += x; }
+    t
+}
+
+let data = [1, 2, 3];
+let t = task::spawn(total(data));
+data.push(4);

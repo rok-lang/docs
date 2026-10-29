@@ -1,0 +1,3 @@
+use rok::std::thread;
+
+thread::spawn(|| println("hi"));

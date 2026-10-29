@@ -1,0 +1,4 @@
+use rok::std::thread;
+
+let count = 0;
+let h = thread::spawn([ref count] || { count += 1; });

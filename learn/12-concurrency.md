@@ -220,15 +220,14 @@ smallest items add up to 12, jobs left: 0
 A lock guard's value works the same way. What `g.get()` returns is the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it.
 
 ```text
-error[E202]: `xs` came out of the `Mutex` at line 2, and `g`'s `using` block released the lock
-  --> main.rok:3:1
+error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
+  --> main.rok:2:10
    |
  2 | let xs = using g = m.lock() { g.get() };
-   |          ----- `xs` taken out of the lock here
- 3 | xs.push(4);
-   | ^^
+   |          ^^^^^
+   |          ----- taken out of the lock here
    |
-   = help: the lock no longer protects `xs`; use it inside the `using` block, or keep a separate copy there with `g.get().clone()` (stdlib 2.13.9)
+   = help: use it inside the `using` block, or make the block's value `using.clone()` (stdlib 2.13.9)
 ```
 
 ### What the receiver gets

@@ -319,8 +319,13 @@ false
 In rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
 
 ```text
-error[E200]: trait `Animal` cannot be used as a type directly - use a closed sum (`A | B`)
-       or a generic parameter (`<T: Animal>`) instead
+error[E200]: trait `Animal` cannot be used as a type directly
+  --> main.rok:2:1
+   |
+ 2 | fn f(a: Animal) {}
+   | ^^
+   |
+   = help: use `any Animal` for a value of any type implementing it, or a generic parameter `<T: Animal>`
 ```
 
 Instead, use a generic or a sum type.

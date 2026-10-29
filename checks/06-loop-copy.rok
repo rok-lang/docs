@@ -1,0 +1,5 @@
+struct P { x: i32 }
+
+let ps = [P { x: 1 }, P { x: 2 }];
+for p in ps { p.x *= 10; }
+println(f"{ps[0].x}");

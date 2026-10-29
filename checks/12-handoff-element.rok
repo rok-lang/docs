@@ -1,0 +1,5 @@
+let rows = [[1, 2], [3]];
+let first = rows[0];
+let (tx, rx) = channel::<List<List<i32>>>();
+try! tx.send(rows);
+first.push(9);

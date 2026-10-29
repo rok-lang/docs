@@ -1,0 +1,12 @@
+struct Counter { n: i32; }
+
+impl Counter {
+    fn inc_wrong(self) { self.n += 1; }    // changes a copy
+    fn inc(ref self) { self.n += 1; }
+}
+
+let c = Counter { n: 0 };
+c.inc_wrong();
+println(f"{c.n}");
+c.inc();
+println(f"{c.n}");

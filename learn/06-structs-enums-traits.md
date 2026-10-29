@@ -160,7 +160,7 @@ println(f"{c.n}");
 
 The `write_to_copy` lint catches this. `rok check` and `rok lint` (and your editor) warn about a field set on a copy that nothing reads afterwards:
 
-```text
+```text check=checks/06-write-to-copy.rok
 warning[E503]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
   --> main.rok:4:26
    |
@@ -177,7 +177,7 @@ The same trap catches loops. `for p in ps { p.x *= 10; }` changes copies of the 
 for p in ps { p.x *= 10; }
 ```
 
-```text
+```text check=checks/06-loop-copy.rok
 warning[E503]: `p.x` is set on a copy of the element, so `ps` does not change
   --> main.rok:4:15
    |
@@ -240,7 +240,7 @@ true
 
 A pattern names a variant with its enum, as in `Shape::Empty`. A bare name such as `Empty` would be a new variable that matches every value, so the compiler rejects it:
 
-```text
+```text check=checks/06-bare-variant.rok
 error[E200]: `Empty` here is a new variable that matches every value, not the variant `Shape::Empty`
    --> main.rok:11:9
     |
@@ -318,7 +318,7 @@ false
 
 In rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
 
-```text
+```text check=checks/06-trait-as-type.rok
 error[E200]: trait `Animal` cannot be used as a type directly
   --> main.rok:2:1
    |

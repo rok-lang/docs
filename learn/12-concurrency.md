@@ -110,7 +110,7 @@ Only `using` releases a guard, so the compiler refuses a guard that nothing rele
 let g = m.lock();
 ```
 
-```text
+```text check=checks/12-guard-let.rok
 error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }` (stdlib 2.16.3)
 ```
 
@@ -163,7 +163,7 @@ let m = Mutex::new(xs);
 ys.push(4);
 ```
 
-```text
+```text check=checks/12-handoff-copy.rok
 error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
   --> main.rok:4:1
    |
@@ -179,7 +179,7 @@ Use the value through the lock, or hand over a `clone()` if you still need your 
 
 Elements count too. What you read out of a collection and the collection itself are one value, so sending `rows` and then pushing to `first = rows[0]` is the same race:
 
-```text
+```text check=checks/12-handoff-element.rok
 error[E202]: `first` shares `rows`, which was sent through a channel at line 4
   --> main.rok:5:1
    |
@@ -219,7 +219,7 @@ smallest items add up to 12, jobs left: 0
 
 A lock guard's value works the same way. What `g.get()` returns is the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it.
 
-```text
+```text check=checks/12-lock-value.rok
 error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
   --> main.rok:2:10
    |
@@ -384,7 +384,7 @@ let t = task::spawn(total(data));
 data.push(4);
 ```
 
-```text
+```text check=checks/12-task-handoff.rok
 error[E202]: `data` was spawned as a task at line 8
  9 | data.push(4);
    | ^^^^
@@ -506,7 +506,7 @@ The `Stream` trait has combinators such as `map`, `filter`, `take`, and `throttl
 
 **A `[ref x]` capture can't cross threads.** A `[ref x]` cell ([chapter 3](03-functions.html)) has no synchronization, so the compiler rejects it in a closure given to `thread::spawn`, `task::spawn`, or `par::*`, where two threads could change it at once.
 
-```text
+```text check=checks/12-ref-thread.rok
 error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once (spec 4.6.9)
    = help: write `let count = Atomic::new(count);` before the closure, capture `count` without `ref`, and use `count.load()` / `count.store(..)`; or return the value from the closure instead
 ```
@@ -551,7 +551,7 @@ println(f"{using g = SEEN.lock() { g.get().clone() }:?}");
 
 **Threads you don't join are killed when `main` returns.** The program ends when `main` does, and threads that are still running stop with it, halfway through. Keep the `JoinHandle` and `join` it. `rok check` and `rok lint` warn about a handle that is never joined:
 
-```text
+```text check=checks/12-unjoined.rok
 warning[E503]: this thread is never joined, so the program may end before it finishes
   --> main.rok:3:1
    |

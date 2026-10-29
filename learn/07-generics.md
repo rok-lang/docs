@@ -74,7 +74,7 @@ A generic body is type-checked once, on its own, before any call is looked at. I
 fn double<T>(x: T) -> T { x + x }
 ```
 
-```text
+```text check=checks/07-missing-bound.rok
 error[E200]: operator `+` on `T` needs a `Add` bound on `T` (spec 2.10.9)
   --> main.rok:1:27
    |

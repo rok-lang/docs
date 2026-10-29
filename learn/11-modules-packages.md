@@ -80,7 +80,7 @@ use shapes::square;
 fn square(x: f64) -> f64 { x * x }
 ```
 
-```text
+```text check=checks/11-import-clash.rok
 error[E102]: `square` is both imported from `shapes::square` and defined in this module
   --> main.rok:1:5
    |

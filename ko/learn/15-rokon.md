@@ -1,10 +1,10 @@
 # 15. ROKON
 
-이 장에서는 Rok의 데이터 형식인 ROKON (Rok Object Notation) 으로 설정 파일을 읽고 쓰는 법을 봅니다. 새로 배울 문법은 없습니다. ROKON 파일은 Rok 소스에서 값을 적을 때와 같은 리터럴 문법을 씁니다. 패키지 매니페스트 `rok.rokon` 도 이 형식입니다.
+이 장에서는 Rok의 데이터 형식인 ROKON(Rok Object Notation)으로 설정 파일을 읽고 쓰는 법을 다룹니다. 새로 배울 문법은 없습니다. ROKON 파일은 Rok 소스에서 값을 적을 때와 같은 리터럴 문법을 씁니다. 패키지 매니페스트 `rok.rokon`도 이 형식입니다.
 
 ## 형식 한눈에 보기
 
-파일 하나에 값 하나가 들어가며, 보통은 struct 하나입니다.
+파일 하나에 값 하나가 들어갑니다. 보통은 struct 하나입니다.
 
 ```rokon
 // app.rokon
@@ -27,11 +27,11 @@ Config {
 | struct | `Point { x: 1, y: 2 }`, `Pair(1, 2)` |
 | enum 변형 | `Mode::Fast`, `Shape::Circle(1.0)`, `Shape::Rect { w: 2, h: 3 }` |
 
-`//` 주석과 뒤에 붙는 쉼표는 허용됩니다. 변수, 연산자, 함수 호출, f-string 같은 "코드" 는 허용되지 않습니다. ROKON 은 결코 실행되지 않는 순수한 데이터입니다.
+`//` 주석과 끝에 붙는 쉼표는 쓸 수 있습니다. 변수, 연산자, 함수 호출, f-string 같은 "코드"는 쓸 수 없습니다. ROKON은 실행되는 일이 없는 순수한 데이터입니다.
 
-## `#[derive(Rokon)]` 와 `from_str` / `to_string`
+## `#[derive(Rokon)]`과 `from_str` / `to_string`
 
-struct 나 enum 에 `#[derive(Rokon)]` 을 붙이면 `rok::std::rokon` 의 `from_str` 로 읽고 `to_string` 으로 쓸 수 있습니다. 어떤 타입으로 읽을지는 변수의 타입 표기가 정합니다.
+struct나 enum에 `#[derive(Rokon)]`을 붙이면 `rok::std::rokon`의 `from_str`로 읽고 `to_string`으로 쓸 수 있습니다. 어떤 타입으로 읽을지는 변수의 타입 표기가 정합니다.
 
 ```rok
 use rok::std::rokon;
@@ -89,17 +89,17 @@ Config {
 }
 ```
 
-중첩된 struct, 리스트, enum 도 모두 같은 방식으로 읽습니다. 두 번째 서버처럼 필드가 빠져 있으면 다음 규칙을 따릅니다.
+중첩된 struct, 리스트, enum도 모두 같은 방식으로 읽습니다. 두 번째 서버처럼 필드가 빠져 있으면 다음 규칙을 따릅니다.
 
-- 필드에 `= default` 가 있으면 그 값 (`port: u16 = 80`).
-- 타입이 `T | none` 이면 `none` (`tls`).
+- 필드에 `= default`가 있으면 그 값(`port: u16 = 80`).
+- 타입이 `T | none`이면 `none`(`tls`).
 - 그 밖에는 에러.
 
-`to_string` 은 **정규 형식** (canonical form) 으로 씁니다. 들여쓰기는 4 칸이며, 100 열 안에 들어가면 한 줄로, 아니면 원소마다 한 줄씩 뒤에 쉼표를 붙여 씁니다. 정규 형식을 다시 읽으면 같은 값이 됩니다.
+`to_string`은 **정규 형식**(canonical form)으로 씁니다. 들여쓰기는 4칸입니다. 값이 100열 안에 들어가면 한 줄로 쓰고, 아니면 원소마다 한 줄씩 끝에 쉼표를 붙여 씁니다. 정규 형식을 다시 읽으면 같은 값이 됩니다.
 
 ## enum, 튜플 struct, Dict
 
-enum 변형은 언제나 `Enum::Variant` 처럼 전체 경로로 적습니다. 튜플 struct 는 `Name(a, b)` 로 적습니다. 표준 컬렉션과 튜플은 derive 없이 바로 읽힙니다.
+enum 변형은 언제나 `Enum::Variant`처럼 전체 경로로 적습니다. 튜플 struct는 `Name(a, b)`로 적습니다. 표준 컬렉션과 튜플은 derive 없이 바로 읽을 수 있습니다.
 
 ```rok
 use rok::std::rokon;
@@ -145,11 +145,11 @@ primes: [2, 3, 5]
 ```
 
 > [!TIP]
-> `Dict` 와 `Set` 은 해시 순서로 쓰이므로, `to_string` 출력의 순서가 실행마다 같다는 보장이 없습니다. 파일에 쓸 때 순서를 지키려면 `OrderedDict` / `OrderedSet` 을 쓰십시오.
+> `Dict`와 `Set`은 해시 순서로 쓰이므로 `to_string` 출력의 순서가 실행마다 같다는 보장이 없습니다. 파일에 쓸 때 순서를 지키려면 `OrderedDict` / `OrderedSet`을 쓰세요.
 
 ## 잘못된 입력과 에러
 
-`from_str` 은 무언가 잘못되면 `RokonError` 를 던집니다. 메시지는 `line:column: description` 형태이므로 사람이 파일에서 그 자리를 바로 찾을 수 있습니다.
+`from_str`은 무언가 잘못되면 `RokonError`를 던집니다. 메시지는 `line:column: description` 형태이므로 파일에서 그 자리를 바로 찾을 수 있습니다.
 
 ```rok
 use rok::std::rokon;
@@ -182,11 +182,11 @@ error: 1:31: unknown field `user` in Server
 error: 1:1: expected Server, found `Client { .. }`
 ```
 
-모르는 필드도 에러라는 점에 주의하십시오. 그래서 설정 키를 잘못 적어도 조용히 무시되는 일이 없습니다.
+모르는 필드도 에러입니다. 그래서 설정 키를 잘못 적어도 조용히 무시되지 않습니다.
 
 ## 타입 없이 읽기: `Value`
 
-구조를 미리 알 수 없는 데이터는 `rokon::parse` 로 `Value` enum 에 읽어 들일 수 있습니다. `Value` 에는 `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, `Variant` 같은 변형이 있고, `kind()` 는 그 종류의 이름을 돌려줍니다.
+구조를 미리 알 수 없는 데이터는 `rokon::parse`로 `Value` enum에 읽어 들일 수 있습니다. `Value`에는 `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, `Variant` 같은 변형이 있습니다. `kind()`는 그 종류의 이름을 돌려줍니다.
 
 ```rok
 use rok::std::rokon;
@@ -213,9 +213,9 @@ struct Site
 
 ## 설정 파일 읽고 쓰기
 
-13장의 `fs` 와 함께 쓰면 설정 파일을 다룰 수 있습니다. 이 사이트를 만드는 프로그램이 바로 그렇게 합니다. 사이트 저장소의 `site.rokon` 을 `#[derive(Rokon)] struct Site` 로 읽으며, 기본값이 있는 필드는 파일에서 생략할 수 있습니다.
+13장의 `fs`와 함께 쓰면 설정 파일을 다룰 수 있습니다. 이 사이트를 만드는 프로그램이 바로 그렇게 합니다. 사이트 저장소의 `site.rokon`을 `#[derive(Rokon)] struct Site`로 읽습니다. 기본값이 있는 필드는 파일에서 생략할 수 있습니다.
 
-아래 예제는 설정을 임시 파일에 쓰고, 읽고, 고친 뒤 다시 씁니다. `load` 는 `IoError` 와 `RokonError` 를 모두 던질 수 있으며, 호출하는 쪽은 각 종류를 따로 잡습니다.
+아래 예제는 설정을 임시 파일에 쓰고 읽어서 고친 뒤 다시 씁니다. `load`는 `IoError`와 `RokonError`를 모두 던질 수 있고, 호출하는 쪽은 각 종류를 따로 잡습니다.
 
 ```rok
 use rok::std::fs;
@@ -263,16 +263,16 @@ bad config: 1:15: expected str, found integer
 missing: NotFound
 ```
 
-`to_string` 으로 다시 쓰면 주석이 사라진다는 점도 눈여겨보십시오. 사람이 편집하는 파일은 프로그램이 덮어쓰지 않는 편이 좋습니다. `rok fmt` 는 `.rokon` 파일의 들여쓰기만 고치며, 주석과 배치는 그대로 둡니다.
+`to_string`으로 다시 쓰면 주석이 사라집니다. 사람이 편집하는 파일은 프로그램이 덮어쓰지 않는 편이 좋습니다. `rok fmt`는 `.rokon` 파일의 들여쓰기만 고치고, 주석과 배치는 그대로 둡니다.
 
 ## 요약
 
-- ROKON 은 Rok 리터럴 문법을 그대로 쓰는 데이터 형식이며, 확장자는 `.rokon` 입니다.
-- `#[derive(Rokon)]` 을 붙이고, `rokon::from_str` 로 읽고, `rokon::to_string` 으로 씁니다.
-- 빠진 필드는 `= default` 값을, 타입이 `T | none` 이면 `none` 을 받고, 그 밖에는 에러입니다. 모르는 필드도 에러입니다.
+- ROKON은 Rok 리터럴 문법을 그대로 쓰는 데이터 형식이고, 확장자는 `.rokon`입니다.
+- `#[derive(Rokon)]`을 붙이고, `rokon::from_str`로 읽고, `rokon::to_string`으로 씁니다.
+- 빠진 필드는 `= default` 값을, 타입이 `T | none`이면 `none`을 받고, 그 밖에는 에러입니다. 모르는 필드도 에러입니다.
 - 에러 메시지는 `line:column: description` 형태입니다.
-- 구조를 모르면 `rokon::parse` 로 `Value` 를 얻습니다.
-- 순서가 중요한 맵에는 `OrderedDict` 를 씁니다.
+- 구조를 모르면 `rokon::parse`로 `Value`를 얻습니다.
+- 순서가 중요한 맵에는 `OrderedDict`를 씁니다.
 
 ## 더 읽을거리
 

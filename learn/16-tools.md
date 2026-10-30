@@ -185,6 +185,8 @@ error[E200]: mismatched types: `let s` expects `str`, found `i32`
 
 For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON.
 
+The code in brackets names the kind of error; the [error code index](../errors/index.html) has a page for each one, with an example and its fix.
+
 ## `rok doc`: doc comments and API docs
 
 `///` documents the item directly below it, and `//!` documents the module (file) containing the comment. In the package above, the first line `//! Small math helpers.` becomes the module description, and the `///` above `gcd` and `fib` become the function descriptions. Doc text can use markdown such as headings, lists, inline code, code blocks, and links.
@@ -375,6 +377,7 @@ $ rokc --print lldbinit >> ~/.lldbinit      # or load them every time
 
 ## Further reading
 
-- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [Rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [REPL line editing](../spec/refs-lang/009-tools/907-jit-cells.html#line-editing), [REPL commands](../spec/refs-lang/009-tools/909-debug-tools.html#999-repl--jupyter-debugging), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
+- Spec: [rokc CLI](../spec/refs-lang/009-tools/901-rokc-cli.html), [Standard format](../spec/refs-lang/009-tools/901-rokc-cli.html#9111-standard-format-rokc-fmt), [Lint control](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#629-allow--deny--warn-lint-control), [Rok front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [JIT cells and the REPL](../spec/refs-lang/009-tools/907-jit-cells.html), [REPL line editing](../spec/refs-lang/009-tools/907-jit-cells.html#line-editing), [REPL commands](../spec/refs-lang/009-tools/909-debug-tools.html#999-repl--jupyter-debugging), [Jupyter](../spec/refs-lang/009-tools/908-jupyter-integration.html), [Debug tools](../spec/refs-lang/009-tools/909-debug-tools.html), [Diagnostics](../spec/refs-lang/009-tools/909-debug-tools.html#994-diagnostics--error-messages), [Symbol mangling](../spec/refs-lang/009-tools/905-symbol-mangling.html)
+- [Error codes](../errors/index.html)
 - API: [assert functions in rok::core](../std/core/panic.html)
 - Next chapter: [17. Conditional Compilation](17-conditional-compilation.html)

@@ -13,6 +13,7 @@ The guide, examples and cookbook for [Rok](https://rok-lang.org), in English. (T
 
 - `learn/`: the guide, one chapter per file
 - `examples/`: complete programs
+- `errors/`: one page per rokc error code
 - `index.md`: the docs home
 
 Every ` ```rok ` block is compiled and run with the matching toolchain before a change goes live.

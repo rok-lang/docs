@@ -14,6 +14,7 @@
 <a class="card" href="spec/refs-standard-libraries/index.html"><span class="tag">std/</span><h3>Standard library</h3><p>The specification of the three tiers <code>bare</code> / <code>core</code> / <code>std</code>.</p></a>
 <a class="card" href="std/index.html"><span class="tag">api/</span><h3>API</h3><p>Every module, type and function of the standard library, generated from its sources.</p></a>
 <a class="card" href="spec/refs-lang/009-tools/index.html"><span class="tag">tools/</span><h3>Tools</h3><p>The <code>rokc</code> compiler, the <code>rok</code> package tool, the REPL, the Jupyter kernel, the LSP server, and debugging tools.</p></a>
+<a class="card" href="errors/index.html"><span class="tag">errors/</span><h3>Error codes</h3><p>One page per <code>rokc</code> error code, with an example of the error and its fix.</p></a>
 </div>
 
 ## Versions

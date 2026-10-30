@@ -113,11 +113,11 @@ You can also build a toolchain archive yourself and install it with the same scr
 
 ```bash
 git clone https://github.com/rok-lang/rok && cd rok
-./dist.sh                                  # dist/rok-<version>-<triple>.tar.gz
+scripts/dist-native.sh                     # dist/rok-<version>-<triple>.tar.gz
 sh install.sh --archive dist/rok-*.tar.gz  # into ~/.rok
 ```
 
-The first run also builds the pinned LLVM into `~/.cache/rok` (cmake and ninja, about an hour). On Linux, `./dist-linux.sh` (podman or docker) builds the same archive in a container so that it runs on glibc 2.34 and later; the release archives are built this way. The repository's README has the details.
+The first run also builds the pinned LLVM into `~/.cache/rok` (cmake and ninja, about an hour). On Linux, `scripts/dist-linux-gnu.sh` (podman or docker) builds the same archive in a container so that it runs on glibc 2.34 and later; the release archives are built this way. The repository's README has the details.
 
 If you are working on the compiler, you can use the build output directly without installing. Without the pinned LLVM, this `rokc` compiles at `-O0` only.
 

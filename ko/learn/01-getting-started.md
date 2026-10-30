@@ -113,11 +113,11 @@ toolchain 아카이브를 직접 빌드해 같은 스크립트로 설치할 수�
 
 ```bash
 git clone https://github.com/rok-lang/rok && cd rok
-./dist.sh                                  # dist/rok-<version>-<triple>.tar.gz
+scripts/dist-native.sh                     # dist/rok-<version>-<triple>.tar.gz
 sh install.sh --archive dist/rok-*.tar.gz  # into ~/.rok
 ```
 
-처음 실행할 때는 고정된 버전의 LLVM도 `~/.cache/rok`에 빌드합니다(cmake와 ninja 필요, 약 한 시간). Linux에서는 `./dist-linux.sh`(podman 또는 docker)가 같은 아카이브를 컨테이너 안에서 빌드합니다. 그래서 결과물은 glibc 2.34 이상에서 돌아갑니다. 릴리스 아카이브도 이 방식으로 빌드합니다. 자세한 내용은 저장소의 README에 있습니다.
+처음 실행할 때는 고정된 버전의 LLVM도 `~/.cache/rok`에 빌드합니다(cmake와 ninja 필요, 약 한 시간). Linux에서는 `scripts/dist-linux-gnu.sh`(podman 또는 docker)가 같은 아카이브를 컨테이너 안에서 빌드합니다. 그래서 결과물은 glibc 2.34 이상에서 돌아갑니다. 릴리스 아카이브도 이 방식으로 빌드합니다. 자세한 내용은 저장소의 README에 있습니다.
 
 컴파일러를 개발하고 있다면 설치하지 않고 빌드 결과를 바로 써도 됩니다. 고정된 LLVM이 없으면 이렇게 빌드한 `rokc`는 `-O0`으로만 컴파일합니다.
 

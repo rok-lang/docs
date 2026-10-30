@@ -36,7 +36,7 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.4-aarch64-apple-darwin/
+    └── 0.1.5-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -46,8 +46,8 @@ The toolchain you just installed becomes the default. The three executables in `
 The script also puts `~/.rok/bin` on your `PATH`. It writes `~/.rok/env` (and `~/.rok/env.fish`), loads it from your shell's startup files such as `~/.zshenv`, `~/.bashrc` or `~/.profile`, and adds `~/.config/fish/conf.d/rok.fish` for fish. It names every file it changed:
 
 ```text
- Downloading rok 0.1.4 (aarch64-apple-darwin)
-   Installed rok 0.1.4 to ~/.rok
+ Downloading rok 0.1.5 (aarch64-apple-darwin)
+   Installed rok 0.1.5 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -67,6 +67,17 @@ Check the version in a new shell.
 ```bash
 rok --version
 rok toolchain list
+```
+
+`rok --version -v` also names the binary that ran, the toolchain it picked and why, its `rokc`, and the host. Use it when the version is not the one you expect.
+
+```text
+$ rok --version -v
+rok 0.1.5 (84a950b37 2026-10-29)
+binary    /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rok
+toolchain 0.1.5-aarch64-apple-darwin (the default)
+rokc      /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rokc
+host      aarch64-apple-darwin
 ```
 
 Three executables are installed.
@@ -89,6 +100,12 @@ rok toolchain update                   # download the latest release and make it
 ```
 
 `rok toolchain update 0.2.0` installs that version instead. The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
+
+If another `rok` (from a package manager, say) comes before `~/.rok/bin` on your `PATH`, the new default would not take, so `rok toolchain update` and `rok toolchain default` warn:
+
+```text
+rok: warning: your shell runs /opt/homebrew/bin/rok (rok 0.1.3) before ~/.rok/bin/rok; put ~/.rok/bin first on PATH or remove the other one
+```
 
 ### Building from source (optional)
 
@@ -120,9 +137,10 @@ cd hello
 
 ```text
      Created executable package (hello)
+             cd hello && rok run
 ```
 
-There are two files. The manifest `rok.rokon` holds the package name, version, and dependencies.
+The second line is the command to run next. There are two files. The manifest `rok.rokon` holds the package name, version, and dependencies.
 
 ```rokon
 Package { name: "hello", version: "0.1.0", deps: {} }
@@ -138,16 +156,17 @@ println("Hello, world!");
 Hello, world!
 ```
 
-`rok run` builds and runs it. The output goes to `target/debug/`.
+`rok run` builds and runs it. The output goes to `target/debug/`. The very first build after installing also compiles the standard library once; later builds reuse it.
 
 ```bash
 rok run
 ```
 
 ```text
+   Compiling std (-O0, cached for next builds)
    Compiling hello (.)
-    Finished in 1.55s
-     Running `./target/debug/hello`
+    Finished in 0.87s
+     Running `target/debug/hello`
 Hello, world!
 ```
 
@@ -197,7 +216,7 @@ fn add(a: i32, b: i32) -> i32 {
 
 ## Single-file scripts
 
-Quick experiments don't need a package. Give `rok run` a file path and it runs that file on its own.
+Quick experiments don't need a package. Give `rok run` a file path and it runs that file on its own. `rok build hi.rok` writes the executable `hi` next to the script.
 
 ```bash
 echo 'println("hi");' > hi.rok
@@ -206,8 +225,8 @@ rok run hi.rok
 
 ```text
    Compiling hi (.)
-    Finished in 1.52s
-     Running `/tmp/rokc-.../hi`
+    Finished in 0.05s
+     Running hi.rok
 hi
 ```
 
@@ -219,7 +238,7 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-Rok 0.1.4 (25ec2b30c 2026-10-29) on aarch64-apple-darwin
+Rok 0.1.5 (84a950b37 2026-10-29) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

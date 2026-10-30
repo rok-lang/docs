@@ -159,7 +159,7 @@ a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
 ```text
 $ rok publish
 Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
-note: dry run; --commit adds it to https://github.com/rok-lang/rokstones.io-index as te/xt/textwrap
+note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
 항목에는 HEAD 커밋과 그 트리 해시가 기록되므로 그 커밋을 먼저 원격 저장소에 올리세요(push). `rok publish --commit`은 토큰과 함께 항목을 레지스트리에 보냅니다(`Published textwrap 0.1.0 to https://rokstones.io`). index에 항목이 들어가면 그 버전이 공개됩니다. 한 버전은 두 번 공개할 수 없습니다. 기존 stone과 대소문자나 `-` / `_`만 다른 이름은 이미 쓰인 것으로 봅니다.

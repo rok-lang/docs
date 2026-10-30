@@ -36,7 +36,7 @@ powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | ie
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.4-aarch64-apple-darwin/
+    └── 0.1.5-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -46,8 +46,8 @@ powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | ie
 스크립트는 `~/.rok/bin`을 `PATH`에도 넣습니다. `~/.rok/env`(와 `~/.rok/env.fish`)를 만들고, `~/.zshenv`, `~/.bashrc`, `~/.profile` 같은 셸 시작 파일이 이 파일을 읽게 합니다. fish용으로는 `~/.config/fish/conf.d/rok.fish`를 추가합니다. 바꾼 파일은 모두 이름을 출력합니다.
 
 ```text
- Downloading rok 0.1.4 (aarch64-apple-darwin)
-   Installed rok 0.1.4 to ~/.rok
+ Downloading rok 0.1.5 (aarch64-apple-darwin)
+   Installed rok 0.1.5 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -67,6 +67,17 @@ Next steps:
 ```bash
 rok --version
 rok toolchain list
+```
+
+`rok --version -v`는 실행된 바이너리, 고른 toolchain과 그 이유, 함께 쓰는 `rokc`, 호스트까지 알려 줍니다. 기대한 버전이 아닐 때 써 보세요.
+
+```text
+$ rok --version -v
+rok 0.1.5 (84a950b37 2026-10-29)
+binary    /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rok
+toolchain 0.1.5-aarch64-apple-darwin (the default)
+rokc      /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rokc
+host      aarch64-apple-darwin
 ```
 
 실행 파일 세 개가 설치됩니다.
@@ -89,6 +100,12 @@ rok toolchain update                   # download the latest release and make it
 ```
 
 `rok toolchain update 0.2.0`은 최신 릴리스 대신 그 버전을 설치합니다. 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
+
+패키지 관리자로 설치한 것처럼 다른 `rok`이 `PATH`에서 `~/.rok/bin`보다 앞에 있으면 새 기본값이 적용되지 않습니다. 그래서 `rok toolchain update`와 `rok toolchain default`가 경고합니다.
+
+```text
+rok: warning: your shell runs /opt/homebrew/bin/rok (rok 0.1.3) before ~/.rok/bin/rok; put ~/.rok/bin first on PATH or remove the other one
+```
 
 ### 소스에서 빌드하기(선택)
 
@@ -120,9 +137,10 @@ cd hello
 
 ```text
      Created executable package (hello)
+             cd hello && rok run
 ```
 
-파일은 두 개입니다. 매니페스트인 `rok.rokon`에는 패키지 이름, 버전, 의존성이 들어 있습니다.
+두 번째 줄은 다음에 실행할 명령입니다. 파일은 두 개입니다. 매니페스트인 `rok.rokon`에는 패키지 이름, 버전, 의존성이 들어 있습니다.
 
 ```rokon
 Package { name: "hello", version: "0.1.0", deps: {} }
@@ -138,16 +156,17 @@ println("Hello, world!");
 Hello, world!
 ```
 
-`rok run`은 빌드하고 실행합니다. 결과물은 `target/debug/`에 생깁니다.
+`rok run`은 빌드하고 실행합니다. 결과물은 `target/debug/`에 생깁니다. 설치한 뒤 맨 처음 빌드할 때는 표준 라이브러리도 한 번 컴파일하고, 이후 빌드는 그 결과를 다시 씁니다.
 
 ```bash
 rok run
 ```
 
 ```text
+   Compiling std (-O0, cached for next builds)
    Compiling hello (.)
-    Finished in 1.55s
-     Running `./target/debug/hello`
+    Finished in 0.87s
+     Running `target/debug/hello`
 Hello, world!
 ```
 
@@ -197,7 +216,7 @@ fn add(a: i32, b: i32) -> i32 {
 
 ## 단일 파일 스크립트
 
-간단히 실험할 때는 패키지가 필요 없습니다. `rok run`에 파일 경로를 주면 그 파일 하나만 실행합니다.
+간단히 실험할 때는 패키지가 필요 없습니다. `rok run`에 파일 경로를 주면 그 파일 하나만 실행합니다. `rok build hi.rok`은 실행 파일 `hi`를 스크립트 옆에 만듭니다.
 
 ```bash
 echo 'println("hi");' > hi.rok
@@ -206,8 +225,8 @@ rok run hi.rok
 
 ```text
    Compiling hi (.)
-    Finished in 1.52s
-     Running `/tmp/rokc-.../hi`
+    Finished in 0.05s
+     Running hi.rok
 hi
 ```
 
@@ -219,7 +238,7 @@ hi
 
 ```text
 $ rok
-Rok 0.1.4 (25ec2b30c 2026-10-29) on aarch64-apple-darwin
+Rok 0.1.5 (84a950b37 2026-10-29) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

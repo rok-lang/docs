@@ -159,7 +159,9 @@ rok new app
 
 ```text
      Created library package (geom)
+             cd geom && rok test
      Created executable package (app)
+             cd app && rok run
 ```
 
 Let's create two modules in `geom`. If you re-export a submodule's items from the package root with `pub use`, users do not need to know the internal structure.
@@ -193,6 +195,10 @@ cd app
 rok add geom --path ../geom
 ```
 
+```text
+       Added geom v0.1.0
+```
+
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
     "geom": Dep::path("../geom"),
@@ -210,8 +216,8 @@ println(f"{area_sum([Circle { r: 1.0 }, Circle { r: 2.0 }])}");
 $ rok run
    Compiling geom (../geom)
    Compiling app (.)
-    Finished in 1.97s
-     Running `./target/debug/app`
+    Finished in 0.22s
+     Running `target/debug/app`
 15.70795
 ```
 
@@ -226,13 +232,23 @@ $ rok search json
     Updating index https://github.com/rok-lang/rokstones.io-index
 json 0.1.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
 $ rok add json@^0.1
-       Added json to deps of rok.rokon
+    Fetching https://github.com/rok-lang/json.git
+       Added json v0.1.0
 ```
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
     "json": Dep::version("^0.1"),
 } }
+```
+
+A misspelled name gets the closest stone:
+
+```text
+$ rok add jsn
+    Updating index https://github.com/rok-lang/rokstones.io-index
+rok: error: no stone named `jsn` in https://github.com/rok-lang/rokstones.io-index
+help: did you mean `json`? (or search: `rok search jsn`)
 ```
 
 A plain string is shorthand for `Dep::version`, and a requirement with no operator means `^`, so these three lines ask for the same thing. Stone READMEs often use the short form (`"json": "0.1"`, which means `>=0.1.0, <0.2.0`).
@@ -280,15 +296,16 @@ rok run tool.rok
 
 A script can have file modules too: `mod helper;` loads `helper.rok` beside it, just as in a package's `src/`. A module file may carry its own `//!` block (`rok add <name> helper.rok`), and the blocks of all the files are merged. Scripts never see libraries installed with `rok install`; only their blocks count. When a script outgrows one file, `rok init --script tool.rok` turns it into a package: the blocks become `rok.rokon`, and `tool.rok` and its module files move into `src/`.
 
-Named environments are for the REPL and Jupyter. Install libraries into one with `rok install`, and pick it with `--env` or change the default with `rok env use`; there is no activation step.
+Named environments are for the REPL and Jupyter. Install libraries into one with `rok install`, and pick it with `--env` or change the default with `rok env use`; there is no activation step. With no environment yet, `rok env list` says how to make one.
 
 ```text
 $ rok env create sci
      Created environment `sci` (~/.rok/envs/sci)
 $ rok install --env sci geom --path ~/work/geom
+   Installed geom into environment `sci` (for `rok repl` / `rok jupyter`; a script gets it with `rok add geom <file.rok>`)
 $ rok env use sci
 $ rok env list
-* sci
+* sci (active)
 ```
 
 A package never uses an environment: inside a package, its own `rok.rokon` is all that counts.

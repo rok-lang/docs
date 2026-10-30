@@ -159,7 +159,7 @@ Without an argument, the token is read from standard input without echoing. `rok
 ```text
 $ rok publish
 Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
-note: dry run; --commit adds it to https://github.com/rok-lang/rokstones.io-index as te/xt/textwrap
+note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
 The entry records the HEAD commit and its tree hash, so push that commit first. `rok publish --commit` sends the entry to the registry with your token (`Published textwrap 0.1.0 to https://rokstones.io`), and the version is live once the index has it. A version cannot be published twice, and a name differing only in case or `-` / `_` from an existing stone is taken.

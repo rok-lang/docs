@@ -159,7 +159,9 @@ rok new app
 
 ```text
      Created library package (geom)
+             cd geom && rok test
      Created executable package (app)
+             cd app && rok run
 ```
 
 `geom`에 모듈을 두 개 만듭니다. 하위 모듈의 항목을 패키지 루트에서 `pub use`로 다시 내보내면(re-export) 라이브러리 사용자는 내부 구조를 알 필요가 없습니다.
@@ -193,6 +195,10 @@ cd app
 rok add geom --path ../geom
 ```
 
+```text
+       Added geom v0.1.0
+```
+
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
     "geom": Dep::path("../geom"),
@@ -210,8 +216,8 @@ println(f"{area_sum([Circle { r: 1.0 }, Circle { r: 2.0 }])}");
 $ rok run
    Compiling geom (../geom)
    Compiling app (.)
-    Finished in 1.97s
-     Running `./target/debug/app`
+    Finished in 0.22s
+     Running `target/debug/app`
 15.70795
 ```
 
@@ -226,13 +232,23 @@ $ rok search json
     Updating index https://github.com/rok-lang/rokstones.io-index
 json 0.1.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
 $ rok add json@^0.1
-       Added json to deps of rok.rokon
+    Fetching https://github.com/rok-lang/json.git
+       Added json v0.1.0
 ```
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
     "json": Dep::version("^0.1"),
 } }
+```
+
+이름을 잘못 쓰면 가장 가까운 stone을 알려 줍니다.
+
+```text
+$ rok add jsn
+    Updating index https://github.com/rok-lang/rokstones.io-index
+rok: error: no stone named `jsn` in https://github.com/rok-lang/rokstones.io-index
+help: did you mean `json`? (or search: `rok search jsn`)
 ```
 
 그냥 문자열은 `Dep::version`의 축약이고, 연산자가 없는 요구 사항은 `^`을 뜻합니다. 그래서 다음 세 줄은 같은 것을 요청합니다. stone의 README에는 짧은 형태인 `"json": "0.1"`이 자주 나옵니다. 이 형태는 `>=0.1.0, <0.2.0`을 뜻합니다.
@@ -280,15 +296,16 @@ rok run tool.rok
 
 스크립트에도 파일 모듈을 둘 수 있습니다. 패키지의 `src/`에서와 마찬가지로 `mod helper;`는 옆에 있는 `helper.rok`을 불러옵니다. 모듈 파일에도 자기 `//!` 블록을 둘 수 있고(`rok add <name> helper.rok`), 모든 파일의 블록이 합쳐집니다. 스크립트는 `rok install`로 설치한 라이브러리를 보지 않고, 블록에 적힌 것만 셉니다. 스크립트가 한 파일로 부족해지면 `rok init --script tool.rok`으로 패키지로 바꿉니다. 블록은 `rok.rokon`이 되고, `tool.rok`과 그 모듈 파일은 `src/`로 옮겨집니다.
 
-이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치합니다. 환경은 `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 따로 활성화하는 단계는 없습니다.
+이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치합니다. 환경은 `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 따로 활성화하는 단계는 없습니다. 환경이 아직 없으면 `rok env list`가 만드는 방법을 알려 줍니다.
 
 ```text
 $ rok env create sci
      Created environment `sci` (~/.rok/envs/sci)
 $ rok install --env sci geom --path ~/work/geom
+   Installed geom into environment `sci` (for `rok repl` / `rok jupyter`; a script gets it with `rok add geom <file.rok>`)
 $ rok env use sci
 $ rok env list
-* sci
+* sci (active)
 ```
 
 패키지는 환경을 쓰지 않습니다. 패키지 안에서는 자기 `rok.rokon`만이 기준입니다.

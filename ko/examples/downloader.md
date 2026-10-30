@@ -1,6 +1,6 @@
 # 동시 다운로더
 
-워커 태스크 풀이 가상의 자원을 나눠 맡고 (네트워크 대신 `task::sleep` 으로 지연을 흉내 냅니다), 결과는 채널로 돌아오며, 정렬된 보고서를 출력합니다.
+워커 task 풀이 가상의 자원을 나눠 내려받습니다. 네트워크 대신 `task::sleep`으로 지연을 흉내 냅니다. 결과는 채널로 모으고 정렬한 보고서를 출력합니다.
 
 ## 코드
 
@@ -115,8 +115,8 @@ style.css          29696 B
 
 ## 설명
 
-- 채널은 송신자가 여럿이고 수신자는 하나입니다 (mpsc). `Receiver` 는 복제할 수 없으므로 워커들이 작업 채널 하나를 공유하지 않습니다. 대신 쉬고 있는 워커가 `ready` 채널로 자기 번호를 알리면, 분배자가 그 워커 전용 채널로 URL 을 보냅니다 ([2.17.4 multi-producer](../spec/refs-standard-libraries/200-core/217-channel.html#2174-multi-producer), [`channel`](../../std/core/channel.html#fn.channel)).
-- 워커마다 `clone()` 으로 자기 송신자를 받고, 일이 끝나면 `close()` 합니다. `for await r in done_rx` 는 모든 송신자가 닫혀야 끝나므로, `main` 은 원래의 `done_tx` 를 일찍 닫습니다 ([동시성](../learn/12-concurrency.html)).
-- `await job_rx.recv_async()` 는 값이 올 때까지 스레드가 아니라 태스크를 중단합니다. 채널이 닫히면 `none` 을 내고, `let-else` 안의 `break` 가 워커 루프를 빠져나갑니다.
-- `task::timeout` 은 태스크가 제때 끝나지 않으면 `TimeoutError` 를 던집니다. 타임아웃이 태스크를 멈추지는 않으므로 `t.cancel()` 로 명시적으로 취소합니다 ([`task::timeout`](../../std/core/task.html#fn.timeout), [2.18.1 핵심 API](../spec/refs-standard-libraries/200-core/218-task.html#2181-핵심-api)).
-- 결과가 도착하는 순서는 실행할 때마다 다를 수 있습니다. 그래서 출력하기 전에 URL 로 정렬하며, 보고서는 언제나 같습니다.
+- 채널은 송신자가 여럿이고 수신자는 하나입니다(mpsc). `Receiver`는 복제할 수 없으므로 워커가 작업 채널 하나를 함께 쓰지 않습니다. 대신 쉬고 있는 워커가 `ready` 채널로 자기 번호를 알리면 분배자가 그 워커 전용 채널로 URL을 보냅니다([2.17.4 다중 생산자](../spec/refs-standard-libraries/200-core/217-channel.html#2174-다중-생산자), [`channel`](../../std/core/channel.html#fn.channel)).
+- 워커마다 `clone()`으로 자기 송신자를 받고 일이 끝나면 `close()`로 닫습니다. `for await r in done_rx`는 모든 송신자가 닫혀야 끝나므로 `main`은 원래의 `done_tx`를 일찍 닫습니다([동시성](../learn/12-concurrency.html)).
+- `await job_rx.recv_async()`는 값이 올 때까지 스레드가 아니라 task를 멈춥니다. 채널이 닫히면 `none`을 내고, `let-else` 안의 `break`가 워커 루프를 빠져나갑니다.
+- `task::timeout`은 task가 제때 끝나지 않으면 `TimeoutError`를 던집니다. 타임아웃이 task를 멈추지는 않으므로 `t.cancel()`로 명시적으로 취소합니다([`task::timeout`](../../std/core/task.html#fn.timeout), [2.18.1 핵심 API](../spec/refs-standard-libraries/200-core/218-task.html#2181-핵심-api)).
+- 결과가 도착하는 순서는 실행할 때마다 다를 수 있습니다. 그래서 출력하기 전에 URL로 정렬합니다. 보고서는 언제나 같습니다.

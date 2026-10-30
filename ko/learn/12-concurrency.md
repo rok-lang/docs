@@ -472,7 +472,7 @@ par::for_each([shared, shared], |xs| { xs.sort(); });
 ```
 
 ```text
-warning: par::for_each at main.rok:2:1: two items reach one collection or future, so they run one at a time on this thread; give each item its own copy, or share read-only data through `Frozen` (stdlib 2.19.1)
+warning: par::for_each at main.rok:2:1: two items reach one collection or future, so they run one at a time on this thread; give each item its own copy, or share read-only data through `Frozen`
 ```
 
 한 리스트의 서로 다른 부분을 덮는 슬라이스는 공유로 치지 않습니다. 그래서 큰 리스트를 조각으로 나누어도 병렬로 실행됩니다. 이 검사는 항목이 닿는 모든 컬렉션을 방문하므로 호출마다 컬렉션당 약간의 비용이 듭니다.

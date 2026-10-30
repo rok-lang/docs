@@ -472,7 +472,7 @@ par::for_each([shared, shared], |xs| { xs.sort(); });
 ```
 
 ```text
-warning: par::for_each at main.rok:2:1: two items reach one collection or future, so they run one at a time on this thread; give each item its own copy, or share read-only data through `Frozen` (stdlib 2.19.1)
+warning: par::for_each at main.rok:2:1: two items reach one collection or future, so they run one at a time on this thread; give each item its own copy, or share read-only data through `Frozen`
 ```
 
 Slices that cover different parts of one list do not count as sharing, so splitting a big list into chunks stays parallel. The check visits every collection the items reach, which costs a little per collection on each call.

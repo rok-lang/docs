@@ -1,6 +1,6 @@
 # 자식 프로세스
 
-`rok::std::process::Command`로 `echo`, 셸 파이프라인, `tr` 같은 외부 프로그램을 실행하고, 그 출력, 종료 코드, 환경 변수, 표준 입력을 다룹니다.
+`rok::std::process::Command`로 `echo`, 셸 파이프라인, `tr` 같은 외부 프로그램을 실행합니다. 출력, 종료 코드, 환경 변수, 표준 입력을 다루는 방법을 보여 줍니다.
 
 ## 코드
 
@@ -83,9 +83,9 @@ ok=false
 
 ## 설명
 
-- [`Command`](../../std/std/process.html#struct.Command)는 빌더입니다. `args`, `env`, `current_dir`, `stdin` 같은 메서드는 갱신된 명령을 돌려주므로 한 줄로 호출을 이어 가고, 마지막에 `output()`, `status()`, `spawn()` 중 하나로 끝냅니다([3.7.1 `Command` builder](../spec/refs-standard-libraries/300-std/307-process.html#371-command-builder)).
+- [`Command`](../../std/std/process.html#struct.Command)는 빌더입니다. `args`, `env`, `current_dir`, `stdin` 같은 메서드는 갱신된 명령을 돌려주므로 호출을 한 줄로 이어 갑니다. 마지막에는 `output()`, `status()`, `spawn()` 중 하나로 끝냅니다([3.7.1 `Command` 빌더](../spec/refs-standard-libraries/300-std/307-process.html#371-command-빌더)).
 - `output()`는 자식이 끝나기를 기다리고 stdout과 stderr를 모두 [`Output`](../../std/std/process.html#struct.Output)에 모읍니다. 두 파이프를 함께 비우므로 자식이 가득 찬 파이프에 막혀 멈추는 일이 없습니다. `str::from_utf8`은 바이트를 문자열로 바꿉니다.
 - 파이프(`|`)는 Rok이 아니라 `sh -c`가 처리합니다. 셸 문법이 필요할 때 가장 간단한 방법입니다.
 - `env`는 자식에게만 변수를 더하고, `env_clear`는 물려받은 환경을 비웁니다. 부모의 환경은 바뀌지 않습니다.
-- `spawn()`은 기다리지 않고 [`Child`](../../std/std/process.html#struct.Child)를 돌려줍니다. `Stdio::Piped`로 연 `stdin`에 쓰고, `close()`로 EOF를 보낸 다음, `stdout`을 읽고 `wait()`합니다.
+- `spawn()`은 기다리지 않고 [`Child`](../../std/std/process.html#struct.Child)를 돌려줍니다. `Stdio::Piped`로 연 `stdin`에 쓰고, `close()`로 EOF를 보낸 다음 `stdout`을 읽고 `wait()`로 기다립니다.
 - 실행 파일이 없으면 `IoError`를 던집니다. `try ... catch e { ... }`가 그 자리에서 잡아 기본값으로 대신합니다([3.14 에러 제어 흐름](../spec/refs-lang/003-expressions/314-error-control-flow.html), [에러 처리](../learn/10-errors.html)).

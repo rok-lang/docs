@@ -1,10 +1,10 @@
 # 8. 컬렉션과 반복자
 
-프로그램은 대부분 여러 값을 모으고, 순회하고, 변환합니다. 이 장에서는 표준 컬렉션(`List`, `Dict`, `Set`과 비슷한 컬렉션들), 슬라이싱, 그리고 이 모두를 하나로 묶는 `Iterator`를 다룹니다.
+프로그램은 대부분 여러 값을 모으고, 순회하고, 변환합니다. 이 장에서는 표준 컬렉션(`List`, `Dict`, `Set`과 그 친척), 슬라이싱, 그리고 이 모두를 하나로 묶는 `Iterator`를 다룹니다.
 
 ## List
 
-`[1, 2, 3]`은 동적 배열 `List<T>`입니다. 인덱스는 0부터 시작하고, 음수 인덱스는 끝에서부터 셉니다. 범위를 벗어난 `xs[i]`는 panic하므로, 없을 수도 있는 위치는 `T | none`을 반환하는 `get`으로 읽습니다.
+`[1, 2, 3]`은 동적 배열 `List<T>`입니다. 인덱스는 0부터 시작하고, 음수 인덱스는 끝에서부터 셉니다. 범위를 벗어난 `xs[i]`는 panic을 일으킵니다. 그래서 없을 수도 있는 위치는 `T | none`을 반환하는 `get`으로 읽습니다.
 
 ```rok
 let xs = [5, 3, 8, 1];
@@ -45,7 +45,7 @@ println(f"{xs:?} {copy:?}");
 
 ## 슬라이싱
 
-`xs[start:end:step]`은 Python과 같은 뜻입니다. 경계는 길이에 맞게 잘리므로(clamp) 슬라이싱은 범위 때문에 panic하지 않습니다. `List`를 슬라이싱하면 원래 버퍼를 가리키는 `Slice<T>` 뷰가 나옵니다. 독립된 리스트가 필요하면 `to_list()`로 복사합니다.
+`xs[start:end:step]`은 Python과 같은 뜻입니다. 경계는 길이에 맞게 잘리므로(clamp) 슬라이싱은 범위 때문에 panic을 일으키지 않습니다. `List`를 슬라이싱하면 원래 버퍼를 가리키는 `Slice<T>` 뷰가 나옵니다. 독립된 리스트가 필요하면 `to_list()`로 복사합니다.
 
 ```rok
 let xs = [10, 20, 30, 40, 50];
@@ -62,9 +62,9 @@ println(f"{part.len()} {part[0]} {part.to_list():?}");
 3 20 [20, 30, 40]
 ```
 
-## Dict 와 Set
+## Dict와 Set
 
-`{"key": value}`는 해시 맵 `Dict<K, V>`이고, `{1, 2}`는 해시 집합 `Set<T>`입니다. 빈 `{}`는 블록이므로 빈 컬렉션은 `Dict::new()` / `Set::new()`로 만듭니다. `d[k]`는 키가 없으면 panic하고, `d.get(k)`는 `V | none`을 반환합니다.
+`{"key": value}`는 해시 맵 `Dict<K, V>`이고, `{1, 2}`는 해시 집합 `Set<T>`입니다. 빈 `{}`는 블록이므로 빈 컬렉션은 `Dict::new()` / `Set::new()`로 만듭니다. `d[k]`는 키가 없으면 panic을 일으키고, `d.get(k)`는 `V | none`을 반환합니다.
 
 ```rok
 let ages: Dict<str, i32> = {"kim": 30, "lee": 25};
@@ -125,7 +125,7 @@ apple=2
 
 ## 반복자와 어댑터
 
-`for x in collection`은 `Iterator`로 동작합니다. 컬렉션의 `iter()`가 반환한 반복자 위에 `map`, `filter`, `enumerate`, `zip`, `take`, `skip`, `rev`, `step_by`, `chain` 같은 **어댑터(adapter)**를 이어 붙일 수 있습니다. 어댑터는 lazy합니다. `collect`, `sum`, `fold`, `count`처럼 값을 실제로 소비하는 메서드를 호출할 때만 실행됩니다.
+`for x in collection`은 `Iterator`로 동작합니다. 컬렉션의 `iter()`가 반환한 반복자 위에 `map`, `filter`, `enumerate`, `zip`, `take`, `skip`, `rev`, `step_by`, `chain` 같은 **어댑터(adapter)**를 이어 붙일 수 있습니다. 어댑터는 미리 계산하지 않습니다. `collect`, `sum`, `fold`, `count`처럼 값을 실제로 소비하는 메서드를 호출해야 실행됩니다.
 
 ```rok
 let xs = [1, 2, 3, 4, 5, 6];
@@ -158,9 +158,9 @@ println(f"{back:?} {uniq.len()}");
 [6, 5] 2
 ```
 
-`collect`는 받는 쪽의 타입(`List<i32>`, `Set<i32>`, ...)으로 결과를 만듭니다. 그래서 `let`에 타입을 적었습니다.
+`collect`는 받는 쪽의 타입(`List<i32>`, `Set<i32>` 등)으로 결과를 만듭니다. 그래서 `let`에 타입을 적었습니다.
 
-## 반복자 직접 만들기: `Iterator` 와 `yield`
+## 반복자 직접 만들기: `Iterator`와 `yield`
 
 `Iterator` 트레잇에 필요한 것은 연관 타입 `Item`과 메서드 `next(ref self) -> Item | none` 하나뿐입니다. 어댑터는 모두 기본 메서드로 딸려 옵니다.
 
@@ -188,7 +188,7 @@ for v in (Countdown { n: 5 }).filter(|v| v % 2 == 1) { println(f"{v}"); }
 1
 ```
 
-상태를 직접 관리하기 번거로우면 **제너레이터(generator)**를 씁니다. `yield fn`은 본체가 `yield value;`로 값을 하나씩 내보내는 함수이고, 호출하면 반복자(`GenIter<T>`)를 반환합니다. 끝없이 값을 내는 제너레이터여도 괜찮습니다. 필요한 만큼만 `take`로 가져가면 됩니다. 표현식 자리에서는 `yield { ... }` 블록으로 바로 만들 수도 있습니다.
+상태를 직접 관리하기 번거로우면 **제너레이터(generator)**를 씁니다. `yield fn`은 본체가 `yield value;`로 값을 하나씩 내보내는 함수입니다. 호출하면 반복자(`GenIter<T>`)를 반환합니다. 끝없이 값을 내는 제너레이터여도 됩니다. 필요한 만큼만 `take`로 가져가면 됩니다. 표현식 자리에서는 `yield { ... }` 블록으로 바로 만들 수도 있습니다.
 
 ```rok
 yield fn fib() -> i64 {
@@ -217,7 +217,7 @@ println("");
 
 ## 심화: 브로드캐스트 연산자
 
-처음 읽을 때는 이 절을 건너뛰어도 됩니다. `.+`, `.*`, `.>`처럼 점이 붙은 연산자는 원소별 연산입니다. 이 연산자들은 `DotAdd`, `DotMul`, `DotGt` 같은 트레잇 호출로 desugar되므로, 내 타입에 이 트레잇을 구현하면 바로 연산자를 쓸 수 있습니다.
+처음 읽을 때는 이 절을 건너뛰어도 됩니다. `.+`, `.*`, `.>`처럼 점이 붙은 연산자는 원소별 연산입니다. 이 연산자는 `DotAdd`, `DotMul`, `DotGt` 같은 트레잇 호출로 풀립니다. 그래서 내 타입에 이 트레잇을 구현하면 바로 연산자를 쓸 수 있습니다.
 
 ```rok
 struct Vector { xs: List<f64>; }
@@ -246,7 +246,7 @@ println(f"{c.xs:?}");
 [21, 42, 63]
 ```
 
-사양은 `List`와 고정 크기 배열에 이 연산자들을 표준으로 정의하고, 함수 뒤에 점을 붙여 모든 원소에 적용하는 `f.(xs)`도 함께 정의합니다.
+사양은 `List`와 고정 크기 배열에 이 연산자를 표준으로 정의합니다. 함수 뒤에 점을 붙여 모든 원소에 적용하는 `f.(xs)`도 함께 정의합니다.
 
 ```rok
 let a = [1.0, 2.0, 3.0];
@@ -265,7 +265,7 @@ println(f"{c:?} {d:?} {r:?}");
 
 - `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `entry`가, `Set`에는 집합 연산이 있습니다.
 - 컬렉션은 참조 핸들입니다. 복사본이 필요하면 `clone()`을 호출합니다.
-- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 panic하지 않습니다. 결과는 `Slice<T>` 뷰입니다.
+- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 panic을 일으키지 않습니다. 결과는 `Slice<T>` 뷰입니다.
 - 순서가 필요하면 `OrderedDict` / `OrderedSet`을, 양방향 큐가 필요하면 `Deque`를 씁니다.
 - `iter()` 뒤에 어댑터를 이어 붙이고 `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
 - `yield fn`과 `yield { }`를 쓰면 반복자를 짧게 작성할 수 있습니다.

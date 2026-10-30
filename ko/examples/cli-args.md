@@ -1,6 +1,6 @@
 # 명령줄 도구
 
-`grep`을 닮은 작은 도구 `mgrep`은 명령줄 인자를 직접 파싱해서 구조체에 담고, `--help`와 잘못된 인자를 `throws`로 처리합니다.
+`grep`을 닮은 작은 도구 `mgrep`은 명령줄 인자를 직접 파싱해서 struct에 담습니다. `--help`와 잘못된 인자는 `throws`로 처리합니다.
 
 ## 코드
 
@@ -159,11 +159,11 @@ mgrep: option '--max' needs a value
 
 ## 설명
 
-- `env::args()`는 `[0]`에 프로그램 이름이 들어 있는 `List<str>`이므로, `1..argv.len()`만 복사합니다([`env::args`](../../std/std/env.html#fn.args)).
-- 옵션은 필드 기본값을 가진 `Options` 구조체에 담깁니다. 기본값이 있는 필드는 `Options { pattern: "" }`처럼 생략할 수 있습니다([구조체, enum, 트레잇](../learn/06-structs-enums-traits.html), [2.3.3 필드 기본값](../spec/refs-lang/002-types/203-struct.html#233-필드-기본값)).
-- `match a { "-i" | "--ignore-case" => ... }`처럼 문자열 리터럴 패턴을 `|`로 이으면 짧은 형태와 긴 형태를 한 번에 받습니다. 대입은 표현식이 아니라 문장이므로, 그 가지의 본체는 `{ ...; }` 블록으로 감쌉니다([제어 흐름](../learn/04-control-flow.html)).
+- `env::args()`는 `[0]`에 프로그램 이름이 들어 있는 `List<str>`이므로 `1..argv.len()`만 복사합니다([`env::args`](../../std/std/env.html#fn.args)).
+- 옵션은 `Options` struct에 담깁니다. 필드마다 기본값이 있습니다. 기본값이 있는 필드는 `Options { pattern: "" }`처럼 생략할 수 있습니다([struct, enum, 트레잇](../learn/06-structs-enums-traits.html), [2.3.3 필드 기본값](../spec/refs-lang/002-types/203-struct.html#233-필드-기본값)).
+- `match a { "-i" | "--ignore-case" => ... }`처럼 문자열 리터럴 패턴을 `|`로 이으면 짧은 형태와 긴 형태를 한 번에 받습니다. 대입은 표현식이 아니라 문장이므로 그 가지의 본체는 `{ ...; }` 블록으로 감쌉니다([제어 흐름](../learn/04-control-flow.html)).
 - 잘못된 인자는 `ArgError` enum으로 던집니다. `run`은 `throws (ArgError | IoError)`를 선언하고, `main`은 타입마다 `catch`를 하나씩 두어 종료 코드(2 또는 1)를 고릅니다([에러 처리](../learn/10-errors.html), [3.14.4 `catch`](../spec/refs-lang/003-expressions/314-error-control-flow.html#3144-catch-후위-처리-식)).
-- `-m` 뒤의 숫자는 `parse::<usize>()`로 읽습니다. 실패하면 `catch _ { throw ...; }`가 더 알기 쉬운 에러로 바꿉니다. `opts.max`는 `usize | none`이므로, 비교할 때 `?? usize::MAX`로 기본값을 줍니다.
+- `-m` 뒤의 숫자는 `parse::<usize>()`로 읽습니다. 실패하면 `catch _ { throw ...; }`가 더 알기 쉬운 에러로 바꿉니다. `opts.max`는 `usize | none`이므로 비교할 때 `?? usize::MAX`로 기본값을 줍니다.
 
 ## 실행하기
 

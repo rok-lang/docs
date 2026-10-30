@@ -1,6 +1,6 @@
 # 단어 세기
 
-텍스트의 줄, 단어, 문자 수를 세고, `Dict`와 정렬로 가장 자주 나오는 단어 다섯 개를 고릅니다.
+텍스트의 줄, 단어, 문자 수를 세고 `Dict`와 정렬로 가장 자주 나오는 단어 다섯 개를 고릅니다.
 
 ## 코드
 
@@ -97,6 +97,6 @@ chars  147
 
 - 세는 일은 `str`의 반복자가 맡습니다. `lines()`는 줄을, `split_whitespace()`는 단어를 내고, `count()`가 그 수를 셉니다. 문자 수는 바이트 길이 `len()`이 아니라 `char_count()`입니다([문자열](../learn/09-strings.html), [`str` 메서드](../../std/core/str.html#impl.str)).
 - `normalize`는 구두점을 버리고 소문자로 바꾸면서 `StrBuf`에 한 글자씩 단어를 만듭니다. 그래서 `"Dog,"`와 `"dog."`는 같은 단어로 셉니다([`StrBuf`](../../std/core/str.html#struct.StrBuf)).
-- 빈도 표는 `Dict<str, i32>`입니다. `counts.get(w)`는 없는 키면 `none`을 돌려주므로, `counts[w] = ...`가 새 개수를 쓰기 전에 `?? 0`이 기본값을 줍니다([컬렉션과 반복자](../learn/08-collections-iterators.html), [`Dict`](../../std/core/collections/dict.html#struct.Dict)).
-- `Dict`의 순회 순서는 정해져 있지 않으므로, 쌍을 `(word, count)` 튜플의 리스트로 옮겨 `sort_by`로 정렬합니다. 개수가 같으면 알파벳순으로 정하므로 출력은 언제나 같습니다([`List::sort_by`](../../std/core/collections/list.html#List.sort_by)).
-- 표는 f-문자열 포맷 지정자로 정렬합니다. `{w:<6}`은 왼쪽 정렬, `{c:>2}`는 오른쪽 정렬입니다([2.10.8 정렬과 폭](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).
+- 빈도 표는 `Dict<str, i32>`입니다. `counts.get(w)`는 없는 키면 `none`을 돌려주므로 `counts[w] = ...`가 새 개수를 쓰기 전에 `?? 0`이 기본값을 줍니다([컬렉션과 반복자](../learn/08-collections-iterators.html), [`Dict`](../../std/core/collections/dict.html#struct.Dict)).
+- `Dict`의 순회 순서는 정해져 있지 않으므로 쌍을 `(word, count)` 튜플의 리스트로 옮겨 `sort_by`로 정렬합니다. 개수가 같으면 알파벳순으로 정하므로 출력은 언제나 같습니다([`List::sort_by`](../../std/core/collections/list.html#List.sort_by)).
+- 표는 f-string 포맷 지정자로 정렬합니다. `{w:<6}`은 왼쪽 정렬, `{c:>2}`는 오른쪽 정렬입니다([2.10.8 정렬과 폭](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

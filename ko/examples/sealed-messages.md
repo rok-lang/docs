@@ -1,9 +1,9 @@
 # 봉인된 메시지
 
-`rok::core::crypto`와 OS 난수 소스만으로, 수신자만 읽을 수 있도록 메시지를 암호화하고 누가 보냈는지 수신자가 알 수 있도록 서명합니다.
+`rok::core::crypto`와 OS 난수 소스만 써서 메시지를 암호화하고 서명합니다. 암호화는 수신자만 읽을 수 있게 하고, 서명은 누가 보냈는지 수신자가 알 수 있게 합니다.
 
 > [!WARNING]
-> Rok의 암호 기능은 새로 만들어졌고 감사를 받지 않았습니다. 이 프로그램은 부품이 어떻게 맞물리는지 보여 줄 뿐이니, 아직 실제 비밀을 보호하는 데 쓰지 마세요.
+> Rok의 암호 기능은 새로 만들어졌고 감사를 받지 않았습니다. 이 프로그램은 부품이 어떻게 맞물리는지 보여 줄 뿐입니다. 아직 실제 비밀을 보호하는 데 쓰지 마세요.
 
 ## 코드
 
@@ -75,9 +75,9 @@ tampered: (rejected)
 
 ## 설명
 
-- 메시지마다 새 X25519 키 쌍을 만듭니다. 그 비밀 키와 Bob의 공개 키로 얻은 공유 비밀은, Bob이 자기 비밀 키와 함께 전달된 일회용 공개 키로 계산한 공유 비밀과 같습니다([`X25519`](../../std/core/crypto/x25519.html), [2.21.3 키 교환](../spec/refs-standard-libraries/200-core/221-crypto.html#2213-키-교환)).
-- 원시 공유 비밀을 키로 바로 쓰지 않습니다. `Hkdf::extract` / `expand`가 이 비밀을 32바이트 AEAD 키로 바꾸며, 라벨(`b"sealed-box v1"`)이 그 키를 이 프로토콜에 묶습니다([2.21.1](../spec/refs-standard-libraries/200-core/221-crypto.html#2211-해시-hmac-hkdf)).
-- ChaCha20-Poly1305는 암호화와 인증을 함께 합니다. 24바이트 텍스트는 40바이트가 되며, 늘어난 16바이트가 태그입니다. `open`은 키가 틀리거나 바이트가 하나라도 바뀌면 `none`을 돌려주므로, Eve와 변조된 사본은 평문이 나오기 전에 모두 거부됩니다([`Aead`](../../std/core/crypto/aead.html), [2.21.2](../spec/refs-standard-libraries/200-core/221-crypto.html#2212-aead)).
+- 메시지마다 새 X25519 키 쌍을 만듭니다. Alice가 그 비밀 키와 Bob의 공개 키로 얻은 공유 비밀은 Bob이 계산한 공유 비밀과 같습니다. Bob은 자기 비밀 키와 함께 전달받은 일회용 공개 키로 계산합니다([`X25519`](../../std/core/crypto/x25519.html), [2.21.3 키 교환](../spec/refs-standard-libraries/200-core/221-crypto.html#2213-키-교환)).
+- 원시 공유 비밀을 키로 바로 쓰지 않습니다. `Hkdf::extract` / `expand`가 이 비밀을 32바이트 AEAD 키로 바꾸고, 라벨(`b"sealed-box v1"`)이 그 키를 이 프로토콜에 묶습니다([2.21.1](../spec/refs-standard-libraries/200-core/221-crypto.html#2211-해시-hmac-hkdf)).
+- ChaCha20-Poly1305는 암호화와 인증을 함께 합니다. 24바이트 텍스트는 40바이트가 됩니다. 늘어난 16바이트가 태그입니다. `open`은 키가 틀리거나 바이트가 하나라도 바뀌면 `none`을 돌려줍니다. 그래서 Eve의 시도와 변조된 사본은 평문이 나오기 전에 모두 거부됩니다([`Aead`](../../std/core/crypto/aead.html), [2.21.2](../spec/refs-standard-libraries/200-core/221-crypto.html#2212-aead)).
 - Alice는 일회용 키, nonce, 암호문을 한꺼번에 Ed25519로 서명하므로 누구도 그중 하나를 바꿔치기할 수 없습니다. `open`은 서명부터 확인합니다([`Ed25519`](../../std/core/crypto/ed25519.html)).
-- 비밀 키와 시드는 `random::secret`에서 얻으며, 이 함수는 값을 곧바로 비밀 저장소에 넣습니다. 공유 비밀과 유도한 키도 `Secret`이므로, 키 바이트가 일반 `List`에 담기는 일이 없습니다. nonce는 공개 값이며 `random::bytes`에서 얻습니다. 알고리즘이 직접 난수를 가져오는 일은 없습니다([키 재료](../learn/19-crypto-and-tls.html#키-재료-secret)). 있을 수도 없을 수도 있는 결과는 후위 `?`와 `??`로 꺼냅니다([합 타입](../learn/05-sum-types.html)).
+- 비밀 키와 시드는 `random::secret`에서 얻습니다. 이 함수는 값을 곧바로 비밀 저장소에 넣습니다. 공유 비밀과 유도한 키도 `Secret`이므로 키 바이트가 일반 `List`에 담기는 일이 없습니다. nonce는 공개 값이고 `random::bytes`에서 얻습니다. 알고리듬이 직접 난수를 가져오는 일은 없습니다([키 재료](../learn/19-crypto-and-tls.html#키-재료-secret)). 있을 수도 없을 수도 있는 결과는 후위 `?`와 `??`로 꺼냅니다([합 타입](../learn/05-sum-types.html)).
 - 자세한 내용은 [암호와 TLS](../learn/19-crypto-and-tls.html)에 있습니다.

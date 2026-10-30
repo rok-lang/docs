@@ -2,9 +2,9 @@
 
 프로그램이 커지면 코드를 나누고 다른 사람이 작성한 라이브러리를 써야 합니다. Rok에서 코드를 나누는 단위는 **모듈**(module)이고, 빌드하고 배포하는 단위는 **패키지**(package)입니다. 레지스트리에 공개된 패키지는 **stone**이라고 부릅니다.
 
-## `mod` 와 경로
+## `mod`와 경로
 
-`mod name { .. }`는 그 자리에 모듈을 정의합니다. 모듈 안의 항목은 `module::item` 경로로 가리키며, 모듈은 다시 모듈을 품을 수 있습니다.
+`mod name { .. }`는 그 자리에 모듈을 정의합니다. 모듈 안의 항목은 `module::item` 경로로 가리킵니다. 모듈 안에 다시 모듈을 둘 수 있습니다.
 
 ```rok
 mod geom {
@@ -42,7 +42,7 @@ println(f"{geom::dist::manhattan(geom::origin(), p)}");
 
 이름 찾기는 부모 모듈을 자동으로 뒤지지 않습니다. 그래서 `dist` 안에서 `Point`를 쓰려면 `use sup::Point;`로 명시적으로 들여와야 합니다. 덕분에 이름이 어디서 왔는지 언제나 파일 안에서 알 수 있습니다.
 
-## `use` 로 들여오기
+## `use`로 들여오기
 
 긴 경로를 매번 쓰는 대신 `use`로 이름을 들여옵니다. `{..}`로 여러 개를 들여오고, `as`로 이름을 바꾸고, `*`로 모듈의 공개 항목을 모두 들여올 수 있습니다.
 
@@ -73,7 +73,7 @@ println(f"{cube(UNIT + 1)}");
 8
 ```
 
-이름을 지정해 들여온 이름은 같은 모듈에서 다시 정의하면 안 됩니다. 정의가 아무 말 없이 import를 가리기 때문입니다. glob(`use shapes::*;`)은 모듈 자신의 항목에 그냥 자리를 내줍니다.
+이름을 지정해 들여온 이름은 같은 모듈에서 다시 정의할 수 없습니다. 정의가 아무 말 없이 가져온 이름을 가리기 때문입니다. glob(`use shapes::*;`)으로 들여온 이름은 모듈 자신의 항목에 그냥 자리를 내줍니다.
 
 ```rok norun
 use shapes::square;
@@ -92,7 +92,7 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
    = help: import it under another name, `use shapes::square as shapes_square;`, or remove this `use` if the module does not need it
 ```
 
-지금까지 `use` 없이 써 온 `List`, `Dict`, `println` 같은 이름은 모든 파일에 암묵적으로 들어 있는 `use rok::core::**;` (재귀 glob: `*`에 하위 모듈까지) 덕분에 동작합니다. 파일, 네트워크, 스레드 같은 `rok::std`의 모듈은 `use rok::std::fs;`처럼 명시적으로 들여옵니다.
+지금까지 `use` 없이 써 온 `List`, `Dict`, `println` 같은 이름은 모든 파일에 암묵적으로 들어 있는 `use rok::core::**;` 덕분에 쓸 수 있습니다. 이 줄은 `*`에 하위 모듈까지 더한 재귀 glob입니다. 파일, 네트워크, 스레드 같은 `rok::std`의 모듈은 `use rok::std::fs;`처럼 명시적으로 들여옵니다.
 
 ## 가시성
 
@@ -105,7 +105,7 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
 | `pub(pkg)` | 같은 패키지 어디서나                    |
 | `pub`      | 다른 패키지에서도                       |
 
-구조체 필드도 하나씩 공개해야 합니다. 그래서 위의 `Point`는 `pub x: f64`처럼 필드마다 `pub`을 붙였습니다. 비공개 항목을 밖에서 쓰면 컴파일러가 어디에 `pub`을 붙여야 하는지 알려 줍니다.
+struct 필드도 하나씩 공개해야 합니다. 그래서 위의 `Point`는 `pub x: f64`처럼 필드마다 `pub`을 붙였습니다. 비공개 항목을 밖에서 쓰면 컴파일러가 어디에 `pub`을 붙여야 하는지 알려 줍니다.
 
 ```rok
 mod bank {
@@ -130,11 +130,11 @@ println(f"{a.owner}: {bank::balance(a)}");
 kim: 500
 ```
 
-`balance` 필드와 `check` 함수는 `bank` 밖에서 보이지 않으므로, 잔액은 `bank`의 함수로만 바꿀 수 있습니다.
+`balance` 필드와 `check` 함수는 `bank` 밖에서 보이지 않으므로 잔액은 `bank`의 함수로만 바꿀 수 있습니다.
 
 ## 파일로 나누기
 
-실제 패키지에서는 모듈을 파일로 나눕니다. `mod shapes;`처럼 본체 없이 모듈을 선언하면, 같은 디렉토리의 `shapes.rok`이 그 모듈의 본체가 됩니다. 하위 모듈이 있으면 `shapes.rok` 옆에 같은 이름의 `shapes/` 디렉토리를 둡니다(`mod.rok` 같은 특별한 파일 이름은 없습니다).
+실제 패키지에서는 모듈을 파일로 나눕니다. `mod shapes;`처럼 본체 없이 모듈을 선언하면 같은 디렉터리의 `shapes.rok`이 그 모듈의 본체가 됩니다. 하위 모듈이 있으면 `shapes.rok` 옆에 같은 이름의 `shapes/` 디렉터리를 둡니다. `mod.rok` 같은 특별한 파일 이름은 없습니다.
 
 ```text
 geom/
@@ -162,7 +162,7 @@ rok new app
      Created executable package (app)
 ```
 
-`geom`에 모듈 두 개를 만들어 봅시다. 하위 모듈의 항목을 패키지 루트에서 `pub use`로 다시 내보내면(re-export), 사용자는 내부 구조를 알 필요가 없습니다.
+`geom`에 모듈을 두 개 만듭니다. 하위 모듈의 항목을 패키지 루트에서 `pub use`로 다시 내보내면(re-export) 라이브러리 사용자는 내부 구조를 알 필요가 없습니다.
 
 ```rok norun
 // geom/src/lib.rok
@@ -215,11 +215,11 @@ $ rok run
 15.70795
 ```
 
-`PI`는 `pub(pkg)`이므로 `geom` 안에서는 어디서나 쓸 수 있지만 `app`에서는 보이지 않습니다. git 저장소는 `rok add parser --git <url> --tag v1.2`처럼 추가합니다. git과 stone 의존성은 정확한 커밋이 `rok.lock`에 고정되므로, `rok.lock`도 버전 관리에 커밋합니다. 고정된 버전을 앞으로 옮기는 것은 `rok update`뿐입니다.
+`PI`는 `pub(pkg)`이므로 `geom` 안에서는 어디서나 쓸 수 있지만 `app`에서는 보이지 않습니다. git 저장소는 `rok add parser --git <url> --tag v1.2`처럼 추가합니다. git과 stone 의존성은 정확한 커밋이 `rok.lock`에 고정됩니다. 그러니 `rok.lock`도 버전 관리에 커밋하세요. 고정된 버전을 앞으로 옮기는 것은 `rok update`뿐입니다.
 
-## stone 과 rokstones.io
+## stone과 rokstones.io
 
-레지스트리에 있는 패키지를 stone이라고 부르며, 기본 레지스트리는 [rokstones.io](https://rokstones.io)입니다. 이름으로 검색하고 버전 요구 사항과 함께 추가합니다. 버전 요구 사항은 Cargo와 같이 동작합니다. `^1.2`는 `>=1.2.0, <2.0.0`을 뜻합니다. 요구 사항을 생략하면 최신 버전이 `^`과 함께 기록됩니다.
+레지스트리에 있는 패키지를 stone이라고 부릅니다. 기본 레지스트리는 [rokstones.io](https://rokstones.io)입니다. 이름으로 검색하고 버전 요구 사항과 함께 추가합니다. 버전 요구 사항은 Cargo와 같이 동작합니다. `^1.2`는 `>=1.2.0, <2.0.0`을 뜻합니다. 요구 사항을 생략하면 최신 버전이 `^`과 함께 기록됩니다.
 
 ```text
 $ rok search json
@@ -235,7 +235,7 @@ Package { name: "app", version: "0.1.0", deps: {
 } }
 ```
 
-그냥 문자열은 `Dep::version`의 축약이고, 연산자가 없는 요구 사항은 `^`을 뜻하므로, 다음 세 줄은 같은 것을 요청합니다. stone의 README는 짧은 형태(`"json": "0.1"`, `>=0.1.0, <0.2.0`을 뜻함)를 자주 씁니다.
+그냥 문자열은 `Dep::version`의 축약이고, 연산자가 없는 요구 사항은 `^`을 뜻합니다. 그래서 다음 세 줄은 같은 것을 요청합니다. stone의 README에는 짧은 형태인 `"json": "0.1"`이 자주 나옵니다. 이 형태는 `>=0.1.0, <0.2.0`을 뜻합니다.
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
@@ -247,11 +247,11 @@ Package { name: "app", version: "0.1.0", deps: {
 
 경로는 버전이 아닙니다. `"../geom"`이 아니라 `Dep::path("../geom")`로 씁니다.
 
-라이브러리는 사용자가 켜고 끌 수 있는 **feature**를 둘 수 있고, `rok login`과 `rok publish`로 내 라이브러리를 stone으로 공개할 수도 있습니다. 둘 다 Rok 프로젝트가 관리하는 stone(`json`, `toml`, `http`, `markdown`, `rok-syntax`)과 함께 [18장](18-features-and-stones.html)에서 다룹니다.
+라이브러리에는 사용자가 켜고 끌 수 있는 **feature**를 둘 수 있습니다. `rok login`과 `rok publish`로 내 라이브러리를 stone으로 공개할 수도 있습니다. 둘 다 Rok 프로젝트가 관리하는 stone(`json`, `toml`, `http`, `markdown`, `rok-syntax`)과 함께 [18장](18-features-and-stones.html)에서 다룹니다.
 
 ## 단일 파일 스크립트와 환경
 
-패키지까지 만들 필요가 없는 작은 스크립트는 파일 맨 위의 `//!` 주석 안에 있는 ```` ```rokon ```` 블록에 의존성을 둡니다. 스크립트를 마지막 인자로 주고 `rok add`를 실행하면 이 블록을 대신 써 줍니다. 경로는 스크립트 기준의 상대 경로로 기록되고, lockfile는 캐시에 보관됩니다.
+패키지까지 만들 필요가 없는 작은 스크립트는 파일 맨 위의 `//!` 주석 안에 있는 ```` ```rokon ```` 블록에 의존성을 둡니다. 스크립트를 마지막 인자로 주고 `rok add`를 실행하면 이 블록을 대신 써 줍니다. 경로는 스크립트 기준의 상대 경로로 기록되고, lockfile은 캐시에 보관됩니다.
 
 ```bash
 rok add geom --path ../geom tool.rok
@@ -278,9 +278,9 @@ println(f"{area_sum([Circle { r: helper::radius() }])}");
 rok run tool.rok
 ```
 
-스크립트도 파일 모듈을 가질 수 있습니다. 패키지의 `src/`에서와 마찬가지로 `mod helper;`는 옆에 있는 `helper.rok`을 불러옵니다. 모듈 파일에도 자기 `//!` 블록을 둘 수 있으며(`rok add <name> helper.rok`), 모든 파일의 블록이 합쳐집니다. 스크립트는 `rok install`로 설치한 라이브러리를 보지 않습니다. 블록에 적힌 것만 셉니다. 스크립트가 한 파일로 부족해지면 `rok init --script tool.rok`으로 패키지로 바꿉니다. 블록은 `rok.rokon`이 되고, `tool.rok`과 그 모듈 파일은 `src/`로 옮겨집니다.
+스크립트에도 파일 모듈을 둘 수 있습니다. 패키지의 `src/`에서와 마찬가지로 `mod helper;`는 옆에 있는 `helper.rok`을 불러옵니다. 모듈 파일에도 자기 `//!` 블록을 둘 수 있고(`rok add <name> helper.rok`), 모든 파일의 블록이 합쳐집니다. 스크립트는 `rok install`로 설치한 라이브러리를 보지 않고, 블록에 적힌 것만 셉니다. 스크립트가 한 파일로 부족해지면 `rok init --script tool.rok`으로 패키지로 바꿉니다. 블록은 `rok.rokon`이 되고, `tool.rok`과 그 모듈 파일은 `src/`로 옮겨집니다.
 
-이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치하고, `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 활성화 단계는 없습니다.
+이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치합니다. 환경은 `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 따로 활성화하는 단계는 없습니다.
 
 ```text
 $ rok env create sci
@@ -295,7 +295,7 @@ $ rok env list
 
 ## 프로그램 설치
 
-`rok install`은 `cargo install`처럼 프로그램도 설치합니다. `src/main.rok`이 있는 패키지(stone, git, 경로에서)나 스크립트 파일을 `--release`로 빌드해 `~/.rok/bin`에 넣습니다. 같은 stone 버전이나 git 커밋을 다시 설치하면 아무것도 하지 않고 다시 빌드하는 방법을 알려 줍니다. 새 버전은 이전 버전을 대체합니다. 경로나 스크립트 파일은 언제나 다시 빌드합니다.
+`rok install`은 `cargo install`처럼 프로그램도 설치합니다. `src/main.rok`이 있는 패키지(stone, git, 경로에서)나 스크립트 파일을 `--release`로 빌드해 `~/.rok/bin`에 넣습니다. 같은 stone 버전이나 git 커밋을 다시 설치하려 하면 아무것도 하지 않고, 다시 빌드하는 방법을 알려 줍니다. 새 버전은 이전 버전을 대체합니다. 경로나 스크립트 파일은 언제나 다시 빌드합니다.
 
 ```text
 $ rok install tool
@@ -322,6 +322,6 @@ $ rok install tool@0.2
 ## 더 읽을거리
 
 - 사양: [모듈](../spec/refs-lang/005-modules/504-modules.html), [`use`](../spec/refs-lang/005-modules/505-use.html), [가시성](../spec/refs-lang/005-modules/506-visibility.html), [경로](../spec/refs-lang/005-modules/507-paths.html), [re-export](../spec/refs-lang/005-modules/508-re-export.html)
-- 도구: [`rok` front-end](../spec/refs-lang/009-tools/910-rok-frontend.html), [`rok.rokon` / `rok.lock`](../spec/refs-lang/009-tools/910-rok-frontend.html#9103-rokrokon--roklock), [stone과 rokstones.io](../spec/refs-lang/009-tools/910-rok-frontend.html#9104a-stone-과-rokstonesio), [환경](../spec/refs-lang/009-tools/910-rok-frontend.html#9105-환경), [inline 매니페스트](../spec/refs-lang/009-tools/910-rok-frontend.html#9107-단일-파일-스크립트의-inline-매니페스트)
+- 도구: [`rok` 프런트엔드](../spec/refs-lang/009-tools/910-rok-frontend.html), [`rok.rokon` / `rok.lock`](../spec/refs-lang/009-tools/910-rok-frontend.html#9103-rokrokon--roklock), [stone과 rokstones.io](../spec/refs-lang/009-tools/910-rok-frontend.html#9104a-stone과-rokstonesio), [환경](../spec/refs-lang/009-tools/910-rok-frontend.html#9105-환경), [인라인 매니페스트](../spec/refs-lang/009-tools/910-rok-frontend.html#9107-단일-파일-스크립트의-인라인-매니페스트)
 - [1. 시작하기](01-getting-started.html)
 - 다음 장: [12. 동시성](12-concurrency.html)

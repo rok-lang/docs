@@ -1,6 +1,6 @@
 # C 라이브러리 호출
 
-libc의 `strlen`, `getpid`, `getenv`, `snprintf`, `qsort`를 `extern "C"` 블록에 선언하고, `rok::bare`의 포인터 함수와 할당 함수로 C 메모리를 직접 관리합니다.
+libc의 `strlen`, `getpid`, `getenv`, `snprintf`, `qsort`를 `extern "C"` 블록에 선언합니다. `rok::bare`의 포인터 함수와 할당 함수로 C 메모리를 직접 관리합니다.
 
 ## 코드
 
@@ -87,9 +87,9 @@ qsort descending: [88, 56, 42, 21, 19, 7, 3]
 
 ## 설명
 
-- `extern "C" { ... }` 블록에는 본체 없는 시그니처만 들어갑니다. 여기에 선언한 함수는 묵시적으로 `unsafe`이므로, 모든 호출은 `unsafe { ... }` 안에 둡니다([5.9 `extern` 블록](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html)).
-- `str` 매개변수는 NUL로 끝나는 `char*`로 C에 전달됩니다. 그래서 `strlen("naïve")`는 문자 수 5가 아니라 UTF-8 바이트 수 6을 돌려줍니다([5.9.4 FFI 호환 타입](../spec/refs-lang/005-modules/509-extern-block.html#594-ffi-호환-타입)).
-- NULL일 수 있는 C 포인터는 [`CPtr`](../../std/bare/ptr.html#struct.CPtr)로 받습니다. `as_const()`는 null이 아닌 [`ConstPtr`](../../std/bare/ptr.html#struct.ConstPtr) 또는 `none`을 주므로, `?` 하나로 `getenv`를 `str | none`을 돌려주는 안전한 함수로 감쌉니다([합 타입](../learn/05-sum-types.html)).
-- 메모리는 [`Layout`](../../std/bare/alloc.html#struct.Layout)와 `alloc` / `dealloc`으로 직접 할당하고, [`ManyPtr`](../../std/bare/ptr.html#struct.ManyPtr)의 `read(i)` / `write(i, v)`로 C 배열처럼 접근합니다. GC가 관리하지 않으므로 직접 해제해야 합니다.
-- `extern "C" fn descending`은 C ABI로 컴파일되는 Rok 함수입니다. 함수 포인터로 `qsort`에 넘기면, C가 정렬하는 동안 Rok 코드를 다시 호출할 수 있습니다([5.9.10 `extern fn` 정의](../spec/refs-lang/005-modules/509-extern-block.html#5910-extern-fn-정의-외부에-노출)).
+- `extern "C" { ... }` 블록에는 본체 없는 시그니처만 들어갑니다. 여기에 선언한 함수는 묵시적으로 `unsafe`이므로 모든 호출은 `unsafe { ... }` 안에 둡니다([5.9 `extern` 블록](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html)).
+- `str` 매개변수는 NUL로 끝나는 `char*`로 바뀌어 C에 넘어갑니다. 그래서 `strlen("naïve")`는 문자 수 5가 아니라 UTF-8 바이트 수 6을 돌려줍니다([5.9.4 FFI 호환 타입](../spec/refs-lang/005-modules/509-extern-block.html#594-ffi-호환-타입)).
+- NULL일 수 있는 C 포인터는 [`CPtr`](../../std/bare/ptr.html#struct.CPtr)로 받습니다. `as_const()`는 null이 아닌 [`ConstPtr`](../../std/bare/ptr.html#struct.ConstPtr) 또는 `none`을 주므로 `?` 하나로 `getenv`를 `str | none`을 돌려주는 안전한 함수로 감쌉니다([합 타입](../learn/05-sum-types.html)).
+- 메모리는 [`Layout`](../../std/bare/alloc.html#struct.Layout)와 `alloc` / `dealloc`으로 직접 할당하고, [`ManyPtr`](../../std/bare/ptr.html#struct.ManyPtr)의 `read(i)` / `write(i, v)`로 C 배열처럼 읽고 씁니다. GC가 관리하지 않는 메모리이므로 직접 해제해야 합니다.
+- `extern "C" fn descending`은 C ABI로 컴파일되는 Rok 함수입니다. 함수 포인터로 `qsort`에 넘기면 C가 정렬하는 동안 Rok 코드를 다시 호출할 수 있습니다([5.9.10 `extern fn` 정의](../spec/refs-lang/005-modules/509-extern-block.html#5910-extern-fn-정의외부에-노출)).
 - `snprintf` 같은 가변 인자 함수는 시그니처 끝에 `...`를 붙여 선언합니다. 자세한 내용은 [FFI 장](../learn/14-ffi.html)에 있습니다.

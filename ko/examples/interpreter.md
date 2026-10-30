@@ -181,11 +181,11 @@ for src in program {
 
 ## 설명
 
-- 프로그램과 값은 enum `Value` 하나를 같이 씁니다. Lisp는 코드와 데이터의 모양이 같으므로, 파서는 `Value`를 만들고 평가기는 `Value`를 받아 `Value`를 돌려줍니다([합 타입](../learn/05-sum-types.html), [구조체, enum, 트레잇](../learn/06-structs-enums-traits.html)).
+- 프로그램과 값은 enum `Value` 하나를 같이 씁니다. Lisp는 코드와 데이터의 모양이 같으므로 파서는 `Value`를 만들고 평가기는 `Value`를 받아 `Value`를 돌려줍니다([합 타입](../learn/05-sum-types.html), [struct, enum, 트레잇](../learn/06-structs-enums-traits.html)).
 - 파서는 `ref pos: usize`로 읽는 위치를 호출한 쪽과 공유합니다. 괄호 안을 읽을 때 자기 자신을 호출하는 전형적인 재귀 하강 파서입니다([4.7 `ref` 키워드](../spec/refs-lang/004-functions/407-ref-keyword.html)).
-- 정수가 아닌 토큰은 모두 심볼입니다. `try? tok.parse::<i64>()`가 파싱 에러를 `none`으로 바꾸므로, 가지가 둘인 `match`로 경우를 나눕니다([3.14.3 `try?`와 `try!`](../spec/refs-lang/003-expressions/314-error-control-flow.html#3143-try-와-try)). 변형 하나만 받아들이는 자리에서는 `let Value::Sym(name) = items[1] else { throw ...; };` 같은 [let-else](../spec/refs-lang/003-expressions/316-let-else.html)가 값을 바인딩하거나 함수를 빠져나갑니다.
-- 런타임 에러는 `LispError`를 `throw`하고, 각 함수는 시그니처에 `throws (LispError)`로 밝힙니다. 아래쪽의 `try { ... } catch e: LispError { ... }`가 한 줄의 에러를 메시지로 바꾸므로, 다음 줄은 계속 실행됩니다([에러 처리](../learn/10-errors.html)).
-- `lambda`는 자기가 만들어진 `Env`를 캡처합니다. `Dict`는 공유되는 참조이므로, `make-adder`가 돌려준 함수는 `k`를 기억하고, `fact`는 나중에 정의되는데도 자기 자신을 찾을 수 있습니다.
+- 정수가 아닌 토큰은 모두 심볼입니다. `try? tok.parse::<i64>()`가 파싱 에러를 `none`으로 바꾸므로 가지가 둘인 `match`로 경우를 나눕니다([3.14.3 `try?`와 `try!`](../spec/refs-lang/003-expressions/314-error-control-flow.html#3143-try와-try)). 변형 하나만 받아들이는 자리에서는 `let Value::Sym(name) = items[1] else { throw ...; };` 같은 [let-else](../spec/refs-lang/003-expressions/316-let-else.html)가 값을 바인딩하거나 함수를 빠져나갑니다.
+- 런타임 에러는 `throw`로 `LispError`를 던지고, 각 함수는 시그니처에 `throws (LispError)`로 밝힙니다. 아래쪽의 `try { ... } catch e: LispError { ... }`가 한 줄의 에러를 메시지로 바꾸므로 다음 줄은 계속 실행됩니다([에러 처리](../learn/10-errors.html)).
+- `lambda`는 자기가 만들어진 `Env`를 캡처합니다. `Dict`는 공유되는 참조입니다. 그래서 `make-adder`가 돌려준 함수는 `k`를 기억하고, `fact`는 나중에 정의되는데도 자기 자신을 찾을 수 있습니다.
 
 > [!NOTE]
 > 자기 자신을 직접 담는 enum(`Lambda(..., Value, ...)`)은 크기가 무한해지므로 컴파일러가 거부합니다. 그래서 lambda 본체는 `List<Value>`에 담습니다.

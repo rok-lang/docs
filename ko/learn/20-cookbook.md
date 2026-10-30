@@ -1,6 +1,6 @@
 # 20. 어떻게 하나요
 
-자주 하는 작업의 짧은 답입니다. 각각 파일에 붙여 넣고 `rok run file.rok`으로 실행할 수 있는 완전한 프로그램이며, 설명하는 장으로 가는 링크가 붙어 있습니다.
+자주 하는 작업의 짧은 답입니다. 각 답은 파일에 붙여 넣고 `rok run file.rok`으로 실행할 수 있는 완전한 프로그램입니다. 자세히 설명하는 장으로 가는 링크도 붙어 있습니다.
 
 ## 파일 읽기
 
@@ -27,7 +27,7 @@ three
 
 ## 표준 입력을 한 줄씩 읽기
 
-`io::stdin().lines()`의 각 원소는 줄바꿈이 빠진 한 줄이거나, 입력을 끝낸 에러입니다. `try item.get()`이 줄을 꺼냅니다([13장](13-io.html#표준-io-와-환경)). 이 페이지는 입력 없이 빌드되므로 아래 출력은 `0 lines`입니다. 직접 실행하면서 파일을 파이프로 넣어 보세요(`rok run count.rok < file`).
+`io::stdin().lines()`의 각 원소는 줄바꿈이 빠진 한 줄이거나 입력을 끝낸 에러입니다. `try item.get()`이 줄을 꺼냅니다([13장](13-io.html#표준-io와-환경)). 이 페이지는 입력 없이 빌드되므로 아래 출력은 `0 lines`입니다. 직접 실행하면서 파일을 파이프로 넣어 보세요(`rok run count.rok < file`).
 
 ```rok
 use rok::std::io;
@@ -49,7 +49,7 @@ println(f"{count} lines");
 
 ## 명령줄 인자 얻기
 
-`env::args()`는 `List<str>`이며, 원소 0은 프로그램 자신입니다. 인자는 `--` 뒤에 넘깁니다: `rok run greet.rok -- ada grace` ([13장](13-io.html#표준-io-와-환경), [예제](../examples/cli-args.html)). 이 페이지는 인자 없이 빌드되므로 아래 출력은 `0 arguments`입니다. 직접 인자를 주어 실행해 보세요.
+`env::args()`는 `List<str>`이고, 원소 0은 프로그램 자신입니다. 인자는 `rok run greet.rok -- ada grace`처럼 `--` 뒤에 넘깁니다([13장](13-io.html#표준-io와-환경), [예제](../examples/cli-args.html)). 이 페이지는 인자 없이 빌드되므로 아래 출력은 `0 arguments`입니다. 직접 인자를 주어 실행해 보세요.
 
 ```rok
 use rok::std::env;
@@ -67,7 +67,7 @@ println(f"{args.len() - 1} arguments");
 
 ## 종료 코드와 함께 끝내기
 
-`env::exit(code)`는 프로그램을 즉시 끝냅니다. `finally` 블록과 `Drop`은 실행되지 않습니다. 스크립트의 최상위에서 잡히지 않은 에러는 저절로 코드 1로 종료합니다([10장](10-errors.html#스크립트-최상위의-에러)).
+`env::exit(code)`는 프로그램을 즉시 끝냅니다. `finally` 블록과 `Drop`은 실행되지 않습니다. 스크립트의 최상위에서 아무도 잡지 않은 에러는 저절로 코드 1로 프로그램을 끝냅니다([10장](10-errors.html#스크립트-최상위의-에러)).
 
 ```rok build
 use rok::std::env;
@@ -82,7 +82,7 @@ println(f"hello, {args[1]}");
 
 ## 잠들기, 그리고 걸린 시간 재기
 
-`Instant::now()`는 단조 시계(monotonic clock)를 읽고, `elapsed()`는 `Duration`을 줍니다. `thread::sleep`은 현재 스레드를 막습니다. async 코드에서는 대신 `await task::sleep(..)`을 씁니다([12장](12-concurrency.html#async-와-task), [`Duration` API](../../std/core/task/time.html#struct.Duration)).
+`Instant::now()`는 단조 시계(monotonic clock)를 읽고, `elapsed()`는 `Duration`을 줍니다. `thread::sleep`은 현재 스레드를 막습니다. 비동기 코드에서는 대신 `await task::sleep(..)`을 씁니다([12장](12-concurrency.html#async와-task), [`Duration` API](../../std/core/task/time.html#struct.Duration)).
 
 ```rok
 use rok::std::thread;
@@ -99,9 +99,9 @@ slept at least 20 ms: true
 true
 ```
 
-## 태스크를 동시에 실행하고 기다리기
+## task를 동시에 실행하고 기다리기
 
-`task::spawn`은 future를 태스크로 시작하고, `task::join`은 태스크를 모두 기다려 결과를 spawn한 순서대로 돌려줍니다. 최상위에 `await`가 하나라도 있으면 스크립트의 `main`이 async가 되며, `task::spawn`은 main이 async일 때만 쓸 수 있습니다([12장](12-concurrency.html#async-와-task)).
+`task::spawn`은 future를 task로 시작하고, `task::join`은 task를 모두 기다려 결과를 띄운 순서대로 돌려줍니다. 최상위에 `await`가 하나라도 있으면 스크립트의 `main`이 비동기 함수가 됩니다. `task::spawn`은 main이 비동기일 때만 쓸 수 있습니다([12장](12-concurrency.html#async와-task)).
 
 ```rok
 async fn fetch(id: i32) -> str {
@@ -120,7 +120,7 @@ println(f"{items:?}");
 
 ## 스레드 사이에서 카운터나 리스트 공유하기
 
-숫자에는 `Atomic`을, 그 밖의 것에는 `Mutex`를 씁니다. 잠금 가드는 `using`으로 바인딩하며, 블록 끝에서 해제됩니다. 여기서 `[ref x]` 캡처는 스레드 사이에서 안전하지 않으므로 컴파일되지 않습니다([12장](12-concurrency.html#mutex-와-atomic)).
+숫자에는 `Atomic`을, 그 밖의 것에는 `Mutex`를 씁니다. 잠금 가드는 `using`으로 바인딩하고, 블록 끝에서 잠금이 풀립니다. 여기서 `[ref x]` 캡처를 쓰면 스레드 사이에서 안전하지 않으므로 컴파일되지 않습니다([12장](12-concurrency.html#mutex와-atomic)).
 
 ```rok
 use rok::std::thread;
@@ -195,7 +195,7 @@ println(json::to_string(u));                       // {"name":"grace","age":85,"
 
 ## HTTP 요청 보내기, HTTP 서비스하기
 
-HTTP는 `http` stone이며, 위의 `json`과 같은 방법으로 추가합니다(`rok add http`, 스크립트는 `rok add http app.rok`). 클라이언트와 서버가 async이므로 스크립트는 `await`를 씁니다([12장](12-concurrency.html#async-와-task), [18장](18-features-and-stones.html#rok-프로젝트의-stone)).
+HTTP는 `http` stone에 있고, 위의 `json`과 같은 방법으로 추가합니다(`rok add http`, 스크립트는 `rok add http app.rok`). 클라이언트와 서버가 비동기이므로 스크립트에서 `await`를 씁니다([12장](12-concurrency.html#async와-task), [18장](18-features-and-stones.html#rok-프로젝트의-stone)).
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
@@ -203,7 +203,7 @@ Package { name: "app", version: "0.1.0", deps: {
 } }
 ```
 
-요청:
+요청을 보내는 쪽입니다.
 
 ```rok norun
 let r = try await http::get("https://example.com/");
@@ -211,7 +211,7 @@ println(f"{r.status} {r.headers.get("content-type") ?? "-"}");
 println(try await r.body.text());
 ```
 
-서버: `async fn` 하나가 모든 요청을 처리하며, 요청마다 자기 태스크에서 실행됩니다.
+서버 쪽입니다. `async fn` 하나가 모든 요청을 처리하고, 요청마다 자기 task에서 실행됩니다.
 
 ```rok norun
 use http::{Request, Response};

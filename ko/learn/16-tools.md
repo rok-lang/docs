@@ -258,7 +258,7 @@ VS Code 같은 다른 에디터에서는 범용 LSP 클라이언트 확장에 `r
 
 ```text
 $ rok repl
-Rok 0.1.5 (84a950b37 2026-10-29) on aarch64-apple-darwin
+Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()

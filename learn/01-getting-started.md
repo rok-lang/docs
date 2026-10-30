@@ -73,7 +73,7 @@ rok toolchain list
 
 ```text
 $ rok --version -v
-rok 0.1.5 (84a950b37 2026-10-29)
+rok 0.1.5 (9103a4909 2026-10-31)
 binary    /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rok
 toolchain 0.1.5-aarch64-apple-darwin (the default)
 rokc      /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rokc
@@ -238,7 +238,7 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-Rok 0.1.5 (84a950b37 2026-10-29) on aarch64-apple-darwin
+Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

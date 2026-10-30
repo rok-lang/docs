@@ -111,7 +111,7 @@ let g = m.lock();
 ```
 
 ```text check=checks/12-guard-let.rok
-error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }` (stdlib 2.16.3)
+error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
 ```
 
 ### Read-only data: `Frozen`
@@ -172,7 +172,7 @@ error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
  4 | ys.push(4);
    | ^^
    |
-   = help: it belongs to the `Mutex` now; use it through the lock: `using g = m.lock() { g.get().push(4) }`, or hand over `xs.clone()` to keep a separate copy (stdlib 2.13.9)
+   = help: it belongs to the `Mutex` now; use it through the lock: `using g = m.lock() { g.get().push(4) }`, or hand over `xs.clone()` to keep a separate copy
 ```
 
 Use the value through the lock, or hand over a `clone()` if you still need your own copy.
@@ -188,7 +188,7 @@ error[E202]: `first` shares `rows`, which was sent through a channel at line 4
  5 | first.push(9);
    | ^^^^^
    |
-   = help: the receiver owns it now; hand over `rows.clone()` to keep a separate copy, or give `first` a new value before using it again (stdlib 2.13.9)
+   = help: the receiver owns it now; hand over `rows.clone()` to keep a separate copy, or give `first` a new value before using it again
 ```
 
 To hand out the elements one by one, take each one out first. `pop` and `remove` take an element out of its collection, so the collection stays usable. This is the usual work queue:
@@ -227,7 +227,7 @@ error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and 
    |          ^^^^^
    |          ----- taken out of the lock here
    |
-   = help: use it inside the `using` block, or make the block's value `using.clone()` (stdlib 2.13.9)
+   = help: use it inside the `using` block, or make the block's value `using.clone()`
 ```
 
 ### What the receiver gets
@@ -388,7 +388,7 @@ data.push(4);
 error[E202]: `data` was spawned as a task at line 8
  9 | data.push(4);
    | ^^^^
-   = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen` (stdlib 2.18.1)
+   = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen`
 ```
 
 Return what the task changed and take it back with `await`:
@@ -507,7 +507,7 @@ The `Stream` trait has combinators such as `map`, `filter`, `take`, and `throttl
 **A `[ref x]` capture can't cross threads.** A `[ref x]` cell ([chapter 3](03-functions.html)) has no synchronization, so the compiler rejects it in a closure given to `thread::spawn`, `task::spawn`, or `par::*`, where two threads could change it at once.
 
 ```text check=checks/12-ref-thread.rok
-error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once (spec 4.6.9)
+error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
    = help: write `let count = Atomic::new(count);` before the closure, capture `count` without `ref`, and use `count.load()` / `count.store(..)`; or return the value from the closure instead
 ```
 
@@ -601,7 +601,7 @@ work ran
 **`task::spawn` needs an async `main`.** Tasks run on an executor, and the executor is started by an `async fn main`. A script becomes one as soon as its top level contains an `await`; without one, `task::spawn` panics.
 
 ```text
-thread 'main' panicked at .../library/core/src/task.rok:723:18:
+thread 'main' panicked at .../library/core/src/task.rok:703:18:
 no task executor is running: await inside `async fn main` or `task::block_on`
 ```
 

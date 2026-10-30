@@ -35,7 +35,7 @@ Write C types as primitive types of the same size: `int` is `i32`, `size_t` is `
 The compiler has no way to check that a C function behaves as its signature says. Passing a bad pointer or getting the declaration wrong can corrupt memory. So every function in an `extern "C"` block is implicitly `unsafe` and can only be called inside `unsafe { ... }`.
 
 ```text check=checks/14-unsafe-call.rok
-error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn` (spec 4.15; C functions are implicitly unsafe)
+error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn` (C functions are implicitly unsafe)
   --> main.rok:4:12
    |
  4 | println(f"{abs(-1)}");

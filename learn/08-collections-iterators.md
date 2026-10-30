@@ -89,6 +89,13 @@ a=3 b=1
 true 2 4
 ```
 
+After `ages.remove("lee")`, a fourth line `println(f"{ages["lee"]}");` would panic, and the message says what to write instead:
+
+```text
+thread 'main' panicked at main.rok:4:12:
+key "lee" not found; use `d.get(k)` to get `i32 | none`
+```
+
 > [!WARNING]
 > The iteration order of `Dict` and `Set` is unspecified. When order matters, use `OrderedDict` / `OrderedSet`, which preserve insertion order.
 

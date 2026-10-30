@@ -312,7 +312,7 @@ println(f"{xs[i]}");
 
 ```text
 thread 'main' panicked at main.rok:3:12:
-List index out of bounds
+index 7 out of bounds for length 3
 ```
 
 Use `Result<T, E>` only when you need to hold an error as a value (to collect several results or handle them later). The rule is: "if you throw it, `throws`; if you keep it, `Result`".

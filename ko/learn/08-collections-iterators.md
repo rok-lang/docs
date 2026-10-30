@@ -89,6 +89,13 @@ a=3 b=1
 true 2 4
 ```
 
+`ages.remove("lee")` 다음 넷째 줄에 `println(f"{ages["lee"]}");`를 쓰면 panic이 일어나고, 메시지가 대신 쓸 코드를 알려 줍니다.
+
+```text
+thread 'main' panicked at main.rok:4:12:
+key "lee" not found; use `d.get(k)` to get `i32 | none`
+```
+
 > [!WARNING]
 > `Dict`와 `Set`의 순회 순서는 정해져 있지 않습니다. 순서가 중요하면 삽입 순서를 유지하는 `OrderedDict` / `OrderedSet`을 씁니다.
 

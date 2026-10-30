@@ -111,7 +111,7 @@ let g = m.lock();
 ```
 
 ```text check=checks/12-guard-let.rok
-error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }` (stdlib 2.16.3)
+error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
 ```
 
 ### 읽기 전용 데이터: `Frozen`
@@ -172,7 +172,7 @@ error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
  4 | ys.push(4);
    | ^^
    |
-   = help: it belongs to the `Mutex` now; use it through the lock: `using g = m.lock() { g.get().push(4) }`, or hand over `xs.clone()` to keep a separate copy (stdlib 2.13.9)
+   = help: it belongs to the `Mutex` now; use it through the lock: `using g = m.lock() { g.get().push(4) }`, or hand over `xs.clone()` to keep a separate copy
 ```
 
 값은 잠금을 거쳐 쓰세요. 내 복사본이 계속 필요하다면 `clone()`을 넘기세요.
@@ -188,7 +188,7 @@ error[E202]: `first` shares `rows`, which was sent through a channel at line 4
  5 | first.push(9);
    | ^^^^^
    |
-   = help: the receiver owns it now; hand over `rows.clone()` to keep a separate copy, or give `first` a new value before using it again (stdlib 2.13.9)
+   = help: the receiver owns it now; hand over `rows.clone()` to keep a separate copy, or give `first` a new value before using it again
 ```
 
 원소를 하나씩 내주려면 먼저 하나씩 꺼냅니다. `pop`과 `remove`는 컬렉션에서 원소를 빼내므로 컬렉션은 계속 쓸 수 있습니다. 흔히 쓰는 작업 큐 방식입니다.
@@ -227,7 +227,7 @@ error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and 
    |          ^^^^^
    |          ----- taken out of the lock here
    |
-   = help: use it inside the `using` block, or make the block's value `using.clone()` (stdlib 2.13.9)
+   = help: use it inside the `using` block, or make the block's value `using.clone()`
 ```
 
 ### 받는 쪽이 받는 것
@@ -388,7 +388,7 @@ data.push(4);
 error[E202]: `data` was spawned as a task at line 8
  9 | data.push(4);
    | ^^^^
-   = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen` (stdlib 2.18.1)
+   = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen`
 ```
 
 task가 바꾼 것은 반환하게 하고 `await`로 돌려받습니다.
@@ -507,7 +507,7 @@ tick 30
 **`[ref x]` 캡처는 스레드를 건널 수 없습니다.** `[ref x]` 셀([3장](03-functions.html))에는 동기화가 없습니다. 그래서 `thread::spawn`, `task::spawn`, `par::*`에 주는 클로저에서는 컴파일러가 이 캡처를 거부합니다. 이런 클로저에서는 두 스레드가 셀을 동시에 바꿀 수 있기 때문입니다.
 
 ```text check=checks/12-ref-thread.rok
-error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once (spec 4.6.9)
+error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
    = help: write `let count = Atomic::new(count);` before the closure, capture `count` without `ref`, and use `count.load()` / `count.store(..)`; or return the value from the closure instead
 ```
 
@@ -601,7 +601,7 @@ work ran
 **`task::spawn`에는 async `main`이 필요합니다.** task는 executor 위에서 실행되고, executor는 `async fn main`이 시작합니다. 스크립트는 최상위에 `await`가 하나라도 있으면 그렇게 됩니다. 그렇지 않으면 `task::spawn`에서 panic이 일어납니다.
 
 ```text
-thread 'main' panicked at .../library/core/src/task.rok:723:18:
+thread 'main' panicked at .../library/core/src/task.rok:703:18:
 no task executor is running: await inside `async fn main` or `task::block_on`
 ```
 

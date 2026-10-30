@@ -35,7 +35,7 @@ C 타입은 같은 크기의 원시 타입으로 씁니다. `int`는 `i32`, `siz
 컴파일러는 C 함수가 시그니처대로 동작하는지 검사할 방법이 없습니다. 잘못된 포인터를 넘기거나 선언을 틀리면 메모리가 망가질 수 있습니다. 그래서 `extern "C"` 블록의 모든 함수는 암묵적으로 `unsafe`이고, `unsafe { ... }` 안에서만 호출할 수 있습니다.
 
 ```text check=checks/14-unsafe-call.rok
-error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn` (spec 4.15; C functions are implicitly unsafe)
+error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn` (C functions are implicitly unsafe)
   --> main.rok:4:12
    |
  4 | println(f"{abs(-1)}");

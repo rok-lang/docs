@@ -1,6 +1,6 @@
 # 행렬 연산
 
-연산자 트레잇과 인덱스 트레잇을 구현해서 `a * b`, `a .* b`, `m[i, j]` 로 쓸 수 있는 작은 행렬 타입입니다.
+연산자 트레잇과 인덱스 트레잇을 구현해서 `a * b`, `a .* b`, `m[i, j]`로 쓸 수 있는 작은 행렬 타입입니다.
 
 ## 코드
 
@@ -160,8 +160,8 @@ A * I == A: true
 
 ## 설명
 
-- Rok의 모든 연산자는 트레잇 메서드 호출입니다. `impl Add for Matrix` 가 있으면 `a + a` 는 `Add::add(a, a)` 로 풀립니다 ([3.1 연산자 디스패치](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../../std/core/ops.html#trait.Add), [`Mul`](../../std/core/ops.html#trait.Mul)).
-- 같은 연산자를 오른쪽 타입을 달리해서 여러 번 구현할 수 있습니다. `impl Mul for Matrix` 는 행렬 곱이고 `impl Mul<f64> for Matrix` 는 스칼라 곱입니다. 컴파일러는 피연산자 타입으로 impl 을 고릅니다.
-- `.*` 처럼 점이 앞에 붙은 연산자는 원소별 연산을 위한 별도의 트레잇 계열로 풀립니다 ([`DotMul`](../../std/core/ops.html#trait.DotMul)). 그래서 행렬 곱 `*` 와 아다마르 곱 `.*` 가 나란히 존재할 수 있습니다 ([3.3 브로드캐스트 연산자](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
-- 쉼표로 구분한 인덱스는 튜플로 묶입니다. 그래서 `m[i, j]` 읽기는 [`Index<(usize, usize)>`](../../std/core/index.html#trait.Index) 를, `m[i, j] = v` 쓰기는 [`IndexSet`](../../std/core/index.html#trait.IndexSet) 을 거칩니다. 쓰기 메서드는 행렬을 제자리에서 고치려고 `ref self` 를 받습니다 ([3.6 인덱싱과 슬라이싱](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
-- `impl Display for Matrix` 덕분에 f-문자열의 `{a}` 가 행렬 전체를 출력합니다. 각 원소는 폭과 정밀도를 위해 `{x:6.1}` 을 씁니다 ([구조체, enum, 트레잇](../learn/06-structs-enums-traits.html)).
+- Rok의 모든 연산자는 트레잇 메서드 호출입니다. `impl Add for Matrix`가 있으면 `a + a`는 `Add::add(a, a)`로 풀립니다([3.1 연산자 디스패치](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../../std/core/ops.html#trait.Add), [`Mul`](../../std/core/ops.html#trait.Mul)).
+- 같은 연산자를 오른쪽 타입을 달리해서 여러 번 구현할 수 있습니다. `impl Mul for Matrix`는 행렬 곱이고 `impl Mul<f64> for Matrix`는 스칼라 곱입니다. 컴파일러는 피연산자 타입으로 impl을 고릅니다.
+- `.*`처럼 점이 앞에 붙은 연산자는 원소별 연산을 위한 별도의 트레잇 계열로 풀립니다([`DotMul`](../../std/core/ops.html#trait.DotMul)). 그래서 행렬 곱 `*`와 아다마르 곱 `.*`가 나란히 존재할 수 있습니다([3.3 브로드캐스트 연산자](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
+- 쉼표로 구분한 인덱스는 튜플로 묶입니다. 그래서 `m[i, j]` 읽기는 [`Index<(usize, usize)>`](../../std/core/index.html#trait.Index)를, `m[i, j] = v` 쓰기는 [`IndexSet`](../../std/core/index.html#trait.IndexSet)을 거칩니다. 쓰기 메서드는 행렬을 제자리에서 고치려고 `ref self`를 받습니다([3.6 인덱싱과 슬라이싱](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
+- `impl Display for Matrix` 덕분에 f-문자열의 `{a}`가 행렬 전체를 출력합니다. 각 원소의 폭과 정밀도는 `{x:6.1}`로 정합니다([구조체, enum, 트레잇](../learn/06-structs-enums-traits.html)).

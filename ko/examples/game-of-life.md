@@ -146,8 +146,8 @@ a lone glider comes back after 160 generations
 
 ## 설명
 
-- 격자는 고정 크기 2차원 배열 `[[bool; W]; H]` (10×8) 입니다. 배열은 크기를 타입에 담고 따로 할당할 필요가 없습니다. 반복 형태 `[[false; W]; H]` 로 만들고, `==` / `!=` 로 통째로 비교합니다 ([값과 타입](../learn/02-values-and-types.html)).
-- 이웃은 `x - 1` 대신 `(x + W - 1) % W` 로 셉니다. 이렇게 하면 `usize` 뺄셈이 0 아래로 내려가지 않고, 가장자리가 반대편으로 이어집니다.
-- 생존 규칙은 `(alive, neighbors)` 튜플에 대한 `match` 하나입니다. 패턴은 `(true, 2) | (true, 3)` 처럼 `|` 로 묶을 수 있습니다 ([3.12 match](../spec/refs-lang/003-expressions/312-match-expression.html), [제어 흐름](../learn/04-control-flow.html)).
-- `impl Display for Grid` 는 `Formatter::write_char` 로 한 글자씩 쓰므로, `f"{grid}"` 가 격자를 그립니다 ([`Formatter`](../../std/core/fmt.html#struct.Formatter), [구조체, enum, 트레잇](../learn/06-structs-enums-traits.html)).
-- 글라이더는 모양을 유지한 채 4세대마다 대각선으로 한 칸씩 움직입니다. 10×8 토러스에서 처음 자리로 돌아오려면 lcm(10, 8) = 40 번 움직여야 하므로 160세대가 걸립니다.
+- 격자는 고정 크기 2차원 배열 `[[bool; W]; H]`(10×8)입니다. 배열은 크기를 타입에 담고 따로 할당할 필요가 없습니다. 반복 형태 `[[false; W]; H]`로 만들고, `==` / `!=`로 통째로 비교합니다([값과 타입](../learn/02-values-and-types.html)).
+- 이웃은 `x - 1` 대신 `(x + W - 1) % W`로 셉니다. 이렇게 하면 `usize` 뺄셈이 0 아래로 내려가지 않고, 가장자리가 반대편으로 이어집니다.
+- 생존 규칙은 `(alive, neighbors)` 튜플에 대한 `match` 하나입니다. 패턴은 `(true, 2) | (true, 3)`처럼 `|`로 묶을 수 있습니다([3.12 match](../spec/refs-lang/003-expressions/312-match-expression.html), [제어 흐름](../learn/04-control-flow.html)).
+- `impl Display for Grid`는 `Formatter::write_char`로 한 글자씩 쓰므로, `f"{grid}"`가 격자를 그립니다([`Formatter`](../../std/core/fmt.html#struct.Formatter), [구조체, enum, 트레잇](../learn/06-structs-enums-traits.html)).
+- 글라이더는 모양을 유지한 채 4세대마다 대각선으로 한 칸씩 움직입니다. 10×8 토러스에서 처음 자리로 돌아오려면 lcm(10, 8) = 40번 움직여야 하므로 160세대가 걸립니다.

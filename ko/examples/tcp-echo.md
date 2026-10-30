@@ -82,8 +82,8 @@ server echoed 6 lines and stopped
 
 ## 설명
 
-- `TcpListener` 를 포트 0 에 바인딩하면 OS 가 빈 포트를 고르고, `local_addr()` 가 실제 주소를 알려 줍니다. 그래서 다른 프로그램과 충돌하지 않습니다 ([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../../std/std/net.html#struct.TcpListener)).
-- 서버 스레드는 연결마다 처리 스레드를 하나씩 띄운 뒤, 모두 `join` 해서 처리한 줄 수를 더합니다. 클로저는 `listener` 와 `conn` 을 캡처해서 다른 스레드로 가져갑니다 ([동시성](../learn/12-concurrency.html), [`thread::spawn`](../../std/std/thread.html#fn.spawn)).
-- 줄 단위로 읽기 위해 소켓을 `try_clone()` 하고 `BufReader` 로 감쌉니다. 읽기는 복제본을, 쓰기는 원본을 거칩니다 ([`BufReader`](../../std/std/io.html#struct.BufReader)).
-- 종료 순서가 중요합니다. 클라이언트는 모두 보낸 뒤 `shutdown(Shutdown::Write)` 로 "더 보낼 것 없음" 을 알리고, 서버의 `lines()` 는 그 신호로 루프를 끝냅니다. 서버가 두 핸들을 모두 닫으면 클라이언트의 `read_line()` 은 빈 문자열을 돌려줍니다.
-- 같은 서버를 블로킹 API 대신 `accept_async` / `read_async` 와 태스크로 작성할 수도 있습니다 ([3.2.0 공통 규칙](../spec/refs-standard-libraries/300-std/302-net.html#320-공통-규칙)).
+- `TcpListener`를 포트 0에 바인딩하면 OS가 빈 포트를 고르고, `local_addr()`가 실제 주소를 알려 줍니다. 그래서 다른 프로그램과 충돌하지 않습니다([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../../std/std/net.html#struct.TcpListener)).
+- 서버 스레드는 연결마다 처리 스레드를 하나씩 띄운 뒤, 모두 `join`해서 처리한 줄 수를 더합니다. 클로저는 `listener`와 `conn`을 캡처해서 다른 스레드로 가져갑니다([동시성](../learn/12-concurrency.html), [`thread::spawn`](../../std/std/thread.html#fn.spawn)).
+- 줄 단위로 읽기 위해 소켓을 `try_clone()`하고 `BufReader`로 감쌉니다. 읽기는 복제본을, 쓰기는 원본을 거칩니다([`BufReader`](../../std/std/io.html#struct.BufReader)).
+- 종료 순서가 중요합니다. 클라이언트는 모두 보낸 뒤 `shutdown(Shutdown::Write)`로 "더 보낼 것 없음"을 알리고, 서버의 `lines()`는 그 신호로 루프를 끝냅니다. 서버가 두 핸들을 모두 닫으면 클라이언트의 `read_line()`는 빈 문자열을 돌려줍니다.
+- 같은 서버를 블로킹 API 대신 `accept_async` / `read_async`와 태스크로 작성할 수도 있습니다([3.2.0 공통 규칙](../spec/refs-standard-libraries/300-std/302-net.html#320-공통-규칙)).

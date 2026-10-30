@@ -189,8 +189,8 @@ The lamp reveals a pile of gold. You win!
 
 ## 설명
 
-- 플레이어 입력은 먼저 `Command` enum 으로 파싱되고, 게임 로직은 그 enum 만 다룹니다. 문자열 처리와 상태 변경이 분리되어 새 명령을 더하기 쉽고, `match` 가 모든 변형을 다루는지 컴파일러가 검사합니다 ([합 타입](../learn/05-sum-types.html), [3.12 match](../spec/refs-lang/003-expressions/312-match-expression.html)).
-- `"n" | "north" => ...` 같은 or 패턴은 별칭을 묶습니다. `"go"` 는 남은 단어로 `parse` 를 다시 호출하므로 `go west` 와 `west` 는 같은 명령이 됩니다 ([3.11 패턴](../spec/refs-lang/003-expressions/311-patterns.html#or-패턴)).
-- `Dict::get` 은 `usize | none` 을 돌려줍니다. `next: usize => ...` 와 `none => ...` 로 나누면 "그쪽으로는 출구가 없음" 을 자연스럽게 처리합니다 ([`Dict`](../../std/core/collections/dict.html#struct.Dict)).
-- 게임 상태 `Game` 은 `step(ref self, ...)` 를 통해 제자리에서 바뀝니다. 방의 `items` 는 `List` 이므로, `let items = self.rooms[self.here].items;` 로 꺼내서 `remove` 를 호출하면 방이 가진 리스트도 함께 바뀝니다 ([컬렉션과 반복자](../learn/08-collections-iterators.html)).
-- 표준 입력 대신 `script` 리스트를 한 줄씩 넣습니다. 실제 게임으로 만들려면 이 루프를 `io::stdin()` 에서 읽는 루프로 바꿉니다 ([I/O](../learn/13-io.html)).
+- 플레이어 입력은 먼저 `Command` enum으로 파싱되고, 게임 로직은 그 enum만 다룹니다. 문자열 처리와 상태 변경이 분리되어 새 명령을 더하기 쉽고, `match`가 모든 변형을 다루는지 컴파일러가 검사합니다([합 타입](../learn/05-sum-types.html), [3.12 match](../spec/refs-lang/003-expressions/312-match-expression.html)).
+- `"n" | "north" => ...` 같은 or 패턴은 별칭을 묶습니다. `"go"`는 남은 단어로 `parse`를 다시 호출하므로 `go west`와 `west`는 같은 명령이 됩니다([3.11 패턴](../spec/refs-lang/003-expressions/311-patterns.html#or-패턴)).
+- `Dict::get`은 `usize | none`을 돌려줍니다. `next: usize => ...`와 `none => ...`로 나누면 "그쪽으로는 출구가 없음"을 자연스럽게 처리합니다([`Dict`](../../std/core/collections/dict.html#struct.Dict)).
+- 게임 상태 `Game`은 `step(ref self, ...)` 메서드가 제자리에서 바꿉니다. 방의 `items`는 `List`이므로, `let items = self.rooms[self.here].items;`로 꺼내서 `remove`를 호출하면 방이 가진 리스트도 함께 바뀝니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
+- 표준 입력 대신 `script` 리스트를 한 줄씩 넣습니다. 실제 게임으로 만들려면 이 루프를 `io::stdin()`에서 읽는 루프로 바꿉니다([I/O](../learn/13-io.html)).

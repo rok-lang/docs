@@ -37,9 +37,7 @@ fn fib_wrong() {
 }
 
 #[bench]
-fn fib_20() {
-    fib(20);
-}
+fn fib_20(b: Bench) { b.iter(|| fib(20)); }
 ```
 
 ## `rok test`: 테스트
@@ -54,9 +52,9 @@ $ rok test
     Finished in 0.69s
 
 running 3 tests
-test gcd_works ... ok
 test fib_works ... ok
 test fib_wrong ... FAILED
+test gcd_works ... ok
 
 failures:
 
@@ -90,20 +88,20 @@ test result: ok. 1 passed; 0 failed; 2 filtered out; finished in 0.22s
 
 ## `rok bench`: 벤치마크
 
-`rok bench`는 최적화 빌드(`-O2`)에서 각 `#[bench]` 함수를 여러 번 호출해 호출당 평균 시간을 잽니다. 수치는 기계와 실행마다 다릅니다.
+`#[bench]` 함수는 `Bench`를 받아, 시간을 잴 코드를 `b.iter`에 넘깁니다. `rok bench`는 이 함수들을 최적화 빌드(`-O2`)로 만들고, 각 클로저를 여러 번 호출해 호출당 중앙값 시간과 그 편차를 출력합니다. `b.iter`를 한 번도 호출하지 않는 벤치마크에는 경고가 나옵니다. 수치는 기계와 실행마다 다릅니다.
 
 ```text
 $ rok bench
    Compiling mathx (.)
     Finished in 0.42s
 
-running 1 bench
-bench fib_20 ... bench:       34,204 ns/iter (+/- 1,712)
+benchmarking 1 bench
+  fib_20      12.99 us +/- 120.52 ns
 
-bench result: ok. 1 measured; 0 failed; 0 filtered out; finished in 0.36s
+bench result: ok. 1 run; 0 failed; 0 filtered out; finished in 2.63s
 ```
 
-`--iters=N`은 표본당 호출 횟수, `--samples=N`은 표본 수입니다. 필터는 `rok test`와 같이 동작합니다.
+`--iters=N`은 표본당 호출 횟수(기본값은 10ms쯤 걸리는 횟수), `--samples=N`은 표본 수(기본값 10)입니다. 필터는 `rok test`와 같이 동작합니다. 출력은 터미널에서나 파이프에서나 같습니다. 결과를 읽는 도구는 `--format=rokbench`를 주면 벤치마크마다 `#rokbench` 줄 하나를 받습니다.
 
 ## `rok fmt`: 포매터
 
@@ -114,18 +112,27 @@ bench result: ok. 1 measured; 0 failed; 0 filtered out; finished in 0.36s
 ```text
 $ rok fmt --check
 Diff in ./src/main.rok:
-+   10     if n < 2 { return n; }
-+   11     let unused = 1;
-+   12     fib(n - 1) + fib(n - 2)
 -   10   if n < 2 { return n; }
 -   11   let unused = 1;
 -   12 	fib(n - 1) + fib(n - 2)
++   10     if n < 2 { return n; }
++   11     let unused = 1;
++   12     fib(n - 1) + fib(n - 2)
+        note: 1 file needs formatting; `rok fmt` without `--check` rewrites it
 $ rok fmt
+   Formatted 1 file, 1 already formatted
 $ rok fmt --check
-$
+        note: 2 files already formatted
 ```
 
-`--check` 없이 실행하면 아무 말 없이 파일을 고칩니다. 에디터에서 저장할 때마다 실행하면 편리합니다.
+`--check` 없이 실행하면 파일을 고치고 몇 개를 고쳤는지 출력합니다. `-q`를 주면 그 줄을 생략합니다. 에디터에서 저장할 때마다 실행하면 편리합니다.
+
+패키지 안에서는 어느 하위 디렉터리에서 실행해도 `rok fmt`가 패키지 전체를 포맷합니다. `target/`, 숨김 디렉터리, `node_modules/`, `.gitignore`에 있는 경로는 건너뜁니다. 패키지 밖에서는 포맷할 대상을 지정합니다. 파일(`rok fmt hi.rok`)이나 디렉터리(`rok fmt scripts/`)를 줍니다. 경로가 없으면 멈추고 그렇게 알려 줍니다.
+
+```text
+$ rok fmt
+rok: error: not inside a package; pass a file or directory: `rok fmt <path>`
+```
 
 ## `rok lint`와 `rok check`
 
@@ -135,15 +142,15 @@ $
 $ rok lint
     Checking mathx (.)
 warning[E503]: unused variable `unused`
-   --> src/main.rok:11:5
+   --> src/main.rok:11:9
     |
  11 |     let unused = 1;
-    |     ^^^
+    |         ^^^^^^
     |
     = note: if this is intentional, prefix it with an underscore: `_unused`
     = note: `#[warn(unused_variables)]` on by default
      Checked mathx: 0 errors, 1 warning
-    Finished in 0.38s
+    Finished in 0.05s
 ```
 
 모든 린트의 기본 수준은 `warn`입니다. 수준은 세 곳에서 바꿀 수 있고, 뒤의 것이 우선합니다.
@@ -158,15 +165,15 @@ warning[E503]: unused variable `unused`
 $ rok lint -D unused
     Checking mathx (.)
 error[E503]: unused variable `unused`
-   --> src/main.rok:11:5
+   --> src/main.rok:11:9
     |
  11 |     let unused = 1;
-    |     ^^^
+    |         ^^^^^^
     |
     = note: if this is intentional, prefix it with an underscore: `_unused`
     = note: `-D unused` on the command line
      Checked mathx: 1 error, 0 warnings
-    Finished in 0.31s
+    Finished in 0.04s
 ```
 
 전체 목록은 `rokc lint --list`로 봅니다. 출력을 `head`로 파이프해도 됩니다. 읽는 쪽이 먼저 끝나면 `rok`과 `rokc`는 에러 없이 조용히 멈춥니다. `rok check`는 한 걸음 더 나아가 코드 생성까지 실행하지만, 링크하거나 실행 파일을 만들지는 않습니다. 빌드보다 빠르므로 컴파일되는지만 확인할 때 씁니다. 여기서부터의 예제는 에러와 저수준 출력이 `mathx`를 어지럽히지 않도록 버려도 되는 `hello` 패키지를 씁니다.
@@ -175,15 +182,26 @@ error[E503]: unused variable `unused`
 $ rok check
     Checking hello (.)
 error[E200]: mismatched types: `let s` expects `str`, found `i32`
-  --> src/main.rok:2:1
+  --> src/main.rok:2:14
    |
  2 | let s: str = square(7);
-   | ^^^
+   |              ^^^^^^^^^
+   |
+   = help: to make text from it, write `f"{square(7)}"`
      Checked hello: 1 error, 0 warnings
-    Finished in 0.32s
+    Finished in 0.04s
 ```
 
-기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄로 출력됩니다.
+`rok build`와 `rok run`도 같은 진단을 출력하고, 빌드에 실패하면 `Finished` 대신 개수를 세어 끝냅니다.
+
+```text
+$ rok build
+   Compiling hello (.)
+...
+error: could not build hello (1 error, 0 warnings)
+```
+
+기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄로 출력되고, 진단이 제안하는 수정과 규칙의 사양 절도 함께 들어 있습니다.
 
 대괄호 안의 코드는 에러의 종류를 가리킵니다. [에러 코드 목록](../errors/index.html)에 코드마다 예제와 고치는 법을 담은 페이지가 있습니다.
 
@@ -194,15 +212,17 @@ error[E200]: mismatched types: `let s` expects `str`, found `i32`
 ```text
 $ rok doc
  Documenting mathx (.)
-    Finished in 0.22s
+    Finished in 0.10s
    Generated ./target/doc/index.html
 ```
+
+`rok doc --open`은 만든 문서를 브라우저에서 엽니다.
 
 `target/doc/`에 패키지와 그 의존성의 공개(`pub`) 항목의 HTML과 검색 색인이 생깁니다. 이 사이트의 [표준 라이브러리 API](../../std/core/index.html)도 같은 방식으로 라이브러리 소스의 문서 주석에서 만들었습니다.
 
 ## 에디터: `rokls`
 
-`rokls`는 LSP(Language Server Protocol) 서버입니다. 진단, 호버, 정의로 이동, 문서 심볼, 자동 완성, 포맷 기능이 있습니다. `rok lsp`와 `rokc lsp`도 같은 서버입니다. 표준 입출력으로 통신하므로 LSP를 지원하는 에디터라면 실행할 명령만 알려 주면 됩니다.
+`rokls`는 LSP(Language Server Protocol) 서버입니다. 진단, 호버, 정의로 이동, 참조 찾기, 이름 바꾸기, 문서 심볼, 자동 완성, 시그니처 도움말, 빠른 수정, 포맷 기능이 있습니다. 자동 완성은 범위 안의 지역 변수, 값의 멤버(`xs.`는 `List`의 공개 메서드를 보여 줍니다), `use` 뒤의 경로를 제안합니다. 호버와 정의로 이동은 표준 라이브러리 안까지 따라갑니다. 빠른 수정은 진단이 제안한 수정을 적용하고, 빠진 `;`나 `use`를 넣고, 없는 stone에는 `rok add`를 실행합니다. 이름 바꾸기는 라이브러리 항목, 키워드, 다른 파일의 이름이면 거절하고 이유를 알려 줍니다. `rok lsp`와 `rokc lsp`도 같은 서버입니다. 표준 입출력으로 통신하므로 LSP를 지원하는 에디터라면 실행할 명령만 알려 주면 됩니다. 터미널에서 직접 실행하면 `rokls`는 에디터가 실행하는 서버라고만 알려 줍니다.
 
 Neovim(0.11 이상)에서는 `init.lua`에 다음을 넣습니다.
 
@@ -238,7 +258,7 @@ VS Code 같은 다른 에디터에서는 범용 LSP 클라이언트 확장에 `r
 
 ```text
 $ rok repl
-Rok 0.1.4 (25ec2b30c 2026-10-29) on aarch64-apple-darwin
+Rok 0.1.5 (84a950b37 2026-10-29) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()
@@ -263,7 +283,7 @@ List<i32>
 
 일반 소스와 달리 같은 이름을 `let`으로 다시 선언할 수 있고, 타입이 달라도 됩니다. `fn`이나 `struct`를 다시 정의하면 새 정의로 바뀌고, 이전 셀의 코드도 새 버전을 호출합니다. 컴파일에 실패하거나 panic이 일어나거나 에러를 던진 셀은 세션을 바꾸지 않습니다. 이미 쓴 출력은 남습니다. `:reset`은 빈 세션에서 다시 시작합니다.
 
-에러는 입력한 셀 안을 `<repl>:line:col`로 가리킵니다. panic과 이전 셀의 `fn` 안에서 난 에러는 그 셀을 `<repl cell N>:line:col`로 가리킵니다. N은 지금까지 입력한 셀의 번호입니다.
+에러는 입력한 셀 안을 `<repl>:line:col`로 가리킵니다. panic과 이전 셀의 `fn` 안에서 난 에러는 그 셀을 `<repl cell N>:line:col`로 가리킵니다. N은 지금까지 입력한 셀의 번호입니다. Jupyter에서 N은 노트북 셀의 실행 번호이고, REPL 셀 여러 개로 나뉘는 노트북 셀은 `N.1`, `N.2`처럼 번호를 붙입니다.
 
 ```text
 >>> fn boom(n: i32) {
@@ -282,9 +302,9 @@ error: the cell panicked; the session is unchanged
 | `:doc name` | 이름의 시그니처와 문서 주석을 출력. 메서드는 `:doc xs.len` |
 | `:time expr` | 식을 실행하고 단계마다 걸린 시간을 출력 |
 | `:vars` | 바인딩을 `name: type`으로 나열한 뒤 항목을 나열 |
-| `:load file`, `:reload` | 프로그램을 세션에 로드. 마지막 것을 다시 로드 |
+| `:load file`, `:reload` | 프로그램을 세션에 로드. 마지막 것을 다시 로드. `:save`로 만든 스크립트는 셀 단위로 다시 실행 |
 | `:edit` | `$VISUAL` / `$EDITOR`에서 셀을 쓴 뒤 실행 |
-| `:save file` | 세션을 스크립트로 저장 |
+| `:save file` | 세션을 셀마다 표시한 스크립트로 저장 |
 | `:opt [level]` | 이후 셀의 최적화 수준을 보거나 설정(`0` ~ `3`, `s`, `z`) |
 | `:reset` | 모든 셀을 잊고 다시 시작 |
 | `:add name ..` | 의존성 추가. 환경에는 `rok install`, 패키지에서는 `rok add` |
@@ -303,7 +323,7 @@ error: `f: closure(i32) -> i32` cannot be kept for later cells (its type has no 
 
 터미널에서 REPL은 줄 편집을 직접 합니다.
 
-- Tab은 이름을 완성합니다. 대상은 세션의 바인딩과 항목, core 라이브러리, 키워드이고, `x.` 뒤에서는 `x`의 필드와 메서드입니다. 줄 맨 앞에서 Tab은 들여씁니다.
+- Tab은 이름을 완성합니다. 대상은 범위 안의 지역 변수, 세션의 바인딩과 항목, core 라이브러리, 키워드이고, `x.` 뒤에서는 `x`의 공개 필드와 메서드, `a::` 뒤에서는 모듈 `a`의 항목입니다. 줄 맨 앞에서 Tab은 들여씁니다.
 - 기록은 셀 단위로 남고, 세션이 끝나도 유지됩니다(`$ROK_HOME/repl_history`). 위와 아래 화살표로 오갑니다. 텍스트를 조금 입력해 두면 그 텍스트로 시작하는 셀만 거칩니다. Ctrl-R은 거꾸로 검색합니다.
 - 붙여 넣은 블록은 줄마다 실행되지 않고, Enter를 누르면 셀 하나가 됩니다.
 - 입력은 이 가이드처럼 색칠됩니다. 색을 끄려면 `NO_COLOR`를 설정합니다.
@@ -329,11 +349,14 @@ macOS에서는 `~/Library/Jupyter` 아래에, Windows에서는 `%APPDATA%\jupyte
 
 ```text
 $ rok build -v
+         Std prebuilt (/Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
    Compiling hello (.)
-   Stage: front end (250ms)
+   Stage: front end (34ms)
+      Reused: 90 of 91 files parsed, 0 of 2 bodies lowered, the library's items collected
     Building ./target/debug/hello
-   Stage: codegen + link (160ms)
-    Finished in 0.41s
+       Units 0 reused, 3 compiled
+   Stage: codegen + link (24ms)
+    Finished in 0.07s
 ```
 
 `--emit`은 중간 산출물을 `target/debug/build/`에 씁니다. 종류는 `ast`, `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, `expanded`(메타 전개 결과)입니다.
@@ -342,17 +365,17 @@ $ rok build -v
 $ rok emit --emit=llvmir
    Compiling hello (.)
        Wrote ./target/debug/build/hello.ll
-    Finished in 0.32s
+    Finished in 0.04s
 $ grep define target/debug/build/hello.ll | head -2
-define i32 @_Y2cfee941__square_(i32 %0) {
-define void @_Y2cfee941__main_() {
+define internal i32 @_Y6cfff936__square_(i32 %0, ptr %1) #0 {
+define internal void @_Y6cfff936__main_(ptr %0) #0 {
 ```
 
 `_Y`로 시작하는 이름은 Rok의 맹글링된 심볼입니다. 디버거나 프로파일러에서 만나면 `rokc demangle`로 푸세요.
 
 ```text
-$ rokc demangle _Y2cfee941__square_
-package:  2cfee941
+$ rokc demangle _Y6cfff936__square_
+package:  6cfff936
 path:     (root)
 name:     square
 generics: (none)
@@ -365,15 +388,47 @@ $ lldb -O "$(rokc --print lldbinit)" ./target/debug/hello
 $ rokc --print lldbinit >> ~/.lldbinit      # or load them every time
 ```
 
+## 도움말 보기
+
+`rok help`는 명령을 묶어서 보여 주고, `rok help <command>`(또는 `rok <command> --help`)는 명령 하나의 사용법, 예, 옵션을 보여 줍니다.
+
+```text
+$ rok help fmt
+usage: rok fmt [path] [options]
+
+Format .rok and .rokon files in place: <path> is one file, or a directory
+whose files are all formatted (default: the current one).
+
+examples:
+  rok fmt                      format everything here
+  rok fmt --check              exit 1 if a file would change (CI)
+  rok fmt --diff src/main.rok  show the change, write nothing
+
+fmt options:    --check (exit 1 if a file would change), --diff
+
+global options (-q, -v, --color, ...): `rok help`
+```
+
+명령이나 옵션의 철자를 틀리면 가장 가까운 이름을 알려 줍니다.
+
+```text
+$ rok tset
+rok: unknown command `tset`; did you mean `test`?
+run `rok help` for usage
+```
+
+`-q`, `-v`, `--color` 같은 전역 옵션은 명령 앞에도 뒤에도 쓸 수 있습니다.
+
 ## 요약
 
 - `rok test` / `rok bench`는 `#[test]` / `#[bench]` 함수를 따로 빌드해 실행합니다. 테스트는 각자 자기 프로세스에서 돕니다.
-- `rok fmt`는 들여쓰기와 빈 줄만 고칩니다. CI에서는 `rok fmt --check`를 씁니다.
+- `rok fmt`는 들여쓰기와 빈 줄만 고칩니다. CI에서는 `rok fmt --check`를 씁니다. 패키지 밖에서는 경로를 줍니다.
 - `rok lint`는 린트를 실행하고, `rok check`는 코드 생성까지 갑니다. 린트 수준은 `rok.rokon` < `-A/-W/-D` < 소스 속성 순으로 정해집니다.
 - `rok doc`은 `///`와 `//!` 문서 주석으로 `target/doc/`에 HTML을 생성합니다.
 - 에디터에 `rokls`를 LSP 서버로 등록합니다.
 - REPL의 프롬프트는 `>>>`이고, 마지막 값을 `it`에 두며, `:type`, `:doc`, `:vars`, `:reset` 같은 명령이 있습니다. `rok repl .`은 현재 패키지를 로드하고, 노트북에는 `rok jupyter install`을 씁니다.
 - 문제를 파고들 때는 `-v`, `--emit`, `rokc demangle`, `-g`를 씁니다. lldb에서는 `rokc --print lldbinit`과 함께 씁니다.
+- `rok help <command>`는 명령 하나의 사용법과 옵션을 보여 줍니다.
 
 ## 더 읽을거리
 

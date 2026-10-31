@@ -7,7 +7,7 @@ Rok에는 자체 암호 구현이 들어 있습니다. `rok::core::crypto`에는
 
 ## 해시와 MAC
 
-알고리듬은 `rok::core::crypto`의 항목(`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519` 등)이고, 각각 자기 하위 모듈(`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`)에도 있습니다. 바이트를 받는 모든 함수는 `List<u8>`, `Slice<u8>`, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고).
+알고리듬은 `rok::core::crypto`의 항목(`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519` 등)이고, 각각 자기 하위 모듈(`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`)에도 있습니다. 바이트를 받는 모든 함수는 `List<u8>`, `Slice<u8>`, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 이 네 가지를 묶은 타입이 `crypto::ByteInput`이므로, 바이트를 받아 그대로 넘기는 함수를 직접 만들 때 쓰면 됩니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고).
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};
@@ -38,7 +38,7 @@ true
 false
 ```
 
-`Hmac::verify`는 상수 시간으로 비교합니다. 두 비밀을 직접 비교할 때는 `==` 대신 `crypto::constant_time_eq`를 쓰세요. `==`는 처음 다른 곳에서 멈추므로 얼마나 맞았는지가 새어 나갑니다. `Hkdf`는 공유 비밀에서 키를 유도합니다. `sha3`에는 SHA3-256 / 512와 SHAKE가 있습니다.
+`Hmac::verify`는 상수 시간으로 비교합니다. 두 비밀을 직접 비교할 때는 `==` 대신 `crypto::constant_time_eq`를 쓰세요. `==`는 처음 다른 곳에서 멈추므로 얼마나 맞았는지가 새어 나갑니다. `Hkdf`는 공유 비밀에서 키를 유도합니다. `sha3`에는 SHA3-256 / 512와 SHAKE가 있습니다. SHA-3 위의 HMAC과 HKDF는 `_sha3`가 붙은 형태입니다. `Hmac::mac_sha3(Sha3Algorithm::Sha3_256, key, data)`, `verify_sha3`, `Hkdf::extract_sha3`, `expand_sha3`이 있습니다.
 
 ## 암호화와 서명
 

@@ -7,7 +7,7 @@ Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, 
 
 ## Hashes and MACs
 
-The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts `List<u8>`, `Slice<u8>`, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
+The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts `List<u8>`, `Slice<u8>`, a `str` (its UTF-8 bytes) or a `Secret` (the type `crypto::ByteInput`, for your own functions that pass bytes on), so byte strings and text can be passed directly. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};
@@ -38,7 +38,7 @@ true
 false
 ```
 
-`Hmac::verify` compares in constant time. To compare two secrets yourself, use `crypto::constant_time_eq` rather than `==`, which stops at the first difference and so leaks how much matched. `Hkdf` derives keys from a shared secret, and `sha3` has SHA3-256 / 512 and SHAKE.
+`Hmac::verify` compares in constant time. To compare two secrets yourself, use `crypto::constant_time_eq` rather than `==`, which stops at the first difference and so leaks how much matched. `Hkdf` derives keys from a shared secret, and `sha3` has SHA3-256 / 512 and SHAKE. HMAC and HKDF over SHA-3 are the `_sha3` forms: `Hmac::mac_sha3(Sha3Algorithm::Sha3_256, key, data)`, `verify_sha3`, `Hkdf::extract_sha3` and `expand_sha3`.
 
 ## Encryption and signatures
 

@@ -28,7 +28,7 @@ Windows에서는 PowerShell에서 다음을 실행합니다. `%USERPROFILE%\.rok
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 고릅니다.
+`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 고릅니다. 버전(`0.1.6`)이나 시리즈(`0.1`, 그 시리즈의 최신 릴리스)를 적습니다.
 
 설치 위치는 `ROK_HOME` 환경 변수로 바꿀 수 있습니다(기본값 `~/.rok`). 스크립트가 끝나면 다음 구조가 생깁니다.
 
@@ -36,18 +36,18 @@ powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | ie
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.5-aarch64-apple-darwin/
+    └── 0.1.6-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
 
-방금 설치한 toolchain이 기본값이 됩니다. `~/.rok/bin`의 세 실행 파일은 **프록시**입니다. 실제 일은 활성 toolchain에 있는 같은 이름의 실행 파일이 합니다. 그래서 여러 toolchain을 나란히 설치해 두고 하나를 골라 쓸 수 있습니다. rustup과 같은 방식입니다.
+방금 설치한 toolchain이 기본값이 됩니다. `~/.rok/bin`의 세 실행 파일은 **프록시**입니다. 실제 일은 활성 toolchain에 있는 같은 이름의 실행 파일이 합니다. 그래서 여러 toolchain을 나란히 설치해 두고 하나를 골라 쓸 수 있습니다. rustup과 같은 방식입니다. 프록시는 언제나 설치된 toolchain 중 가장 새것에서 복사합니다. 가장 새 toolchain은 이전 toolchain들의 구조를 모두 알기 때문입니다. 그래서 이전 toolchain을 기본값으로 바꿔도 프록시는 그대로 둡니다.
 
 스크립트는 `~/.rok/bin`을 `PATH`에도 넣습니다. `~/.rok/env`(와 `~/.rok/env.fish`)를 만들고, `~/.zshenv`, `~/.bashrc`, `~/.profile` 같은 셸 시작 파일이 이 파일을 읽게 합니다. fish용으로는 `~/.config/fish/conf.d/rok.fish`를 추가합니다. 바꾼 파일은 모두 이름을 출력합니다.
 
 ```text
- Downloading rok 0.1.5 (aarch64-apple-darwin)
-   Installed rok 0.1.5 to ~/.rok
+ Downloading rok 0.1.6 (aarch64-apple-darwin)
+   Installed rok 0.1.6 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -69,15 +69,15 @@ rok --version
 rok toolchain list
 ```
 
-`rok --version -v`는 실행된 바이너리, 고른 toolchain과 그 이유, 함께 쓰는 `rokc`, 호스트까지 알려 줍니다. 기대한 버전이 아닐 때 써 보세요.
+`rok --version -v`는 실행된 바이너리, 고른 toolchain과 그 이유, 함께 쓰는 `rokc`, 호스트까지 한 줄에 하나씩 `key: value` 형태로 알려 줍니다(`rok version -v --format json`은 JSON 객체 하나로 출력합니다). 기대한 버전이 아닐 때 써 보세요.
 
 ```text
 $ rok --version -v
-rok 0.1.5 (9103a4909 2026-10-31)
-binary    /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rok
-toolchain 0.1.5-aarch64-apple-darwin (the default)
-rokc      /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rokc
-host      aarch64-apple-darwin
+rok 0.1.6 (9103a4909 2026-10-31)
+binary:    /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rok
+toolchain: 0.1.6-aarch64-apple-darwin (the default)
+rokc:      /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rokc
+host:      aarch64-apple-darwin
 ```
 
 실행 파일 세 개가 설치됩니다.
@@ -90,16 +90,17 @@ host      aarch64-apple-darwin
 
 ### toolchain 관리
 
-`rok toolchain`은 설치된 toolchain을 관리합니다. 활성 toolchain은 명령줄의 `+version`(`rok +0.1 build`), `ROK_TOOLCHAIN` 환경 변수, 가장 가까운 `rok.rokon`의 `toolchain` 필드, 기본값 순서로 정해집니다.
+`rok toolchain`은 설치된 toolchain을 관리합니다. 활성 toolchain은 명령줄의 `+version`(`rok +0.1 build`), `ROK_TOOLCHAIN` 환경 변수, 가장 가까운 `rok.rokon`(또는 스크립트의 `//! rokon` 블록)의 `toolchain` 필드, 기본값 순서로 정해집니다. 고정 값으로는 시리즈(`"0.1"`, 설치된 0.1.x 중 최신), 버전(`"0.1.6"`), 요구 조건(`"^0.1.5"`)을 쓸 수 있습니다. 명령 하나는 처음부터 끝까지 toolchain 하나로 실행됩니다. 어떤 toolchain의 `bin/rok`을 전체 경로로 직접 실행해도 프로젝트가 고정한 toolchain에 명령을 넘기고, 각 toolchain의 `rok`은 자기 `rokc`만 씁니다.
 
 ```bash
 rok toolchain list                     # installed toolchains
 rok toolchain default 0.1.4            # change the default
-rok toolchain install 0.2.0 --from rok-0.2.0-aarch64-apple-darwin.tar.gz
+rok toolchain install 0.1.4            # download 0.1.4 beside the default
 rok toolchain update                   # download the latest release and make it the default
+rok toolchain update 0.1               # the newest 0.1.x instead
 ```
 
-`rok toolchain update 0.2.0`은 최신 릴리스 대신 그 버전을 설치합니다. 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
+`rok toolchain update 0.2.0`은 최신 릴리스 대신 그 버전을 설치합니다. `rok toolchain install`은 기본값을 바꾸지 않고 내려받기만 합니다(이미 가진 아카이브는 `--from <archive>`로 설치합니다). 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 0.1.6에서 0.2.0으로 가는 것처럼 업데이트가 시리즈를 넘으면 안내가 붙습니다. 0.1에 머물러야 하는 프로젝트는 `toolchain: "0.1"`로 고정하거나(`rok new`가 적어 줍니다) `rok +0.1 ..`로 실행하면 됩니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
 
 패키지 관리자로 설치한 것처럼 다른 `rok`이 `PATH`에서 `~/.rok/bin`보다 앞에 있으면 새 기본값이 적용되지 않습니다. 그래서 `rok toolchain update`와 `rok toolchain default`가 경고합니다.
 
@@ -128,7 +129,7 @@ export PATH="$PWD/target/release:$PATH"
 
 ## 첫 패키지
 
-`rok new`는 패키지 디렉터리를 만들고, `target/`을 제외하는 `.gitignore`와 함께 git 저장소를 초기화합니다. 패키지 이름은 소문자, 숫자, `-`, `_`로 이루어지며 문자로 시작합니다. `rok`은 표준 라이브러리가 쓰는 이름이므로 패키지 이름으로 쓸 수 없습니다. 코드에서는 `-` 자리에 `_`를 씁니다(`rok new my-lib`으로 만든 패키지는 `use my_lib::..`로 가져옵니다).
+`rok new`는 패키지 디렉터리를 만들고, `target/`을 제외하는 `.gitignore`와 함께 git 저장소를 초기화합니다. 패키지 이름은 소문자, 숫자, `-`, `_`로 이루어지며 문자로 시작하고, 길이는 64자까지입니다. Windows가 장치 이름으로 쓰는 이름(`con`, `nul`, `com1` 등)은 그 이름의 파일을 만들 수 없으므로 거절합니다. `rok`은 표준 라이브러리가 쓰는 이름이므로 패키지 이름으로 쓸 수 없습니다. 코드에서는 `-` 자리에 `_`를 씁니다(`rok new my-lib`으로 만든 패키지는 `use my_lib::..`로 가져옵니다).
 
 ```bash
 rok new hello
@@ -140,10 +141,10 @@ cd hello
              cd hello && rok run
 ```
 
-두 번째 줄은 다음에 실행할 명령입니다. 파일은 두 개입니다. 매니페스트인 `rok.rokon`에는 패키지 이름, 버전, 의존성이 들어 있습니다.
+두 번째 줄은 다음에 실행할 명령입니다. 파일은 두 개입니다. 매니페스트인 `rok.rokon`에는 패키지 이름, 버전, 패키지를 만든 toolchain의 시리즈, 의존성이 들어 있습니다.
 
 ```rokon
-Package { name: "hello", version: "0.1.0", deps: {} }
+Package { name: "hello", version: "0.1.0", toolchain: "0.1", deps: {} }
 ```
 
 소스는 `src/`에 있습니다. `src/main.rok`은 인사를 출력하는 한 줄짜리 코드입니다.
@@ -238,7 +239,7 @@ hi
 
 ```text
 $ rok
-Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

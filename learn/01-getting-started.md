@@ -28,7 +28,7 @@ On Windows, run this in PowerShell. It installs into `%USERPROFILE%\.rok` and ad
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release.
+`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release: a version (`0.1.6`) or a series (`0.1`, its newest release).
 
 You can change the install location with the `ROK_HOME` environment variable (default `~/.rok`). When the script finishes, you get the following layout.
 
@@ -36,18 +36,18 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.5-aarch64-apple-darwin/
+    └── 0.1.6-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
 
-The toolchain you just installed becomes the default. The three executables in `~/.rok/bin` are **proxies**: the real work is done by the executable of the same name in the active toolchain. This lets you install several toolchains side by side and pick one (the same approach as rustup).
+The toolchain you just installed becomes the default. The three executables in `~/.rok/bin` are **proxies**: the real work is done by the executable of the same name in the active toolchain. This lets you install several toolchains side by side and pick one (the same approach as rustup). The proxies are always copies from the newest installed toolchain, which knows how every older one is laid out, so making an older toolchain the default leaves them as they are.
 
 The script also puts `~/.rok/bin` on your `PATH`. It writes `~/.rok/env` (and `~/.rok/env.fish`), loads it from your shell's startup files such as `~/.zshenv`, `~/.bashrc` or `~/.profile`, and adds `~/.config/fish/conf.d/rok.fish` for fish. It names every file it changed:
 
 ```text
- Downloading rok 0.1.5 (aarch64-apple-darwin)
-   Installed rok 0.1.5 to ~/.rok
+ Downloading rok 0.1.6 (aarch64-apple-darwin)
+   Installed rok 0.1.6 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -69,15 +69,15 @@ rok --version
 rok toolchain list
 ```
 
-`rok --version -v` also names the binary that ran, the toolchain it picked and why, its `rokc`, and the host. Use it when the version is not the one you expect.
+`rok --version -v` also names the binary that ran, the toolchain it picked and why, its `rokc`, and the host, one `key: value` line each (`rok version -v --format json` prints them as one JSON object). Use it when the version is not the one you expect.
 
 ```text
 $ rok --version -v
-rok 0.1.5 (9103a4909 2026-10-31)
-binary    /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rok
-toolchain 0.1.5-aarch64-apple-darwin (the default)
-rokc      /Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/bin/rokc
-host      aarch64-apple-darwin
+rok 0.1.6 (9103a4909 2026-10-31)
+binary:    /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rok
+toolchain: 0.1.6-aarch64-apple-darwin (the default)
+rokc:      /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rokc
+host:      aarch64-apple-darwin
 ```
 
 Three executables are installed.
@@ -90,16 +90,17 @@ Three executables are installed.
 
 ### Managing toolchains
 
-`rok toolchain` manages installed toolchains. The active toolchain is chosen, in order, by `+version` on the command line (`rok +0.1 build`), the `ROK_TOOLCHAIN` environment variable, the `toolchain` field of the nearest `rok.rokon`, and finally the default.
+`rok toolchain` manages installed toolchains. The active toolchain is chosen, in order, by `+version` on the command line (`rok +0.1 build`), the `ROK_TOOLCHAIN` environment variable, the `toolchain` field of the nearest `rok.rokon` (or of a script's `//! rokon` block), and finally the default. A pin is a series (`"0.1"`, the newest installed 0.1.x), a version (`"0.1.6"`) or a requirement (`"^0.1.5"`). One command runs on one toolchain from start to finish: even a toolchain's own `bin/rok`, run by its full path, hands the command to the toolchain the project pins, and each toolchain's `rok` drives only its own `rokc`.
 
 ```bash
 rok toolchain list                     # installed toolchains
 rok toolchain default 0.1.4            # change the default
-rok toolchain install 0.2.0 --from rok-0.2.0-aarch64-apple-darwin.tar.gz
+rok toolchain install 0.1.4            # download 0.1.4 beside the default
 rok toolchain update                   # download the latest release and make it the default
+rok toolchain update 0.1               # the newest 0.1.x instead
 ```
 
-`rok toolchain update 0.2.0` installs that version instead. The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
+`rok toolchain update 0.2.0` installs that version instead, and `rok toolchain install` downloads one without changing the default (`--from <archive>` installs a file you already have). The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. When an update moves to a new series, say from 0.1.6 to 0.2.0, it adds a note: projects that must stay on 0.1 pin it with `toolchain: "0.1"`, which `rok new` writes for you, or run `rok +0.1 ..`. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
 
 If another `rok` (from a package manager, say) comes before `~/.rok/bin` on your `PATH`, the new default would not take, so `rok toolchain update` and `rok toolchain default` warn:
 
@@ -128,7 +129,7 @@ export PATH="$PWD/target/release:$PATH"
 
 ## Your first package
 
-`rok new` creates a package directory and initializes a git repository with a `.gitignore` that excludes `target/`. Package names use lowercase letters, digits, `-`, and `_`, and start with a letter. The name `rok` is taken by the standard library, so a package can't be called `rok`. In code, `-` becomes `_` (`rok new my-lib` is imported as `use my_lib::..`).
+`rok new` creates a package directory and initializes a git repository with a `.gitignore` that excludes `target/`. Package names use lowercase letters, digits, `-`, and `_`, start with a letter, and are at most 64 characters long. A name Windows keeps for a device (`con`, `nul`, `com1`, ...) is refused, because no file can be called that there. The name `rok` is taken by the standard library, so a package can't be called `rok`. In code, `-` becomes `_` (`rok new my-lib` is imported as `use my_lib::..`).
 
 ```bash
 rok new hello
@@ -140,10 +141,10 @@ cd hello
              cd hello && rok run
 ```
 
-The second line is the command to run next. There are two files. The manifest `rok.rokon` holds the package name, version, and dependencies.
+The second line is the command to run next. There are two files. The manifest `rok.rokon` holds the package name, version, the toolchain series it was made with, and dependencies.
 
 ```rokon
-Package { name: "hello", version: "0.1.0", deps: {} }
+Package { name: "hello", version: "0.1.0", toolchain: "0.1", deps: {} }
 ```
 
 The source lives in `src/`; `src/main.rok` is a single line that prints a greeting.
@@ -238,7 +239,7 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

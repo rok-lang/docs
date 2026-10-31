@@ -226,6 +226,8 @@ ff 0xFF 101 ff
 
 Without an explicit alignment, numbers are right-aligned and everything else is left-aligned. `?` selects the `Debug` format, which shows strings with their quotes and escapes. Specifiers are checked against the hole's type at compile time, so a mistake like `{s:x}` (with `s: str`) is an immediate error.
 
+The `g` type prints like the plain form today: `{x:.3g}` is the same as `{x:.3}`. From Rok 0.2.0 `g` becomes the general format (`1.23e+03`), so `g` with a precision warns; write `{x:.3}` to keep today's output.
+
 To choose the width or precision at run time, put another hole inside the specifier. Both `{..}` and `${..}` work ([dynamic format specifiers](../spec/refs-lang/001-lexical/107-string-literals.html#dynamic-format-specifiers)).
 
 ```rok

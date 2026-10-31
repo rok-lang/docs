@@ -187,6 +187,8 @@ println(f"{sorted:?}");
 
 `str` is not an FFI type, so it cannot be a parameter of an `extern "C" fn`. The compiler tells you to use a `Ptr<u8>` and a length instead.
 
+C code may also call an `extern "C" fn` from a thread it started itself, as a thread pool or an audio library does. Rok attaches such a thread on its first call, so the callback can allocate and use any Rok code; nothing has to be set up on the C side.
+
 To let C find a Rok function by name, set its symbol name with `#[export_name]`. The example below declares that symbol again as a C function in the same program and calls it.
 
 ```rok

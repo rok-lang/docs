@@ -154,7 +154,7 @@ Without an argument, the token is read from standard input without echoing. `rok
 
 ### `rok publish`
 
-`rok publish --dry-run` prints the index entry it would add, and nothing leaves your machine. `rok publish` with neither `--dry-run` nor `--commit` is also a dry run, but it warns: 0.2.0 asks for one of the two.
+`rok publish --dry-run` prints the index entry it would add, and nothing leaves your machine. `rok publish` with neither `--dry-run` nor `--commit` is also a dry run in 0.1.6, but it warns: from 0.2.0 a bare `rok publish` publishes, as `cargo publish` does, so write `--dry-run` to keep previewing.
 
 ```text
 $ rok publish --dry-run

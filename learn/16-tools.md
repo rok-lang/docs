@@ -184,7 +184,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). It covers the lints of Rok 0.1.5 and earlier, so a new toolchain's new lints arrive as warnings instead of breaking a build that used to pass; you turn them into errors when you are ready. `all` is every lint, including those a later release adds. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
+To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). As in rustc, it covers every warning-level lint, including those a later release adds, so pin the toolchain in `rok.rokon` (`toolchain: "0.1"`) when a new release must not change what CI accepts. `all` is every lint. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
 
 ```text
 $ rok lint

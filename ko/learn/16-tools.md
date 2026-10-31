@@ -184,7 +184,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). 이 그룹은 Rok 0.1.5까지의 린트만 담습니다. 그래서 새 toolchain이 들여온 새 린트는 경고로 나올 뿐, 잘 되던 빌드를 깨뜨리지 않습니다. 준비가 되면 그때 에러로 바꾸면 됩니다. `all`은 이후 릴리스가 추가하는 린트까지 포함한 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
+경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). rustc와 같이 이 그룹은 이후 릴리스가 추가하는 린트까지 포함해 경고 수준의 린트를 모두 담습니다. 새 릴리스 때문에 CI 결과가 바뀌면 안 된다면 `rok.rokon`에 toolchain을 고정하세요(`toolchain: "0.1"`). `all`은 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
 
 ```text
 $ rok lint

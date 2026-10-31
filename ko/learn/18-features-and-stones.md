@@ -154,7 +154,7 @@ a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
 
 ### `rok publish`
 
-`rok publish --dry-run`은 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다. `--dry-run`도 `--commit`도 없이 `rok publish`만 써도 시험 실행이지만 경고가 나옵니다. 0.2.0에서는 둘 중 하나를 꼭 적어야 합니다.
+`rok publish --dry-run`은 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다. 0.1.6에서는 `--dry-run`도 `--commit`도 없이 `rok publish`만 써도 시험 실행이지만 경고가 나옵니다. 0.2.0부터는 `cargo publish`처럼 `rok publish`만 쓰면 바로 게시하므로, 미리 보려면 `--dry-run`을 적으세요.
 
 ```text
 $ rok publish --dry-run

@@ -148,7 +148,7 @@ println(f"{hits.load()} {all:?}");
 
 ## 에러 처리하기
 
-실패할 수 있는 함수에는 `throws`를, 각 호출에는 `try`를 씁니다. `catch`는 에러가 난 자리에서 처리하고, `(try? ..) ?? default`는 에러를 기본값으로 바꿉니다([10장](10-errors.html)).
+실패할 수 있는 함수에는 `throws`를, 각 호출에는 `try`를 씁니다. `catch`는 에러가 난 자리에서 처리하고, `(try? ..) ?? default`는 에러를 기본값으로 바꿉니다. `try? f() ?? d`는 `try? (f() ?? d)`라는 뜻이므로 괄호를 빼지 마세요([10장](10-errors.html)).
 
 ```rok
 fn parse_port(s: str) throws -> u16 {

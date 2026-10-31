@@ -148,7 +148,7 @@ println(f"{hits.load()} {all:?}");
 
 ## Handle errors
 
-Write `throws` on a function that can fail and `try` on each call. `catch` handles an error where it happens; `(try? ..) ?? default` swaps it for a default ([chapter 10](10-errors.html)).
+Write `throws` on a function that can fail and `try` on each call. `catch` handles an error where it happens; `(try? ..) ?? default` swaps it for a default; keep the parentheses, since `try? f() ?? d` means `try? (f() ?? d)` ([chapter 10](10-errors.html)).
 
 ```rok
 fn parse_port(s: str) throws -> u16 {

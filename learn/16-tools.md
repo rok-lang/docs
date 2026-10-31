@@ -84,7 +84,15 @@ test gcd_works ... ok
 test result: ok. 1 passed; 0 failed; 2 filtered out; finished in 0.22s
 ```
 
-Use `--show-output` to also see output from passing tests, and `--threads=N` to set how many tests run concurrently.
+Use `--show-output` to also see output from passing tests, and `--threads=N` to set how many tests run concurrently. For CI dashboards and other tools, `--format json` writes one JSON object per line on stdout, one per test and a final summary, and moves the human-readable text to stderr:
+
+```text
+$ rok test --format json 2>/dev/null
+{"schema":1,"type":"case","kind":"test","name":"fib_works","result":"ok","ms":87.057}
+{"schema":1,"type":"case","kind":"test","name":"fib_wrong","result":"failed","ms":87.144}
+{"schema":1,"type":"case","kind":"test","name":"gcd_works","result":"ok","ms":87.05}
+{"schema":1,"type":"summary","kind":"test","result":"failed","passed":2,"failed":1,"filtered_out":0,"ms":87.276}
+```
 
 ## `rok bench`: benchmarks
 
@@ -101,7 +109,7 @@ benchmarking 1 bench
 bench result: ok. 1 run; 0 failed; 0 filtered out; finished in 2.63s
 ```
 
-`--iters=N` is the number of calls per sample (by default, enough for about 10ms), and `--samples=N` is the number of samples (default 10). Filters work as in `rok test`. The output looks the same in a terminal and in a pipe; tools that read the results pass `--format=rokbench` for one `#rokbench` line per benchmark.
+`--iters=N` is the number of calls per sample (by default, enough for about 10ms), and `--samples=N` is the number of samples (default 10). Filters work as in `rok test`. The output looks the same in a terminal and in a pipe; tools that read the results pass `--format=rokbench` for one `#rokbench` line per benchmark, or `--format json` for the same JSON lines as `rok test`, with `median_ns`, `mad_ns` and `samples` in each case.
 
 ## `rok fmt`: the formatter
 
@@ -159,7 +167,7 @@ Every lint defaults to `warn`. The level can be changed in three places, and lat
 2. `-A` / `-W` / `-D` (allow / warn / deny) on the command line
 3. Attributes in source: `#[allow(dead_code)]` on an item, `#![deny(unused)]` at the top of a file
 
-Instead of a single lint (`unused_variables`), you can name a group (`unused`, `nonstandard_style`, `all`). If any `deny` lint fires, the exit code is 1.
+Instead of a single lint (`unused_variables`), you can name a group (`unused`, `nonstandard_style`, `warnings`, `all`). If any `deny` lint fires, the exit code is 1.
 
 ```text
 $ rok lint -D unused
@@ -176,7 +184,24 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-See the full list with `rokc lint --list` (piping it into `head` is fine: when the reader of its output goes away, `rok` and `rokc` stop quietly instead of reporting an error). `rok check` goes further and also runs code generation, but does not link or produce an executable. It is faster than a build, so use it to answer "does it compile?" The examples from here on use a throwaway `hello` package, so the errors and low-level output do not disturb `mathx`.
+To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). It covers the lints of Rok 0.1.5 and earlier, so a new toolchain's new lints arrive as warnings instead of breaking a build that used to pass; you turn them into errors when you are ready. `all` is every lint, including those a later release adds. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
+
+```text
+$ rok lint
+    Checking mathx (.)
+error[E503]: unused variable `unused`
+   --> src/main.rok:11:9
+    |
+ 11 |     let unused = 1;
+    |         ^^^^^^
+    |
+    = note: if this is intentional, prefix it with an underscore: `_unused`
+    = note: `"warnings": "deny"` in `lints` of rok.rokon
+     Checked mathx: 1 error, 0 warnings
+    Finished in 0.11s
+```
+
+`deprecated` warns about any use of an item marked `#[deprecated]`: a function, method, field, type, constant or static, from your code, a dependency or the standard library; editors show such uses struck through. See the full list with `rokc lint --list`, which also gives the release that added each lint (piping it into `head` is fine: when the reader of its output goes away, `rok` and `rokc` stop quietly instead of reporting an error). `rok check` goes further and also runs code generation, but does not link or produce an executable. It is faster than a build, so use it to answer "does it compile?" The examples from here on use a throwaway `hello` package, so the errors and low-level output do not disturb `mathx`.
 
 ```text
 $ rok check
@@ -201,7 +226,7 @@ $ rok build
 error: could not build hello (1 error, 0 warnings)
 ```
 
-For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON, with the fixes it suggests and the spec section of the rule.
+For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 1`): its code and message, spans with start and end line and column, `help` lines, the `fixes` it suggests, the `lint` name of a lint warning, and the spec section of the rule.
 
 The code in brackets names the kind of error; the [error code index](../errors/index.html) has a page for each one, with an example and its fix.
 
@@ -258,7 +283,7 @@ A closer look at the REPL (`rok` or `rok repl`) from chapter 1. On a terminal it
 
 ```text
 $ rok repl
-Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()
@@ -349,17 +374,17 @@ To see how long each build stage takes, add `-v`.
 
 ```text
 $ rok build -v
-         Std prebuilt (/Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
+         Std prebuilt (/Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
    Compiling hello (.)
    Stage: front end (34ms)
-      Reused: 90 of 91 files parsed, 0 of 2 bodies lowered, the library's items collected
+      Reused: 93 of 94 files parsed, 0 of 2 bodies lowered, the library's items collected
     Building ./target/debug/hello
        Units 0 reused, 3 compiled
    Stage: codegen + link (24ms)
     Finished in 0.07s
 ```
 
-`--emit` writes intermediate artifacts to `target/debug/build/`. The kinds are `ast`, `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, and `expanded` (the result of meta expansion).
+`--emit` writes intermediate artifacts to `target/debug/build/`. The kinds are `source` (the whole package after meta expansion and desugaring, written as Rok source), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, and `expansions` (the output of each meta expansion). The old names `ast` and `expanded` still work but warn; they go in 0.2.0.
 
 ```text
 $ rok emit --emit=llvmir

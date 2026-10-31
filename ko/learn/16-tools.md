@@ -84,7 +84,15 @@ test gcd_works ... ok
 test result: ok. 1 passed; 0 failed; 2 filtered out; finished in 0.22s
 ```
 
-통과한 테스트의 출력도 보려면 `--show-output`을, 동시에 실행할 테스트 수를 정하려면 `--threads=N`을 씁니다.
+통과한 테스트의 출력도 보려면 `--show-output`을, 동시에 실행할 테스트 수를 정하려면 `--threads=N`을 씁니다. CI 대시보드 같은 도구에는 `--format json`을 씁니다. 표준 출력에 테스트마다 하나, 마지막에 요약 하나씩 JSON 객체를 한 줄에 하나씩 쓰고, 사람이 읽는 글은 표준 에러로 보냅니다.
+
+```text
+$ rok test --format json 2>/dev/null
+{"schema":1,"type":"case","kind":"test","name":"fib_works","result":"ok","ms":87.057}
+{"schema":1,"type":"case","kind":"test","name":"fib_wrong","result":"failed","ms":87.144}
+{"schema":1,"type":"case","kind":"test","name":"gcd_works","result":"ok","ms":87.05}
+{"schema":1,"type":"summary","kind":"test","result":"failed","passed":2,"failed":1,"filtered_out":0,"ms":87.276}
+```
 
 ## `rok bench`: 벤치마크
 
@@ -101,7 +109,7 @@ benchmarking 1 bench
 bench result: ok. 1 run; 0 failed; 0 filtered out; finished in 2.63s
 ```
 
-`--iters=N`은 표본당 호출 횟수(기본값은 10ms쯤 걸리는 횟수), `--samples=N`은 표본 수(기본값 10)입니다. 필터는 `rok test`와 같이 동작합니다. 출력은 터미널에서나 파이프에서나 같습니다. 결과를 읽는 도구는 `--format=rokbench`를 주면 벤치마크마다 `#rokbench` 줄 하나를 받습니다.
+`--iters=N`은 표본당 호출 횟수(기본값은 10ms쯤 걸리는 횟수), `--samples=N`은 표본 수(기본값 10)입니다. 필터는 `rok test`와 같이 동작합니다. 출력은 터미널에서나 파이프에서나 같습니다. 결과를 읽는 도구는 `--format=rokbench`를 주면 벤치마크마다 `#rokbench` 줄 하나를 받고, `--format json`을 주면 `rok test`와 같은 JSON 줄을 받습니다. 벤치마크마다 `median_ns`, `mad_ns`, `samples`가 들어 있습니다.
 
 ## `rok fmt`: 포매터
 
@@ -159,7 +167,7 @@ warning[E503]: unused variable `unused`
 2. 명령줄의 `-A` / `-W` / `-D` (allow / warn / deny)
 3. 소스의 속성: 항목에 `#[allow(dead_code)]`, 파일 맨 위에 `#![deny(unused)]`
 
-린트 하나(`unused_variables`) 대신 그룹(`unused`, `nonstandard_style`, `all`)을 지정할 수도 있습니다. `deny` 린트가 하나라도 걸리면 종료 코드는 1입니다.
+린트 하나(`unused_variables`) 대신 그룹(`unused`, `nonstandard_style`, `warnings`, `all`)을 지정할 수도 있습니다. `deny` 린트가 하나라도 걸리면 종료 코드는 1입니다.
 
 ```text
 $ rok lint -D unused
@@ -176,7 +184,24 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-전체 목록은 `rokc lint --list`로 봅니다. 출력을 `head`로 파이프해도 됩니다. 읽는 쪽이 먼저 끝나면 `rok`과 `rokc`는 에러 없이 조용히 멈춥니다. `rok check`는 한 걸음 더 나아가 코드 생성까지 실행하지만, 링크하거나 실행 파일을 만들지는 않습니다. 빌드보다 빠르므로 컴파일되는지만 확인할 때 씁니다. 여기서부터의 예제는 에러와 저수준 출력이 `mathx`를 어지럽히지 않도록 버려도 되는 `hello` 패키지를 씁니다.
+경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). 이 그룹은 Rok 0.1.5까지의 린트만 담습니다. 그래서 새 toolchain이 들여온 새 린트는 경고로 나올 뿐, 잘 되던 빌드를 깨뜨리지 않습니다. 준비가 되면 그때 에러로 바꾸면 됩니다. `all`은 이후 릴리스가 추가하는 린트까지 포함한 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
+
+```text
+$ rok lint
+    Checking mathx (.)
+error[E503]: unused variable `unused`
+   --> src/main.rok:11:9
+    |
+ 11 |     let unused = 1;
+    |         ^^^^^^
+    |
+    = note: if this is intentional, prefix it with an underscore: `_unused`
+    = note: `"warnings": "deny"` in `lints` of rok.rokon
+     Checked mathx: 1 error, 0 warnings
+    Finished in 0.11s
+```
+
+`deprecated`는 `#[deprecated]`가 붙은 항목을 쓰면 경고합니다. 함수, 메서드, 필드, 타입, 상수, static 모두 해당하고, 내 코드든 의존성이든 표준 라이브러리든 상관없습니다. 에디터는 그런 사용처에 취소선을 긋습니다. 전체 목록은 `rokc lint --list`로 봅니다. 린트마다 추가된 릴리스도 함께 나옵니다. 출력을 `head`로 파이프해도 됩니다. 읽는 쪽이 먼저 끝나면 `rok`과 `rokc`는 에러 없이 조용히 멈춥니다. `rok check`는 한 걸음 더 나아가 코드 생성까지 실행하지만, 링크하거나 실행 파일을 만들지는 않습니다. 빌드보다 빠르므로 컴파일되는지만 확인할 때 씁니다. 여기서부터의 예제는 에러와 저수준 출력이 `mathx`를 어지럽히지 않도록 버려도 되는 `hello` 패키지를 씁니다.
 
 ```text
 $ rok check
@@ -201,7 +226,7 @@ $ rok build
 error: could not build hello (1 error, 0 warnings)
 ```
 
-기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄로 출력되고, 진단이 제안하는 수정과 규칙의 사양 절도 함께 들어 있습니다.
+기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄(`"schema": 1`)로 출력됩니다. 코드와 메시지, 시작과 끝의 줄·열이 담긴 위치, `help` 줄, 진단이 제안하는 `fixes`, 린트 경고라면 그 `lint` 이름, 규칙의 사양 절이 들어 있습니다.
 
 대괄호 안의 코드는 에러의 종류를 가리킵니다. [에러 코드 목록](../errors/index.html)에 코드마다 예제와 고치는 법을 담은 페이지가 있습니다.
 
@@ -258,7 +283,7 @@ VS Code 같은 다른 에디터에서는 범용 LSP 클라이언트 확장에 `r
 
 ```text
 $ rok repl
-Rok 0.1.5 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()
@@ -349,17 +374,17 @@ macOS에서는 `~/Library/Jupyter` 아래에, Windows에서는 `%APPDATA%\jupyte
 
 ```text
 $ rok build -v
-         Std prebuilt (/Users/me/.rok/toolchains/0.1.5-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
+         Std prebuilt (/Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
    Compiling hello (.)
    Stage: front end (34ms)
-      Reused: 90 of 91 files parsed, 0 of 2 bodies lowered, the library's items collected
+      Reused: 93 of 94 files parsed, 0 of 2 bodies lowered, the library's items collected
     Building ./target/debug/hello
        Units 0 reused, 3 compiled
    Stage: codegen + link (24ms)
     Finished in 0.07s
 ```
 
-`--emit`은 중간 산출물을 `target/debug/build/`에 씁니다. 종류는 `ast`, `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, `expanded`(메타 전개 결과)입니다.
+`--emit`은 중간 산출물을 `target/debug/build/`에 씁니다. 종류는 `source`(메타 전개와 디슈거링을 마친 패키지 전체를 Rok 소스로 쓴 것), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, `expansions`(메타 전개 하나하나의 출력)입니다. 예전 이름인 `ast`와 `expanded`도 아직 동작하지만 경고가 나오고, 0.2.0에서 없어집니다.
 
 ```text
 $ rok emit --emit=llvmir

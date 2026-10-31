@@ -35,6 +35,7 @@ error[E200]: `coutn` is not declared; a variable is created only by `let`
 - 초기값이 필요합니다. `let x;`는 에러입니다. 아직 값이 없으면 `let x: i32 | none = none;`처럼 값이 없다는 것을 직접 적습니다.
 - 같은 스코프에서 같은 이름을 `let`으로 다시 선언할 수 없습니다. Rust 식 섀도잉(shadowing)이 없습니다. 안쪽 블록의 `let`은 바깥 변수와 별개의 변수를 만듭니다.
 - 변수의 타입은 선언할 때 정해지고 바뀌지 않습니다. `i32` 변수에 문자열을 대입하면 에러입니다.
+- `macro`, `defer`, `dyn`, `move`, `gen`, `do` 여섯 단어는 Rok 0.2.0에서 키워드가 됩니다. 지금 이 단어로 이름을 지으면 경고가 나옵니다. 다른 이름을 고르거나 앞에 `r#`을 붙이세요(`r#move`). `r#`을 붙이면 키워드(`r#type`)를 포함해 어떤 단어든 평범한 이름이 됩니다.
 
 ```rok
 let a = 1;
@@ -73,7 +74,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 3 -3 3.5
 ```
 
-`_`는 자릿수 구분자이고, `0x` / `0b` / `0o`는 16진수 / 2진수 / 8진수입니다. 정수 나눗셈은 0 쪽으로 버립니다. 타입의 범위를 벗어난 리터럴(`let x: u8 = 256;`)은 컴파일 에러입니다.
+`_`는 자릿수 구분자이고, `0x` / `0b` / `0o`는 16진수 / 2진수 / 8진수입니다. 앞에 0만 붙인다고 8진수가 되지는 않습니다. `0755`는 십진수 755이고, rokc는 경고와 함께 `0o755`를 제안합니다. 정수 나눗셈은 0 쪽으로 버립니다. 타입의 범위를 벗어난 리터럴(`let x: u8 = 256;`)은 컴파일 에러입니다.
 
 ## 암묵 변환 없음: `as`
 
@@ -86,7 +87,7 @@ error[E200]: operator `+` cannot be applied to `i32` and `i64`
  3 | println(f"{a + b}");
    |            ^^^^^
    |
-   = help: rok never converts numbers implicitly; convert one side: `a + (b as i32)`
+   = help: rok never converts numbers implicitly; convert one side: `(a as i64) + b`
 ```
 
 정밀도가 모르는 사이에 사라지지 않도록 일부러 이렇게 설계했습니다. 변환은 직접 적습니다. `as`는 항상 성공하지만 값을 자르거나 바꿀 수 있고, `.into()`는 손실 없는 변환에만 쓸 수 있습니다.

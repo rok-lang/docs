@@ -35,6 +35,7 @@ A few more rules:
 - An initial value is required. `let x;` is an error. If there is no value yet, state the absence explicitly: `let x: i32 | none = none;`.
 - You cannot redeclare the same name with `let` in the same scope (there is no Rust-style shadowing). A `let` in an inner block creates a separate variable from the outer one.
 - A variable's type is fixed at declaration and never changes. Assigning a string to an `i32` variable is an error.
+- Six words become keywords in Rok 0.2.0: `macro`, `defer`, `dyn`, `move`, `gen` and `do`. Naming something with one of them warns now. Pick another name, or put `r#` in front (`r#move`): `r#` makes any word a plain name, even a keyword (`r#type`).
 
 ```rok
 let a = 1;
@@ -73,7 +74,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 3 -3 3.5
 ```
 
-`_` is a digit separator, and `0x` / `0b` / `0o` mean hexadecimal / binary / octal. Integer division truncates toward zero. A literal outside its type's range (`let x: u8 = 256;`) is a compile error.
+`_` is a digit separator, and `0x` / `0b` / `0o` mean hexadecimal / binary / octal. A leading zero alone does not make a number octal: `0755` is seven hundred fifty-five, and rokc warns and suggests `0o755`. Integer division truncates toward zero. A literal outside its type's range (`let x: u8 = 256;`) is a compile error.
 
 ## No implicit conversions: `as`
 
@@ -86,7 +87,7 @@ error[E200]: operator `+` cannot be applied to `i32` and `i64`
  3 | println(f"{a + b}");
    |            ^^^^^
    |
-   = help: rok never converts numbers implicitly; convert one side: `a + (b as i32)`
+   = help: rok never converts numbers implicitly; convert one side: `(a as i64) + b`
 ```
 
 This is by design, to prevent silent loss of precision. You write conversions explicitly. `as` always succeeds but may truncate or change the value; `.into()` is only allowed for lossless conversions.

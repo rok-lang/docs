@@ -135,7 +135,7 @@ println(try await r.body.text());
 
 ## stone 공개하기
 
-공개는 레지스트리 index에 줄 하나를 더하는 일입니다. 그 줄은 git 저장소의 커밋 하나를 가리킵니다. 소스 아카이브를 올리지는 않습니다. 패키지는 라이브러리(`src/lib.rok`)여야 하고, 원격 `origin`이 있는 깨끗한 git 작업 트리의 루트에 있어야 합니다. 일반 의존성은 모두 그 자체가 stone이어야 합니다. 경로 의존성과 git 의존성은 거부되고, 경로와 git의 `dev_deps`는 빠집니다. `description`, `license`, `repository`를 채우세요. 이 값이 `rok search`와 웹사이트에 나타납니다.
+공개는 레지스트리 index에 줄 하나를 더하는 일입니다. 그 줄은 git 저장소의 커밋 하나를 가리킵니다. 소스 아카이브를 올리지는 않습니다. 패키지에는 `src/lib.rok`(라이브러리), `src/main.rok`(`rok install`로 설치하는 프로그램) 중 하나나 둘 다와 readme가 있어야 하고, 원격 `origin`이 있는 깨끗한 git 작업 트리의 루트에 있어야 합니다. 일반 의존성은 모두 그 자체가 stone이어야 합니다. 경로 의존성과 git 의존성은 거부되고, 경로와 git의 `dev_deps`는 빠집니다. `description`, `license`, `repository`를 채우세요. 이 값이 `rok search`와 웹사이트에 나타납니다.
 
 > [!IMPORTANT]
 > 지금은 rokstones.io 관리자만 stone을 공개할 수 있습니다. 누구나 로그인해 stone을 쓸 수 있지만, `rok login`은 아직 공개 권한이 없는 계정을 거절합니다.

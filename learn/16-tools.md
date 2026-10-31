@@ -109,7 +109,7 @@ benchmarking 1 bench
 bench result: ok. 1 run; 0 failed; 0 filtered out; finished in 2.63s
 ```
 
-`--iters=N` is the number of calls per sample (by default, enough for about 10ms), and `--samples=N` is the number of samples (default 10). Filters work as in `rok test`. The output looks the same in a terminal and in a pipe; tools that read the results pass `--format=rokbench` for one `#rokbench` line per benchmark, or `--format json` for the same JSON lines as `rok test`, with `median_ns`, `mad_ns` and `samples` in each case.
+`--iters=N` is the number of calls per sample (by default, enough for about 100 ms), and `--samples=N` is the number of samples (default 10). Filters work as in `rok test`. The output looks the same in a terminal and in a pipe; tools that read the results pass `--format=rokbench` for one `#rokbench` line per benchmark, or `--format json` for the same JSON lines as `rok test`, with `median_ns`, `mad_ns` and `samples` in each case.
 
 ## `rok fmt`: the formatter
 
@@ -184,7 +184,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). As in rustc, it covers every warning-level lint, including those a later release adds, so pin the toolchain in `rok.rokon` (`toolchain: "0.1"`) when a new release must not change what CI accepts. `all` is every lint. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
+To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). As in rustc, it covers every warning-level lint, including those a later release adds, so pin an exact toolchain in `rok.rokon` (`toolchain: "=0.1.6"`) when a new release must not change what CI accepts. `all` is every lint. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
 
 ```text
 $ rok lint

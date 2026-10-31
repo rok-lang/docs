@@ -183,7 +183,7 @@ pong
 server read 4 bytes, SNI localhost
 ```
 
-`tls::system_roots()` reads the OS trust store (`SSL_CERT_FILE` overrides it), `ClientConfig.alpn_protocols` negotiates protocols such as `h2`, and `negotiated_alpn()` / `peer_certificates()` tell you what was agreed. Client certificates, session resumption and revocation checks are not supported.
+`tls::system_roots()` reads the OS trust store (`SSL_CERT_FILE` overrides it), `ClientConfig.alpn_protocols` negotiates protocols such as `h2`, and `negotiated_alpn()` / `peer_certificates()` tell you what was agreed. Client certificates, session resumption with 0-RTT data and OCSP stapling are supported; CRLs and OCSP queries over the network are not used.
 
 ## Summary
 

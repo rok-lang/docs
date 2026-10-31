@@ -222,7 +222,7 @@ println("");
 1 4 9 16
 ```
 
-A generator can hold a resource while it yields. When a `for` loop leaves early, by `break`, `return` or an error, the generator is finished on the spot: its `using` blocks ([chapter 10](10-errors.html#using-cleaning-up-resources)) and `finally` blocks run before the loop's next statement.
+A generator can hold a resource while it yields. When a `for` loop over a generator it holds itself (a call such as `for r in rows()`) leaves early, by `break`, `return` or an error, the generator is finished on the spot: its `using` blocks ([chapter 10](10-errors.html#using-cleaning-up-resources)) and `finally` blocks run before the loop's next statement. A generator kept in a variable stays open, so a later loop can go on with it.
 
 ```rok
 struct Conn { name: str; }
@@ -301,7 +301,7 @@ println(f"{c:?} {d:?} {r:?}");
 
 - `List` provides `push` / `pop` / `insert` / `remove` / `sort` / `get`, `Dict` provides `d[k]` / `get` / `entry`, and `Set` provides set operations.
 - Collections are reference handles. Call `clone()` when you need a copy.
-- `xs[a:b:s]` slicing works like Python and never panics. The result is a `Slice<T>` view.
+- `xs[a:b:s]` slicing works like Python and never panics on out-of-range bounds (a step of 0 does). The result is a `Slice<T>` view.
 - `Dict` and `Set` keep insertion order; for a double-ended queue, use `Deque`.
 - Chain adapters after `iter()` and consume with `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
 - `yield fn` and `yield { }` make iterators easy to write.

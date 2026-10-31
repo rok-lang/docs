@@ -238,10 +238,10 @@ true
 now a string, length 4
 ```
 
-사양은 매개변수 타입을 생략한 함수 `fn show_sum(x, y)`를 `any`가 아니라 암묵 제네릭으로 정의합니다. 컴파일러는 본체가 매개변수를 쓰는 방식에서 바운드를 추론하고, 호출 지점마다 함수를 단형화합니다.
+사양은 매개변수 타입을 생략한 함수 `fn show_sum(x, y)`를 `any`가 아니라 암묵 제네릭으로 정의합니다. 바운드는 추론하지 않습니다. 호출 지점마다 함수를 단형화하고, 복사된 본체를 그 호출의 인자 타입으로 검사합니다. 그래서 에러는 본체 안과 그 에러를 일으킨 호출을 함께 가리킵니다.
 
 ```rok
-fn show_sum(x, y) { println(f"{x + y}"); }   // implicit generic: T: Add<U>
+fn show_sum(x, y) { println(f"{x + y}"); }   // implicit generic: fn show_sum<T, U>(x: T, y: U)
 
 show_sum(1, 2);       // 3
 show_sum(1.5, 2.0);   // 3.5

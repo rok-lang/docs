@@ -105,4 +105,4 @@ leaves: ["a", "b", "c", "d", "e"]
 - `leaves`는 자기 자신을 호출해서 각 하위 트리의 값을 다시 `yield`로 내보냅니다. 재귀 제너레이터는 중첩된 구조를 평평하게 펼칠 때 흔히 쓰는 방법입니다([합 타입](../learn/05-sum-types.html)).
 
 > [!NOTE]
-> `Node(Tree, i64, Tree)`처럼 자기 자신을 직접 담는 enum은 크기가 무한하므로 컴파일러가 거부합니다(`a struct / enum can't contain itself by value`). 그래서 이 예제는 자식을 참조 타입인 `List<Tree>`에 담아 같은 구조를 나타냅니다.
+> `Node(Tree, i64, Tree)`처럼 자기 자신을 직접 담는 enum은 크기가 무한하므로 컴파일러가 거부합니다(``recursive type `Tree` has infinite size``). 그래서 이 예제는 자식을 참조 타입인 `List<Tree>`에 담아 같은 구조를 나타냅니다.

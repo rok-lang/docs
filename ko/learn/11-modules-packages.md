@@ -150,7 +150,7 @@ geom/
 
 ## 패키지와 `rok.rokon`
 
-`rok new`는 패키지를 만듭니다. 실행 파일이면 `src/main.rok`을, `--lib`을 주면 예제 함수와 `#[test]` 하나가 든 `src/lib.rok`을 만듭니다. 매니페스트 `rok.rokon`은 [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) 형식입니다.
+`rok new`는 패키지를 만듭니다. 실행 파일이면 `src/main.rok`을, `--lib`을 주면 예제 함수와 `#[test]` 하나가 든 `src/lib.rok`을 만듭니다. 매니페스트 `rok.rokon`은 [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) 형식입니다. 이름과 버전 말고도 패키지를 만든 toolchain의 시리즈인 `toolchain: "0.1"`을 적어 둡니다. 그래서 나중에 다른 시리즈의 toolchain이 이 패키지를 뜻하지 않게 빌드하는 일이 없습니다([1장](01-getting-started.html#toolchain-관리)).
 
 ```bash
 rok new --lib geom
@@ -200,7 +200,7 @@ rok add geom --path ../geom
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
     "geom": Dep::path("../geom"),
 } }
 ```
@@ -237,7 +237,7 @@ $ rok add json@^0.1
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
     "json": Dep::version("^0.1"),
 } }
 ```
@@ -296,7 +296,7 @@ rok run tool.rok
 
 스크립트에도 파일 모듈을 둘 수 있습니다. 패키지의 `src/`에서와 마찬가지로 `mod helper;`는 옆에 있는 `helper.rok`을 불러옵니다. 모듈 파일에도 자기 `//!` 블록을 둘 수 있고(`rok add <name> helper.rok`), 모든 파일의 블록이 합쳐집니다. 스크립트는 `rok install`로 설치한 라이브러리를 보지 않고, 블록에 적힌 것만 셉니다. 스크립트가 한 파일로 부족해지면 `rok init --script tool.rok`으로 패키지로 바꿉니다. 블록은 `rok.rokon`이 되고, `tool.rok`과 그 모듈 파일은 `src/`로 옮겨집니다.
 
-이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치합니다. 환경은 `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 따로 활성화하는 단계는 없습니다. 환경이 아직 없으면 `rok env list`가 만드는 방법을 알려 줍니다.
+이름 붙은 환경(environment)은 REPL과 Jupyter에서 씁니다. `rok install`로 환경에 라이브러리를 설치합니다. 환경은 `--env`로 고르거나 `rok env use`로 기본값을 바꿉니다. 따로 활성화하는 단계는 없습니다. 환경이 아직 없으면 `rok env list`가 만드는 방법을 알려 줍니다. 환경은 `~/.rok/envs` 아래의 디렉터리이므로, 이름은 어느 시스템에서나 파일 이름으로 쓸 수 있어야 합니다. `/`, `\`를 넣거나 `.`으로 시작할 수 없고, 길이는 64자까지이며, `con` 같은 Windows 장치 이름은 쓸 수 없습니다. 대소문자만 다른 이름은 같은 이름으로 보고, `current`는 `rok env use`로 고른 환경을 가리키는 데 쓰이므로 예약되어 있습니다.
 
 ```text
 $ rok env create sci

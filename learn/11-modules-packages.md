@@ -150,7 +150,7 @@ A package's sources live in `src/`. The package root module is `src/main.rok` fo
 
 ## Packages and `rok.rokon`
 
-`rok new` creates a package: `src/main.rok` for an executable, or with `--lib`, `src/lib.rok` holding an example function and one `#[test]`. The manifest `rok.rokon` is in [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) format.
+`rok new` creates a package: `src/main.rok` for an executable, or with `--lib`, `src/lib.rok` holding an example function and one `#[test]`. The manifest `rok.rokon` is in [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) format. Besides the name and version it records `toolchain: "0.1"`, the toolchain series the package was made with, so a later toolchain from another series does not build it by surprise ([chapter 1](01-getting-started.html#managing-toolchains)).
 
 ```bash
 rok new --lib geom
@@ -200,7 +200,7 @@ rok add geom --path ../geom
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
     "geom": Dep::path("../geom"),
 } }
 ```
@@ -237,7 +237,7 @@ $ rok add json@^0.1
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
     "json": Dep::version("^0.1"),
 } }
 ```
@@ -296,7 +296,7 @@ rok run tool.rok
 
 A script can have file modules too: `mod helper;` loads `helper.rok` beside it, just as in a package's `src/`. A module file may carry its own `//!` block (`rok add <name> helper.rok`), and the blocks of all the files are merged. Scripts never see libraries installed with `rok install`; only their blocks count. When a script outgrows one file, `rok init --script tool.rok` turns it into a package: the blocks become `rok.rokon`, and `tool.rok` and its module files move into `src/`.
 
-Named environments are for the REPL and Jupyter. Install libraries into one with `rok install`, and pick it with `--env` or change the default with `rok env use`; there is no activation step. With no environment yet, `rok env list` says how to make one.
+Named environments are for the REPL and Jupyter. Install libraries into one with `rok install`, and pick it with `--env` or change the default with `rok env use`; there is no activation step. With no environment yet, `rok env list` says how to make one. An environment is a directory under `~/.rok/envs`, so its name must work as a file name on every system: no `/`, `\` or leading `.`, at most 64 characters, and not a Windows device name such as `con`. Names that differ only in case count as the same, and `current` is reserved for the one `rok env use` chose.
 
 ```text
 $ rok env create sci

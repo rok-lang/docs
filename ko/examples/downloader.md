@@ -52,35 +52,26 @@ async fn main() {
         "https://example.org/data.json", "https://example.org/about.html",
     ];
 
-    // Channels are multi-producer, single-consumer: idle workers announce
-    // themselves on `ready`, the dispatcher answers on that worker's own channel.
-    let (ready_tx, ready_rx) = channel::<i32>();
+    // A channel is multi-producer, multi-consumer: every worker holds a copy
+    // of one job receiver, and each URL goes to whichever worker takes it first.
+    let (job_tx, job_rx) = channel::<str>();
     let (done_tx, done_rx) = channel::<Outcome>();
-    let jobs: List<Sender<str>> = [];
-    for w in 0..WORKERS {
-        let (job_tx, job_rx) = channel::<str>();
-        jobs.push(job_tx);
-        let ready = ready_tx.clone();
+    for _ in 0..WORKERS {
+        let jobs = job_rx;
         let done = done_tx.clone();
         task::spawn(async {
             loop {
-                try! ready.send(w);
-                let url: str = await job_rx.recv_async() else { break; };
+                let url: str = await jobs.recv_async() else { break; };
                 try! done.send(Outcome { url: url, status: await fetch_with_deadline(url) });
             }
-            ready.close();
             done.close();
         });
     }
-    ready_tx.close();
     done_tx.close();
 
-    // Dispatch every URL to the next idle worker, then tell the workers to stop.
-    for url in urls {
-        let w: i32 = await ready_rx.recv_async() else { break; };
-        try! jobs[w as usize].send(url);
-    }
-    for j in jobs { j.close(); }
+    // Queue every URL, then close the channel so idle workers stop.
+    for url in urls { try! job_tx.send(url); }
+    job_tx.close();
 
     // Collect until every worker has closed its `done` sender.
     let results: List<Outcome> = [];
@@ -115,8 +106,8 @@ style.css          29696 B
 
 ## 설명
 
-- 채널은 송신자가 여럿이고 수신자는 하나입니다(mpsc). `Receiver`는 복제할 수 없으므로 워커가 작업 채널 하나를 함께 쓰지 않습니다. 대신 쉬고 있는 워커가 `ready` 채널로 자기 번호를 알리면 분배자가 그 워커 전용 채널로 URL을 보냅니다([2.17.4 다중 생산자와 다중 소비자](../spec/refs-standard-libraries/200-core/217-channel.html#2174-다중-생산자와-다중-소비자), [`channel`](../../std/core/channel.html#fn.channel)).
+- 채널은 송신자도 수신자도 여럿일 수 있습니다(MPMC). `Receiver`를 복사하면 같은 큐를 함께 쓰므로, 워커마다 작업 수신자 하나의 복사본을 받고, URL은 쉬고 있다가 먼저 가져가는 워커에게 갑니다([2.17.4 다중 생산자와 다중 소비자](../spec/refs-standard-libraries/200-core/217-channel.html#2174-다중-생산자와-다중-소비자), [`channel`](../../std/core/channel.html#fn.channel)).
 - 워커마다 `clone()`으로 자기 송신자를 받고 일이 끝나면 `close()`로 닫습니다. `for await r in done_rx`는 모든 송신자가 닫혀야 끝나므로 `main`은 원래의 `done_tx`를 일찍 닫습니다([동시성](../learn/12-concurrency.html)).
-- `await job_rx.recv_async()`는 값이 올 때까지 스레드가 아니라 task를 멈춥니다. 채널이 닫히면 `none`을 내고, `let-else` 안의 `break`가 워커 루프를 빠져나갑니다.
+- `await jobs.recv_async()`는 값이 올 때까지 스레드가 아니라 task를 멈춥니다. `main`이 `job_tx`를 닫고 큐가 비면 `none`을 내고, `let-else` 안의 `break`가 워커 루프를 빠져나갑니다.
 - `task::timeout`은 task가 제때 끝나지 않으면 `TimeoutError`를 던집니다. 타임아웃이 task를 멈추지는 않으므로 `t.cancel()`로 명시적으로 취소합니다([`task::timeout`](../../std/core/task.html#fn.timeout), [2.18.1 핵심 API](../spec/refs-standard-libraries/200-core/218-task.html#2181-핵심-api)).
 - 결과가 도착하는 순서는 실행할 때마다 다를 수 있습니다. 그래서 출력하기 전에 URL로 정렬합니다. 보고서는 언제나 같습니다.

@@ -27,16 +27,18 @@ fn serve(conn: TcpStream) throws (IoError) -> i32 {
 
 // Send each message, wait for its echo, then close the write side.
 fn client(id: i32, addr: SocketAddr, msgs: List<str>) throws (IoError) {
-    let conn = try TcpStream::connect(addr);
-    let r = BufReader::new(try conn.try_clone());
-    for m in msgs {
-        try conn.write_str(f"{m}\n");
-        let reply = (try r.read_line()).trim_end();
-        println(f"client {id}: sent {m:?}, got {reply:?}");
+    using conn = try TcpStream::connect(addr) {
+        using r = BufReader::new(try conn.try_clone()) {
+            for m in msgs {
+                try conn.write_str(f"{m}\n");
+                let reply = (try r.read_line()).trim_end();
+                println(f"client {id}: sent {m:?}, got {reply:?}");
+            }
+            try conn.shutdown(Shutdown::Write);
+            // An empty read means the server closed the connection.
+            if (try r.read_line()).is_empty() { println(f"client {id}: closed"); }
+        }
     }
-    try conn.shutdown(Shutdown::Write);
-    // An empty read means the server closed the connection.
-    if (try r.read_line()).is_empty() { println(f"client {id}: closed"); }
 }
 
 fn main() throws (IoError) {

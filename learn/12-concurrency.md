@@ -241,6 +241,7 @@ A hand-off also copies at run time: the new owner gets its own copy of every col
 let data = [1, 2, 3, 4];
 let (tx, rx) = channel::<(List<i32>, Slice<i32>)>();
 try! tx.send((data, data[0:2]));
+tx.close();
 
 if let (list, head): (List<i32>, Slice<i32>) = rx.recv() {
     list[0] = 10;           // the view still sees the list it came from
@@ -270,6 +271,7 @@ let h = thread::spawn(|| {
     if let s: any Shape = rx.recv() { s.area() } else { 0.0 }
 });
 try! tx.send(Sq { s: 3.0 });
+tx.close();
 println(f"{try h.join()}");
 ```
 
@@ -434,7 +436,7 @@ par::for_each(1..=10000, |n| {
 println(f"primes below 10000: {count.load()}");
 
 let evens = par::filter([1, 2, 3, 4, 5, 6], |x| x % 2 == 0);
-let total = par::reduce([1, 2, 3, 4], 0, |a, b| a + b);
+let total = par::fold([1, 2, 3, 4], 0, |a, b| a + b);
 println(f"{evens:?} {total}");
 ```
 
@@ -444,7 +446,7 @@ primes below 10000: 1229
 [2, 4, 6] 10
 ```
 
-`reduce` folds each chunk separately and then combines the results, so you must pass an associative function (`+`, `max`, and so on) for the result to be deterministic.
+`fold` folds each chunk separately and then combines the results, so you must pass an associative function (`+`, `max`, and so on) for the result to be deterministic.
 
 For exactly two jobs, use `par::join`; when the number is decided at run time, use `par::scope`. Every job `spawn`ed inside a scope finishes before the scope ends.
 

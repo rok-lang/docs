@@ -241,6 +241,7 @@ error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and 
 let data = [1, 2, 3, 4];
 let (tx, rx) = channel::<(List<i32>, Slice<i32>)>();
 try! tx.send((data, data[0:2]));
+tx.close();
 
 if let (list, head): (List<i32>, Slice<i32>) = rx.recv() {
     list[0] = 10;           // the view still sees the list it came from
@@ -270,6 +271,7 @@ let h = thread::spawn(|| {
     if let s: any Shape = rx.recv() { s.area() } else { 0.0 }
 });
 try! tx.send(Sq { s: 3.0 });
+tx.close();
 println(f"{try h.join()}");
 ```
 
@@ -434,7 +436,7 @@ par::for_each(1..=10000, |n| {
 println(f"primes below 10000: {count.load()}");
 
 let evens = par::filter([1, 2, 3, 4, 5, 6], |x| x % 2 == 0);
-let total = par::reduce([1, 2, 3, 4], 0, |a, b| a + b);
+let total = par::fold([1, 2, 3, 4], 0, |a, b| a + b);
 println(f"{evens:?} {total}");
 ```
 
@@ -444,7 +446,7 @@ primes below 10000: 1229
 [2, 4, 6] 10
 ```
 
-`reduce`는 조각마다 따로 접은 뒤 결과를 합칩니다. 그래서 결과가 결정적이려면 결합 법칙을 만족하는 함수(`+`, `max` 등)를 넘겨야 합니다.
+`fold`는 조각마다 따로 접은 뒤 결과를 합칩니다. 그래서 결과가 결정적이려면 결합 법칙을 만족하는 함수(`+`, `max` 등)를 넘겨야 합니다.
 
 작업이 정확히 두 개면 `par::join`을, 개수가 실행 시점에 정해지면 `par::scope`를 씁니다. scope 안에서 `spawn`으로 띄운 모든 작업은 scope가 끝나기 전에 끝납니다.
 

@@ -82,8 +82,8 @@ let grid = Grid::parse([
     "..........",
 ]);
 
-for gen in 0..4 {
-    println(f"generation {gen} (population {grid.population()})");
+for step in 0..4 {
+    println(f"generation {step} (population {grid.population()})");
     println(f"{grid}");
     grid = grid.step();
 }

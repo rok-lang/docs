@@ -7,9 +7,9 @@ Short answers to everyday tasks, each a complete program you can paste into a fi
 `fs::read_to_str` reads a whole file as text; `fs::write` writes one. Both throw an `IoError`, so the calls are marked with `try` ([chapter 13](13-io.html#reading-and-writing-files)).
 
 ```rok
-use rok::std::{env, fs};
+use rok::std::{env, fs, process};
 
-let path = env::temp_dir() / f"rok_cookbook_{env::pid()}.txt";
+let path = env::temp_dir() / f"rok_cookbook_{process::id()}.txt";
 try fs::write(path, "one\ntwo\nthree\n");
 
 let text = try fs::read_to_str(path);
@@ -67,15 +67,15 @@ println(f"{args.len() - 1} arguments");
 
 ## Exit with a code
 
-`env::exit(code)` ends the program at once. `finally` blocks and `Drop` do not run. An uncaught error at the top of a script exits with code 1 by itself ([chapter 10](10-errors.html#errors-at-the-top-of-a-script)).
+`process::exit(code)` ends the program at once. `finally` blocks and `Drop` do not run. An uncaught error at the top of a script exits with code 1 by itself ([chapter 10](10-errors.html#errors-at-the-top-of-a-script)).
 
 ```rok build
-use rok::std::env;
+use rok::std::{env, process};
 
 let args = env::args();
 if args.len() < 2 {
     eprintln("usage: greet NAME");
-    env::exit(2);
+    process::exit(2);
 }
 println(f"hello, {args[1]}");
 ```
@@ -179,7 +179,7 @@ Package { name: "app", version: "0.1.0", deps: {
 ```
 
 ```rok norun
-#[derive(Json)]
+#[derive(json::Json)]
 struct User { name: str; age: i32; tags: List<str> = []; }
 
 // Untyped: walk a Value tree.

@@ -7,9 +7,9 @@
 `fs::read_to_str`은 파일 전체를 텍스트로 읽고, `fs::write`는 파일을 씁니다. 둘 다 `IoError`를 던지므로 호출에 `try`를 붙입니다([13장](13-io.html#파일-읽고-쓰기)).
 
 ```rok
-use rok::std::{env, fs};
+use rok::std::{env, fs, process};
 
-let path = env::temp_dir() / f"rok_cookbook_{env::pid()}.txt";
+let path = env::temp_dir() / f"rok_cookbook_{process::id()}.txt";
 try fs::write(path, "one\ntwo\nthree\n");
 
 let text = try fs::read_to_str(path);
@@ -67,15 +67,15 @@ println(f"{args.len() - 1} arguments");
 
 ## 종료 코드와 함께 끝내기
 
-`env::exit(code)`는 프로그램을 즉시 끝냅니다. `finally` 블록과 `Drop`은 실행되지 않습니다. 스크립트의 최상위에서 아무도 잡지 않은 에러는 저절로 코드 1로 프로그램을 끝냅니다([10장](10-errors.html#스크립트-최상위의-에러)).
+`process::exit(code)`는 프로그램을 즉시 끝냅니다. `finally` 블록과 `Drop`은 실행되지 않습니다. 스크립트의 최상위에서 아무도 잡지 않은 에러는 저절로 코드 1로 프로그램을 끝냅니다([10장](10-errors.html#스크립트-최상위의-에러)).
 
 ```rok build
-use rok::std::env;
+use rok::std::{env, process};
 
 let args = env::args();
 if args.len() < 2 {
     eprintln("usage: greet NAME");
-    env::exit(2);
+    process::exit(2);
 }
 println(f"hello, {args[1]}");
 ```
@@ -179,7 +179,7 @@ Package { name: "app", version: "0.1.0", deps: {
 ```
 
 ```rok norun
-#[derive(Json)]
+#[derive(json::Json)]
 struct User { name: str; age: i32; tags: List<str> = []; }
 
 // Untyped: walk a Value tree.

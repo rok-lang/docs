@@ -162,15 +162,18 @@ let server = task::spawn_local(async {
     let n = try! await s.read_async(buf);
     try! await s.write_all_async(b"pong");
     try! await s.close_notify_async();
-    f"server read {n} bytes, SNI {s.server_name() ?? "-"}"
+    let sni = s.server_name() ?? "-";
+    s.close();
+    f"server read {n} bytes, SNI {sni}"
 });
 
-let ccfg = tls::ClientConfig::new();
+let ccfg = try! tls::ClientConfig::try_new();
 ccfg.root_certs = chain;               // trust only our certificate
 let tcp = try! await TcpStream::connect_async(addr);
 let c = try! await tls::Client::with_config_async(tcp, "localhost", ccfg);
 try! await c.write_all_async(b"ping");
 let reply = try! await c.read_to_end_async();
+c.close();
 println(try! str::from_utf8(reply));
 println(await server);
 ```

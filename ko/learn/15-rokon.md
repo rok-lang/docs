@@ -220,6 +220,7 @@ struct Site
 ```rok
 use rok::std::fs;
 use rok::std::env;
+use rok::std::process;
 use rok::std::rokon;
 use rok::std::rokon::RokonError;
 use rok::std::io::IoError;
@@ -236,7 +237,7 @@ fn load(path: str) throws (IoError | RokonError) -> Site {
     try rokon::from_str(try fs::read_to_str(path))
 }
 
-let path = (env::temp_dir() / f"rok_learn15_{env::pid()}.rokon").as_str();
+let path = (env::temp_dir() / f"rok_learn15_{process::id()}.rokon").as_str();
 try! fs::write(path, r#"// Site configuration
 Site {
     title: "rok",

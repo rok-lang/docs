@@ -38,7 +38,7 @@ struct Config {
     workers: i32 = 4;
     log: Level = Level::Info;
     routes: List<Route> = [];
-    limits: OrderedDict<str, i64> = OrderedDict::new();
+    limits: Dict<str, i64> = Dict::new();
     tls: Tls | none;
 }
 
@@ -135,8 +135,8 @@ round trip: true
 
 ## Walkthrough
 
-- A single `#[derive(Rokon)]` makes structs and enums convert to and from ROKON. A nested struct (`Listen`), an enum (`Level`), `List`, `OrderedDict` and `Tls | none` all map directly ([ROKON](../learn/15-rokon.html), [3.9.2 mapping to Rok types](../spec/refs-standard-libraries/300-std/309-rokon.html#392-correspondence-with-rok-types)).
+- A single `#[derive(Rokon)]` makes structs and enums convert to and from ROKON. A nested struct (`Listen`), an enum (`Level`), `List`, `Dict` and `Tls | none` all map directly ([ROKON](../learn/15-rokon.html), [3.9.2 mapping to Rok types](../spec/refs-standard-libraries/300-std/309-rokon.html#392-correspondence-with-rok-types)).
 - Fields missing from the document take the struct's default (`workers: i32 = 4`); a `T | none` field without a default becomes `none`. Nested values written without a type name, like `listen: { port: 9000 }`, are accepted too.
 - `rokon::from_str` throws a `RokonError` for an unknown field or a value of the wrong type, with a `line:col` position in the message. A typo such as `wokers` is not silently ignored ([`rokon::from_str`](../std/std/rokon.html#fn.from_str)).
 - Rules beyond the format (port must not be 0, worker count in range) are collected by `validate` and reported together. Whether a `T | none` value is empty is checked with `c.tls is none`.
-- `rokon::to_string` writes the canonical form. Fields filled from defaults are written out too, so reading the output gives the same value back. `OrderedDict` is used instead of `Dict` to keep the key order ([`rokon::to_string`](../std/std/rokon.html#fn.to_string)).
+- `rokon::to_string` writes the canonical form. Fields filled from defaults are written out too, so reading the output gives the same value back. A `Dict` keeps its key order, so the limits come out in the order they were read ([`rokon::to_string`](../std/std/rokon.html#fn.to_string)).

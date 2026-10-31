@@ -48,7 +48,7 @@ struct Config {
     name: str;
     mode: Mode;
     servers: List<Server>;
-    limits: OrderedDict<str, i32>;
+    limits: Dict<str, i32>;
 }
 
 fn main() throws (RokonError) {
@@ -145,7 +145,7 @@ primes: [2, 3, 5]
 ```
 
 > [!TIP]
-> `Dict` and `Set` are written in hash order, so the order of `to_string` output is not guaranteed to be the same across runs. To keep the order when writing to a file, use `OrderedDict` / `OrderedSet`.
+> `Dict` and `Set` keep insertion order, so `to_string` writes their entries in the order they were added, the same on every run.
 
 ## Bad input and errors
 
@@ -273,7 +273,7 @@ Notice also that rewriting with `to_string` drops comments. Files that people ed
 - A missing field takes its `= default`, or `none` if its type is `T | none`; otherwise it is an error. Unknown fields are errors too.
 - Error messages have the form `line:column: description`.
 - If you don't know the structure, use `rokon::parse` to get a `Value`.
-- Use `OrderedDict` for maps whose order matters.
+- `Dict` keeps insertion order, so a map is written back in the order it was read.
 
 ## Further reading
 

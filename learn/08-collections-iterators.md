@@ -96,12 +96,12 @@ thread 'main' panicked at main.rok:4:12:
 key "lee" not found; use `d.get(k)` to get `i32 | none`
 ```
 
-> [!WARNING]
-> The iteration order of `Dict` and `Set` is unspecified. When order matters, use `OrderedDict` / `OrderedSet`, which preserve insertion order.
+> [!NOTE]
+> `Dict` and `Set` iterate in insertion order. A key inserted again keeps its place, and a key removed and inserted again goes last. Hash values themselves change from run to run, so never rely on them.
 
 ## OrderedDict, OrderedSet, Deque
 
-`OrderedDict` and `OrderedSet` iterate in insertion order. `Deque` is a queue you can push to and pop from at both ends.
+`OrderedDict` and `OrderedSet` also iterate in insertion order, just like `Dict` and `Set`; they remain for code that already uses them. `Deque` is a queue you can push to and pop from at both ends.
 
 ```rok
 let od: OrderedDict<str, i32> = OrderedDict::new();
@@ -222,6 +222,35 @@ println("");
 1 4 9 16
 ```
 
+A generator can hold a resource while it yields. When a `for` loop leaves early, by `break`, `return` or an error, the generator is finished on the spot: its `using` blocks ([chapter 10](10-errors.html#using-cleaning-up-resources)) and `finally` blocks run before the loop's next statement.
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+yield fn rows() -> i32 {
+    using c = (Conn { name: "db" }) {
+        for i in 1..=5 { yield i; }
+    }
+}
+
+for r in rows() {
+    if r == 3 { break; }
+    println(f"row {r}");
+}
+println("done");
+```
+
+```output
+row 1
+row 2
+close db
+done
+```
+
 ## Advanced: broadcast operators
 
 You can skip this section on a first read. Dotted operators such as `.+`, `.*`, and `.>` are element-wise operations. They desugar to traits such as `DotAdd`, `DotMul`, and `DotGt`, so implementing those for your type makes the operators available right away.
@@ -273,7 +302,7 @@ println(f"{c:?} {d:?} {r:?}");
 - `List` provides `push` / `pop` / `insert` / `remove` / `sort` / `get`, `Dict` provides `d[k]` / `get` / `entry`, and `Set` provides set operations.
 - Collections are reference handles. Call `clone()` when you need a copy.
 - `xs[a:b:s]` slicing works like Python and never panics. The result is a `Slice<T>` view.
-- For ordering, use `OrderedDict` / `OrderedSet`; for a double-ended queue, `Deque`.
+- `Dict` and `Set` keep insertion order; for a double-ended queue, use `Deque`.
 - Chain adapters after `iter()` and consume with `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
 - `yield fn` and `yield { }` make iterators easy to write.
 

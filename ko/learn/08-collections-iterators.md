@@ -96,12 +96,12 @@ thread 'main' panicked at main.rok:4:12:
 key "lee" not found; use `d.get(k)` to get `i32 | none`
 ```
 
-> [!WARNING]
-> `Dict`와 `Set`의 순회 순서는 정해져 있지 않습니다. 순서가 중요하면 삽입 순서를 유지하는 `OrderedDict` / `OrderedSet`을 씁니다.
+> [!NOTE]
+> `Dict`와 `Set`은 삽입 순서대로 순회합니다. 이미 있는 키를 다시 넣으면 자리가 그대로이고, 지웠다가 다시 넣은 키는 맨 뒤로 갑니다. 해시 값 자체는 실행할 때마다 달라지므로 거기에 기대면 안 됩니다.
 
 ## OrderedDict, OrderedSet, Deque
 
-`OrderedDict`와 `OrderedSet`은 삽입 순서대로 순회합니다. `Deque`는 양쪽 끝에서 넣고 뺄 수 있는 큐입니다.
+`OrderedDict`와 `OrderedSet`도 `Dict`, `Set`과 똑같이 삽입 순서대로 순회합니다. 이미 이 타입을 쓰는 코드를 위해 남아 있습니다. `Deque`는 양쪽 끝에서 넣고 뺄 수 있는 큐입니다.
 
 ```rok
 let od: OrderedDict<str, i32> = OrderedDict::new();
@@ -222,6 +222,35 @@ println("");
 1 4 9 16
 ```
 
+생성기는 값을 내놓는 동안 자원을 쥐고 있을 수 있습니다. `for` 루프가 `break`, `return`, 에러로 일찍 끝나면 생성기도 그 자리에서 마무리됩니다. 생성기의 `using` 블록([10장](10-errors.html#using-자원-정리))과 `finally` 블록이 루프 다음 문장보다 먼저 실행됩니다.
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+yield fn rows() -> i32 {
+    using c = (Conn { name: "db" }) {
+        for i in 1..=5 { yield i; }
+    }
+}
+
+for r in rows() {
+    if r == 3 { break; }
+    println(f"row {r}");
+}
+println("done");
+```
+
+```output
+row 1
+row 2
+close db
+done
+```
+
 ## 심화: 브로드캐스트 연산자
 
 처음 읽을 때는 이 절을 건너뛰어도 됩니다. `.+`, `.*`, `.>`처럼 점이 붙은 연산자는 원소별 연산입니다. 이 연산자는 `DotAdd`, `DotMul`, `DotGt` 같은 트레잇 호출로 풀립니다. 그래서 내 타입에 이 트레잇을 구현하면 바로 연산자를 쓸 수 있습니다.
@@ -273,7 +302,7 @@ println(f"{c:?} {d:?} {r:?}");
 - `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `entry`가, `Set`에는 집합 연산이 있습니다.
 - 컬렉션은 참조 핸들입니다. 복사본이 필요하면 `clone()`을 호출합니다.
 - `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 panic을 일으키지 않습니다. 결과는 `Slice<T>` 뷰입니다.
-- 순서가 필요하면 `OrderedDict` / `OrderedSet`을, 양방향 큐가 필요하면 `Deque`를 씁니다.
+- `Dict`와 `Set`은 삽입 순서를 지킵니다. 양방향 큐가 필요하면 `Deque`를 씁니다.
 - `iter()` 뒤에 어댑터를 이어 붙이고 `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
 - `yield fn`과 `yield { }`를 쓰면 반복자를 짧게 작성할 수 있습니다.
 

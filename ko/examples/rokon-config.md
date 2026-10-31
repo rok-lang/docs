@@ -38,7 +38,7 @@ struct Config {
     workers: i32 = 4;
     log: Level = Level::Info;
     routes: List<Route> = [];
-    limits: OrderedDict<str, i64> = OrderedDict::new();
+    limits: Dict<str, i64> = Dict::new();
     tls: Tls | none;
 }
 
@@ -135,8 +135,8 @@ round trip: true
 
 ## 설명
 
-- `#[derive(Rokon)]` 하나로 struct와 enum을 ROKON과 서로 변환할 수 있습니다. 중첩 struct(`Listen`), enum(`Level`), `List`, `OrderedDict`, `Tls | none`이 모두 그대로 대응합니다([ROKON](../learn/15-rokon.html), [3.9.2 Rok 타입과 대응](../spec/refs-standard-libraries/300-std/309-rokon.html#392-rok-타입과-대응)).
+- `#[derive(Rokon)]` 하나로 struct와 enum을 ROKON과 서로 변환할 수 있습니다. 중첩 struct(`Listen`), enum(`Level`), `List`, `Dict`, `Tls | none`이 모두 그대로 대응합니다([ROKON](../learn/15-rokon.html), [3.9.2 Rok 타입과 대응](../spec/refs-standard-libraries/300-std/309-rokon.html#392-rok-타입과-대응)).
 - 문서에 없는 필드는 struct의 기본값(`workers: i32 = 4`)을 받습니다. 기본값이 없는 `T | none` 필드는 `none`이 됩니다. `listen: { port: 9000 }`처럼 타입 이름 없이 적은 중첩 값도 받아들입니다.
 - `rokon::from_str`은 알 수 없는 필드나 타입이 틀린 값을 만나면 `RokonError`를 던집니다. 메시지에는 `line:col` 위치를 담습니다. `wokers` 같은 오타를 조용히 무시하지 않습니다([`rokon::from_str`](../../std/std/rokon.html#fn.from_str)).
 - 형식을 넘어선 규칙은 `validate`가 모아서 한꺼번에 알립니다. 포트는 0이 아니어야 하고 워커 수는 범위 안에 있어야 한다는 규칙입니다. `T | none` 값이 비어 있는지는 `c.tls is none`으로 확인합니다.
-- `rokon::to_string`은 정규 형태로 씁니다. 기본값으로 채운 필드도 함께 쓰므로 출력을 다시 읽으면 같은 값이 나옵니다. 키 순서를 지키려고 `Dict` 대신 `OrderedDict`를 씁니다([`rokon::to_string`](../../std/std/rokon.html#fn.to_string)).
+- `rokon::to_string`은 정규 형태로 씁니다. 기본값으로 채운 필드도 함께 쓰므로 출력을 다시 읽으면 같은 값이 나옵니다. `Dict`는 키 순서를 지키므로 limits는 읽은 순서 그대로 나옵니다([`rokon::to_string`](../../std/std/rokon.html#fn.to_string)).

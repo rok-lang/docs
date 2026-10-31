@@ -48,7 +48,7 @@ struct Config {
     name: str;
     mode: Mode;
     servers: List<Server>;
-    limits: OrderedDict<str, i32>;
+    limits: Dict<str, i32>;
 }
 
 fn main() throws (RokonError) {
@@ -145,7 +145,7 @@ primes: [2, 3, 5]
 ```
 
 > [!TIP]
-> `Dict`와 `Set`은 해시 순서로 쓰이므로 `to_string` 출력의 순서가 실행마다 같다는 보장이 없습니다. 파일에 쓸 때 순서를 지키려면 `OrderedDict` / `OrderedSet`을 쓰세요.
+> `Dict`와 `Set`은 삽입 순서를 지킵니다. 그래서 `to_string`은 항목을 넣은 순서대로 쓰고, 그 순서는 실행할 때마다 같습니다.
 
 ## 잘못된 입력과 에러
 
@@ -273,7 +273,7 @@ missing: NotFound
 - 빠진 필드는 `= default` 값을, 타입이 `T | none`이면 `none`을 받고, 그 밖에는 에러입니다. 모르는 필드도 에러입니다.
 - 에러 메시지는 `line:column: description` 형태입니다.
 - 구조를 모르면 `rokon::parse`로 `Value`를 얻습니다.
-- 순서가 중요한 맵에는 `OrderedDict`를 씁니다.
+- `Dict`는 삽입 순서를 지키므로, 맵은 읽은 순서 그대로 다시 쓰입니다.
 
 ## 더 읽을거리
 

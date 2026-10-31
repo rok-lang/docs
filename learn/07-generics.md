@@ -238,10 +238,10 @@ true
 now a string, length 4
 ```
 
-The spec defines a function with omitted parameter types, `fn show_sum(x, y)`, as an implicit generic, not as `any`. Bounds are inferred from how the body uses the parameters, and the function is monomorphized at each call site.
+The spec defines a function with omitted parameter types, `fn show_sum(x, y)`, as an implicit generic, not as `any`. No bounds are inferred: the function is monomorphized at each call site, and each copy of the body is checked with that call's argument types, so an error points into the body and at the call that caused it.
 
 ```rok
-fn show_sum(x, y) { println(f"{x + y}"); }   // implicit generic: T: Add<U>
+fn show_sum(x, y) { println(f"{x + y}"); }   // implicit generic: fn show_sum<T, U>(x: T, y: U)
 
 show_sum(1, 2);       // 3
 show_sum(1.5, 2.0);   // 3.5

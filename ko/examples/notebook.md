@@ -99,7 +99,7 @@ histogram:
 
 ## 실행하기
 
-먼저 Rok 커널을 Jupyter에 등록합니다. `rok jupyter install`은 kernelspec(`kernels/rok/kernel.json`)을 Jupyter 데이터 디렉터리(macOS는 `~/Library/Jupyter`, 그 밖에는 `~/.local/share/jupyter`)에 씁니다([9.8.3 kernelspec 설치](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-설치)).
+먼저 Rok 커널을 Jupyter에 등록합니다. `rok jupyter install`은 kernelspec(`kernels/rok/kernel.json`)을 Jupyter 데이터 디렉터리(macOS는 `~/Library/Jupyter`, Windows는 `%APPDATA%\jupyter`, 그 밖에는 `~/.local/share/jupyter`)에 씁니다([9.8.3 kernelspec 설치](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-설치)).
 
 ```bash
 rok jupyter install

@@ -99,7 +99,7 @@ histogram:
 
 ## Running it
 
-First register the Rok kernel with Jupyter. `rok jupyter install` writes the kernelspec (`kernels/rok/kernel.json`) into the Jupyter data directory (`~/Library/Jupyter` on macOS, `~/.local/share/jupyter` elsewhere) ([9.8.3 Installing the kernelspec](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-installation)).
+First register the Rok kernel with Jupyter. `rok jupyter install` writes the kernelspec (`kernels/rok/kernel.json`) into the Jupyter data directory (`~/Library/Jupyter` on macOS, `%APPDATA%\jupyter` on Windows, `~/.local/share/jupyter` elsewhere) ([9.8.3 Installing the kernelspec](../spec/refs-lang/009-tools/908-jupyter-integration.html#983-kernelspec-installation)).
 
 ```bash
 rok jupyter install

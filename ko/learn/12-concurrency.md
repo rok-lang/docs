@@ -581,7 +581,7 @@ main done
 thread done
 ```
 
-**future는 기다려야 실행됩니다.** `async fn`을 호출하면 future가 만들어질 뿐입니다. 본체는 `await`로 기다리거나 `task::spawn`에 넘길 때 실행됩니다. 한 번도 기다리지 않은 future는 실행되지 않습니다. 에러는 아니지만 `rok check`와 `rok lint`가 `the future is never awaited, so its body never runs`라고 경고하고 `await f`를 쓰라고 제안합니다. `task::spawn`이 준 `Task`는 버려도 경고가 없습니다. 띄운 task는 스스로 실행됩니다(fire-and-forget).
+**future는 기다려야 실행됩니다.** `async fn`을 호출하면 future가 만들어질 뿐입니다. 본체는 `await`로 기다리거나 `task::spawn`에 넘길 때 실행됩니다. 한 번도 기다리지 않은 future는 실행되지 않습니다. 에러는 아니지만 `rok check`와 `rok lint`가 `this future is never awaited, so its body never runs`라고 경고하고 `await f`를 쓰라고 제안합니다. `task::spawn`이 준 `Task`는 버려도 경고가 없습니다. 띄운 task는 스스로 실행됩니다(fire-and-forget).
 
 ```rok
 async fn work() -> i32 {
@@ -603,7 +603,7 @@ work ran
 **`task::spawn`에는 async `main`이 필요합니다.** task는 executor 위에서 실행되고, executor는 `async fn main`이 시작합니다. 스크립트는 최상위에 `await`가 하나라도 있으면 그렇게 됩니다. 그렇지 않으면 `task::spawn`에서 panic이 일어납니다.
 
 ```text
-thread 'main' panicked at .../library/core/src/task.rok:703:18:
+thread 'main' panicked at .../library/core/src/task.rok:709:18:
 no task executor is running: await inside `async fn main` or `task::block_on`
 ```
 

@@ -183,7 +183,7 @@ pong
 server read 4 bytes, SNI localhost
 ```
 
-`tls::system_roots()`는 OS 신뢰 저장소를 읽습니다(`SSL_CERT_FILE`로 덮어쓸 수 있음). `ClientConfig.alpn_protocols`는 `h2` 같은 프로토콜을 협상하고, `negotiated_alpn()` / `peer_certificates()`는 합의된 결과를 알려 줍니다. 클라이언트 인증서, 세션 재개, 폐기 검사는 아직 없습니다.
+`tls::system_roots()`는 OS 신뢰 저장소를 읽습니다(`SSL_CERT_FILE`로 덮어쓸 수 있음). `ClientConfig.alpn_protocols`는 `h2` 같은 프로토콜을 협상하고, `negotiated_alpn()` / `peer_certificates()`는 합의된 결과를 알려 줍니다. 클라이언트 인증서, 0-RTT 데이터를 쓰는 세션 재개, OCSP 스테이플링을 지원합니다. CRL과 네트워크 OCSP 조회는 쓰지 않습니다.
 
 ## 요약
 

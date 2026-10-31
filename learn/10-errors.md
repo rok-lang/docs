@@ -59,7 +59,7 @@ An explicit `fn main()` that is not `throws` must handle every error itself; wri
 
 ## `try?` and `??`: a default instead of an error
 
-Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. Close the `try?` with parentheses before `??`: `try? f() ?? d` reads as `try? (f() ?? d)`, which gives `none` on an error, so rokc warns about it.
+Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. Close the `try?` with parentheses before `??`: `try? f() ?? d` reads as `try? (f() ?? d)`, which gives `none` on an error: rokc warns, and when `f()` is not optional it is a compile error.
 
 ```rok
 fn parse_port(s: str) -> i32 {
@@ -338,7 +338,7 @@ for n in [4, 5] {
 
 - A function that can throw declares `throws` (before `->`) and throws with `throw`; `ValueError { msg }` covers most needs.
 - Calls are marked with `try`. An uncaught error propagates to the enclosing function; at the top of a script it ends the program with exit code 1.
-- `(try? e) ?? default` gives a fallback (without the parentheses, rokc warns); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
+- `(try? e) ?? default` gives a fallback (without the parentheses, rokc warns or rejects it); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
 - `catch` is an expression that selects by pattern, and `finally` always runs.
 - Define your own error types (`Display` + `Error`) when callers must tell failures apart, and list them with `throws (A | B)`.
 - `rethrows` throws only when the function it received throws.

@@ -109,7 +109,7 @@ benchmarking 1 bench
 bench result: ok. 1 run; 0 failed; 0 filtered out; finished in 2.63s
 ```
 
-`--iters=N`은 표본당 호출 횟수(기본값은 10ms쯤 걸리는 횟수), `--samples=N`은 표본 수(기본값 10)입니다. 필터는 `rok test`와 같이 동작합니다. 출력은 터미널에서나 파이프에서나 같습니다. 결과를 읽는 도구는 `--format=rokbench`를 주면 벤치마크마다 `#rokbench` 줄 하나를 받고, `--format json`을 주면 `rok test`와 같은 JSON 줄을 받습니다. 벤치마크마다 `median_ns`, `mad_ns`, `samples`가 들어 있습니다.
+`--iters=N`은 표본당 호출 횟수(기본값은 100ms쯤 걸리는 횟수), `--samples=N`은 표본 수(기본값 10)입니다. 필터는 `rok test`와 같이 동작합니다. 출력은 터미널에서나 파이프에서나 같습니다. 결과를 읽는 도구는 `--format=rokbench`를 주면 벤치마크마다 `#rokbench` 줄 하나를 받고, `--format json`을 주면 `rok test`와 같은 JSON 줄을 받습니다. 벤치마크마다 `median_ns`, `mad_ns`, `samples`가 들어 있습니다.
 
 ## `rok fmt`: 포매터
 
@@ -184,7 +184,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). rustc와 같이 이 그룹은 이후 릴리스가 추가하는 린트까지 포함해 경고 수준의 린트를 모두 담습니다. 새 릴리스 때문에 CI 결과가 바뀌면 안 된다면 `rok.rokon`에 toolchain을 고정하세요(`toolchain: "0.1"`). `all`은 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
+경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). rustc와 같이 이 그룹은 이후 릴리스가 추가하는 린트까지 포함해 경고 수준의 린트를 모두 담습니다. 새 릴리스 때문에 CI 결과가 바뀌면 안 된다면 `rok.rokon`에 toolchain을 정확한 버전으로 고정하세요(`toolchain: "=0.1.6"`). `all`은 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
 
 ```text
 $ rok lint

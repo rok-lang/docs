@@ -581,7 +581,7 @@ main done
 thread done
 ```
 
-**Futures are lazy.** Calling an `async fn` only creates a future; its body runs when you `await` it (or hand it to `task::spawn`). A future that is never awaited never runs. It is not an error, but `rok check` and `rok lint` warn: `the future is never awaited, so its body never runs`, and suggests writing `await f`. A `Task` from `task::spawn` gets no warning when you drop it: a spawned task runs on its own (fire-and-forget).
+**Futures are lazy.** Calling an `async fn` only creates a future; its body runs when you `await` it (or hand it to `task::spawn`). A future that is never awaited never runs. It is not an error, but `rok check` and `rok lint` warn: `this future is never awaited, so its body never runs`, and suggests writing `await f`. A `Task` from `task::spawn` gets no warning when you drop it: a spawned task runs on its own (fire-and-forget).
 
 ```rok
 async fn work() -> i32 {
@@ -603,7 +603,7 @@ work ran
 **`task::spawn` needs an async `main`.** Tasks run on an executor, and the executor is started by an `async fn main`. A script becomes one as soon as its top level contains an `await`; without one, `task::spawn` panics.
 
 ```text
-thread 'main' panicked at .../library/core/src/task.rok:703:18:
+thread 'main' panicked at .../library/core/src/task.rok:709:18:
 no task executor is running: await inside `async fn main` or `task::block_on`
 ```
 

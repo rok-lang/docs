@@ -222,7 +222,7 @@ println("");
 1 4 9 16
 ```
 
-생성기는 값을 내놓는 동안 자원을 쥐고 있을 수 있습니다. `for` 루프가 `break`, `return`, 에러로 일찍 끝나면 생성기도 그 자리에서 마무리됩니다. 생성기의 `using` 블록([10장](10-errors.html#using-자원-정리))과 `finally` 블록이 루프 다음 문장보다 먼저 실행됩니다.
+생성기는 값을 내놓는 동안 자원을 쥐고 있을 수 있습니다. 루프가 직접 쥔 생성기(`for r in rows()`처럼 호출로 받은 것)는 `for` 루프가 `break`, `return`, 에러로 일찍 끝나면 그 자리에서 마무리됩니다. 생성기의 `using` 블록([10장](10-errors.html#using-자원-정리))과 `finally` 블록이 루프 다음 문장보다 먼저 실행됩니다. 변수에 담아 둔 생성기는 열린 채로 남으므로 다음 루프에서 이어서 쓸 수 있습니다.
 
 ```rok
 struct Conn { name: str; }
@@ -301,7 +301,7 @@ println(f"{c:?} {d:?} {r:?}");
 
 - `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `entry`가, `Set`에는 집합 연산이 있습니다.
 - 컬렉션은 참조 핸들입니다. 복사본이 필요하면 `clone()`을 호출합니다.
-- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 panic을 일으키지 않습니다. 결과는 `Slice<T>` 뷰입니다.
+- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 범위를 벗어나도 panic을 일으키지 않습니다(간격이 0이면 panic입니다). 결과는 `Slice<T>` 뷰입니다.
 - `Dict`와 `Set`은 삽입 순서를 지킵니다. 양방향 큐가 필요하면 `Deque`를 씁니다.
 - `iter()` 뒤에 어댑터를 이어 붙이고 `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
 - `yield fn`과 `yield { }`를 쓰면 반복자를 짧게 작성할 수 있습니다.

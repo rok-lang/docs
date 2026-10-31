@@ -135,7 +135,7 @@ println(try await r.body.text());
 
 ## Publishing a stone
 
-Publishing adds one line to the registry index, pointing at a commit of your git repository; there is no upload of source archives. The package must be a library (`src/lib.rok`) at the root of a clean git work tree with a remote `origin`, and every normal dependency must itself be a stone (path and git dependencies are rejected; path and git `dev_deps` are dropped). Fill in `description`, `license` and `repository`: they show up in `rok search` and on the website.
+Publishing adds one line to the registry index, pointing at a commit of your git repository; there is no upload of source archives. The package must have a `src/lib.rok` (a library), a `src/main.rok` (a program for `rok install`) or both, and a readme, at the root of a clean git work tree with a remote `origin`, and every normal dependency must itself be a stone (path and git dependencies are rejected; path and git `dev_deps` are dropped). Fill in `description`, `license` and `repository`: they show up in `rok search` and on the website.
 
 > [!IMPORTANT]
 > For now only the rokstones.io maintainers can publish. Anyone can sign in and use stones, but `rok login` refuses an account that cannot publish yet.

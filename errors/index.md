@@ -2,7 +2,7 @@
 
 Every rokc diagnostic starts with a code: `error[E200]: mismatched types: ...`. There is one code per kind of error, so one code covers many messages; the message itself says what is wrong and, usually, what to write instead. The codes and their ranges are defined in [9.9.4 Diagnostics](../spec/refs-lang/009-tools/909-debug-tools.html#994-diagnostics--error-messages). With `--message-format=json` the code is the `code` field.
 
-This index describes rokc 0.1.5. Codes marked *not emitted* are reserved by the spec but never printed by this version.
+This index describes rokc 0.1.6. Codes marked *not emitted* are reserved by the spec but never printed by this version.
 
 ## E0xx: lexical and syntax
 

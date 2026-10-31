@@ -204,6 +204,11 @@ sum: 6
 6 [2, 4]
 ```
 
+Two things about a trailing-closure call written as a statement:
+
+- End it with `;` after the `}`, as `repeat(3) |i| { .. };` does above. Without it, a next line that starts with an operator continues the call: `measure("sum") { 6 }` followed by a line `-1` is `measure("sum") { 6 } - 1`. rokc warns about such a line, and Rok 0.2.0 ends the call at the `}`.
+- A bare `return` inside the closure ends only that call of the closure, not the function around it, so rokc warns about it. To leave the function early, write a `for` loop instead.
+
 ## A preview of methods
 
 Functions inside an `impl` block are methods. If the first parameter is `self`, call it as `value.method()`; without `self`, it is a static method called as `Type::function()`. To modify fields inside a method, take `ref self`. Structs and methods are covered in detail in a later chapter.

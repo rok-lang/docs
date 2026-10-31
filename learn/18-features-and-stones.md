@@ -93,8 +93,8 @@ The Rok project maintains a few libraries as stones of their own, outside the st
 
 | Stone      | What it is                                                                    |
 |------------|-------------------------------------------------------------------------------|
-| `json`     | JSON (RFC 8259): a `Value` tree, a strict parser with `line:col` errors, a streaming tokenizer, typed encode / decode with `#[derive(Json)]`, JSON Pointer |
-| `toml`     | TOML 1.1.0: a `Value` tree with typed date-times, a parser with `line:col` errors, a writer, typed encode / decode with `#[derive(Toml)]` |
+| `json`     | JSON (RFC 8259): a `Value` tree, a strict parser with `line:col` errors, a streaming tokenizer, typed encode / decode with `#[derive(json::Json)]`, JSON Pointer |
+| `toml`     | TOML 1.1.0: a `Value` tree with typed date-times, a parser with `line:col` errors, a writer, typed encode / decode with `#[derive(toml::Toml)]` |
 | `http`     | HTTP/1.1 and HTTP/2 client and server: strict parsing, HPACK, streaming bodies, connection pooling, `https` over std's TLS. Features `http1`, `http2`, `tls`, all on by default |
 | `markdown` | CommonMark plus GitHub extensions (tables, callouts, footnotes, heading anchors) to HTML. It renders this site |
 | `rok-syntax` | A tokenizer and HTML highlighter for Rok and ROKON source. It highlights the code on this site |
@@ -102,7 +102,7 @@ The Rok project maintains a few libraries as stones of their own, outside the st
 `json` and `toml` follow the shape of std's [`rokon`](15-rokon.html) module: `parse` / `to_string` / `from_str` / `encode` / `decode`, and a derive for your own types.
 
 ```rok norun
-#[derive(Json)]
+#[derive(json::Json)]
 struct Server { host: str; port: u16 = 80; }
 
 let s: Server = try json::from_str("{\"host\": \"localhost\"}");
@@ -147,17 +147,17 @@ Sign in at [rokstones.io/me](https://rokstones.io/me) with GitHub and create an 
 ```text
 $ rok login
 a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
-   Logged in as your-name at https://rokstones.io (token in ~/.rok/credentials.rokon)
+   Logged in as your-name at https://rokstones.io (token in ~/.rok/tokens.rokon)
 ```
 
-Without an argument, the token is read from standard input without echoing. `rok login` asks the registry who the token belongs to and refuses a token it rejects, saving nothing. A good token is kept in `~/.rok/credentials.rokon` (readable only by you); `rok logout` deletes it. In CI, set `ROK_REGISTRY_TOKEN` instead.
+Without an argument, the token is read from standard input without echoing. `rok login` asks the registry who the token belongs to and refuses a token it rejects, saving nothing. A good token is kept in `~/.rok/tokens.rokon` (readable only by you), filed under the index it was made for, and is sent only to that index; `rok login --registry <url>` keeps one for another index. For the default index it also goes into `~/.rok/credentials.rokon`, where rok 0.1.5 and older look for it. `rok logout` removes the token from both files and leaves any other fields in them alone, and `rok logout --all` removes every index's token. In CI, set `ROK_REGISTRY_TOKEN` instead.
 
 ### `rok publish`
 
-`rok publish` alone is a dry run: it prints the index entry it would add, and nothing leaves your machine.
+`rok publish --dry-run` prints the index entry it would add, and nothing leaves your machine. `rok publish` with neither `--dry-run` nor `--commit` is also a dry run, but it warns: 0.2.0 asks for one of the two.
 
 ```text
-$ rok publish
+$ rok publish --dry-run
 Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
 note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
@@ -169,8 +169,31 @@ The entry records the HEAD commit and its tree hash, so push that commit first. 
 A version with a serious bug can be yanked. New resolutions skip it, but projects whose `rok.lock` already pins it keep building, so yanking never breaks anyone. `--undo` reverses it.
 
 ```bash
-rok yank --vers 0.1.0          # in the package directory
-rok yank --vers 0.1.0 --undo
+rok yank textwrap@0.1.0
+rok yank textwrap@0.1.0 --undo
+```
+
+The old form `rok yank --vers 0.1.0` (in the package directory) still works but warns.
+
+### Changing a published API
+
+When a function, method, field or type of your stone should go away, mark it `#[deprecated]` instead of removing it. Code that uses it keeps building and gets a warning that says what to write instead; remove it in the next breaking release.
+
+```rok norun
+#[deprecated(since = "0.3.0", note = "use `wrap_width`")]
+pub fn wrap(s: str) -> str { wrap_width(s, 80) }
+```
+
+```text
+warning[E503]: use of deprecated function `wrap`
+  --> src/main.rok:6:9
+   |
+ 6 | println(textwrap::wrap("hi"));
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: deprecated since 0.3.0
+   = note: use `wrap_width`
+   = note: `#[warn(deprecated)]` on by default
 ```
 
 ## Summary
@@ -180,7 +203,7 @@ rok yank --vers 0.1.0 --undo
 - Choose features with `--features`, `--no-default-features`, `--all-features`, and per dependency with `features:` / `default_features: false`. Features are unified across the build, so they must only add.
 - Code tests them with `#[cfg(feature = "..")]` and `cfg!(feature = "..")`.
 - `json`, `toml`, `http`, `markdown` and `rok-syntax` are the Rok project's stones.
-- Publish with `rok login` (a rokstones.io token), `rok publish` (dry run) and `rok publish --commit`; withdraw with `rok yank`. Publishing is open to maintainers only for now.
+- Publish with `rok login` (a rokstones.io token), `rok publish --dry-run` and `rok publish --commit`; withdraw with `rok yank name@version`, and retire an API with `#[deprecated]` before removing it. Publishing is open to maintainers only for now.
 
 ## Further reading
 

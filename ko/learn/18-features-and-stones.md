@@ -93,8 +93,8 @@ Rok 프로젝트는 몇몇 라이브러리를 표준 라이브러리 밖의 독�
 
 | Stone      | 무엇인가                                                                      |
 |------------|-------------------------------------------------------------------------------|
-| `json`     | JSON (RFC 8259): `Value` 트리, `line:col` 에러를 내는 엄격한 파서, 스트리밍 토크나이저, `#[derive(Json)]`으로 하는 타입 있는 encode / decode, JSON Pointer |
-| `toml`     | TOML 1.1.0: 타입 있는 날짜-시각이 들어가는 `Value` 트리, `line:col` 에러를 내는 파서, 라이터, `#[derive(Toml)]`로 하는 타입 있는 encode / decode |
+| `json`     | JSON (RFC 8259): `Value` 트리, `line:col` 에러를 내는 엄격한 파서, 스트리밍 토크나이저, `#[derive(json::Json)]`으로 하는 타입 있는 encode / decode, JSON Pointer |
+| `toml`     | TOML 1.1.0: 타입 있는 날짜-시각이 들어가는 `Value` 트리, `line:col` 에러를 내는 파서, 라이터, `#[derive(toml::Toml)]`로 하는 타입 있는 encode / decode |
 | `http`     | HTTP/1.1과 HTTP/2 클라이언트와 서버: 엄격한 파싱, HPACK, 스트리밍 body, 연결 풀링, std의 TLS 위의 `https`. feature는 `http1`, `http2`, `tls`이며 모두 기본으로 켜짐 |
 | `markdown` | CommonMark와 GitHub 확장(표, 콜아웃, 각주, 제목 앵커)을 HTML로 변환. 이 사이트를 렌더링함 |
 | `rok-syntax` | Rok과 ROKON 소스의 토크나이저와 HTML 강조기. 이 사이트의 코드를 강조함 |
@@ -102,7 +102,7 @@ Rok 프로젝트는 몇몇 라이브러리를 표준 라이브러리 밖의 독�
 `json`과 `toml`은 std의 [`rokon`](15-rokon.html) 모듈과 같은 모양을 따릅니다. `parse` / `to_string` / `from_str` / `encode` / `decode`, 그리고 자기 타입을 위한 derive입니다.
 
 ```rok norun
-#[derive(Json)]
+#[derive(json::Json)]
 struct Server { host: str; port: u16 = 80; }
 
 let s: Server = try json::from_str("{\"host\": \"localhost\"}");
@@ -147,17 +147,17 @@ println(try await r.body.text());
 ```text
 $ rok login
 a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
-   Logged in as your-name at https://rokstones.io (token in ~/.rok/credentials.rokon)
+   Logged in as your-name at https://rokstones.io (token in ~/.rok/tokens.rokon)
 ```
 
-인자가 없으면 토큰을 화면에 보이지 않게 표준 입력에서 읽습니다. `rok login`은 레지스트리에 토큰이 누구의 것인지 묻고, 레지스트리가 거부하는 토큰은 아무것도 저장하지 않고 거절합니다. 올바른 토큰은 `~/.rok/credentials.rokon`(본인만 읽을 수 있음)에 저장됩니다. `rok logout`은 이 파일을 지웁니다. CI에서는 대신 `ROK_REGISTRY_TOKEN`을 설정합니다.
+인자가 없으면 토큰을 화면에 보이지 않게 표준 입력에서 읽습니다. `rok login`은 레지스트리에 토큰이 누구의 것인지 묻고, 레지스트리가 거부하는 토큰은 아무것도 저장하지 않고 거절합니다. 올바른 토큰은 `~/.rok/tokens.rokon`(본인만 읽을 수 있음)에 그 토큰을 만든 index별로 저장되고, 그 index에만 보내집니다. 다른 index의 토큰은 `rok login --registry <url>`로 저장합니다. 기본 index의 토큰은 rok 0.1.5 이하가 찾는 `~/.rok/credentials.rokon`에도 저장됩니다. `rok logout`은 두 파일에서 토큰을 지우고, 파일의 다른 필드는 그대로 둡니다. `rok logout --all`은 모든 index의 토큰을 지웁니다. CI에서는 대신 `ROK_REGISTRY_TOKEN`을 설정합니다.
 
 ### `rok publish`
 
-`rok publish`만 쓰면 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다.
+`rok publish --dry-run`은 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다. `--dry-run`도 `--commit`도 없이 `rok publish`만 써도 시험 실행이지만 경고가 나옵니다. 0.2.0에서는 둘 중 하나를 꼭 적어야 합니다.
 
 ```text
-$ rok publish
+$ rok publish --dry-run
 Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
 note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
@@ -169,8 +169,31 @@ note: dry run; --commit sends it to the registry API of https://github.com/rok-l
 심각한 버그가 있는 버전은 철회(yank)할 수 있습니다. 새로 의존성을 해소할 때는 그 버전을 건너뜁니다. 하지만 `rok.lock`이 이미 그 버전을 고정한 프로젝트는 계속 빌드되므로 철회가 누군가의 빌드를 깨뜨리는 일은 없습니다. `--undo`로 되돌립니다.
 
 ```bash
-rok yank --vers 0.1.0          # in the package directory
-rok yank --vers 0.1.0 --undo
+rok yank textwrap@0.1.0
+rok yank textwrap@0.1.0 --undo
+```
+
+예전 형태인 `rok yank --vers 0.1.0`(패키지 디렉터리에서)도 동작하지만 경고가 나옵니다.
+
+### 공개한 API 바꾸기
+
+stone의 함수, 메서드, 필드, 타입을 없애고 싶다면 바로 지우지 말고 먼저 `#[deprecated]`를 붙이세요. 그것을 쓰는 코드는 계속 빌드되고, 대신 무엇을 쓰면 되는지 알려 주는 경고를 받습니다. 실제로 지우는 것은 다음 호환성이 깨지는 릴리스에서 합니다.
+
+```rok norun
+#[deprecated(since = "0.3.0", note = "use `wrap_width`")]
+pub fn wrap(s: str) -> str { wrap_width(s, 80) }
+```
+
+```text
+warning[E503]: use of deprecated function `wrap`
+  --> src/main.rok:6:9
+   |
+ 6 | println(textwrap::wrap("hi"));
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: deprecated since 0.3.0
+   = note: use `wrap_width`
+   = note: `#[warn(deprecated)]` on by default
 ```
 
 ## 요약
@@ -180,7 +203,7 @@ rok yank --vers 0.1.0 --undo
 - feature는 `--features`, `--no-default-features`, `--all-features`로, 의존성마다는 `features:` / `default_features: false`로 고릅니다. feature는 빌드 전체에서 합쳐지므로 더하기만 해야 합니다.
 - 코드는 `#[cfg(feature = "..")]`와 `cfg!(feature = "..")`로 feature를 검사합니다.
 - `json`, `toml`, `http`, `markdown`, `rok-syntax`가 Rok 프로젝트의 stone입니다.
-- 공개는 `rok login`(rokstones.io 토큰), `rok publish`(시험 실행), `rok publish --commit` 순서로 하고, 철회는 `rok yank`로 합니다. 지금은 관리자만 공개할 수 있습니다.
+- 공개는 `rok login`(rokstones.io 토큰), `rok publish --dry-run`, `rok publish --commit` 순서로 하고, 철회는 `rok yank name@version`으로 합니다. API를 없앨 때는 먼저 `#[deprecated]`를 붙입니다. 지금은 관리자만 공개할 수 있습니다.
 
 ## 더 읽을거리
 

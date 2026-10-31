@@ -1,6 +1,0 @@
-// Released versions, newest first. Each one has a v<x.y.z> branch here and
-// in rok-lang/spec; the site serves it at /<x.y.z>/, the newest patch of a
-// minor at /<x.y>/, the first entry at /latest/, and main at /dev/.
-Versions {
-    releases: ["0.1.5", "0.1.4", "0.1.3", "0.1.2", "0.1.1", "0.1.0"],
-}

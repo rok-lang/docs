@@ -7,7 +7,7 @@ The guide, examples and cookbook for [Rok](https://rok-lang.org), in English. (T
 - `main`: the next release, served at docs.rok-lang.org/dev/
 - `vX.Y.Z`: the docs for that release, served at /X.Y.Z/ (and /X.Y/ for the newest patch of a minor). Fix a mistake in a released version on its branch.
 
-`versions.rokon` on `main` lists the released versions.
+A release is a `vX.Y.Z` branch here and in rok-lang/spec; the site finds them on its own and serves the newest at /latest/.
 
 ## Layout
 

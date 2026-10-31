@@ -115,7 +115,7 @@ style.css          29696 B
 
 ## Walkthrough
 
-- Channels have many senders and one receiver (mpsc). A `Receiver` cannot be cloned, so the workers do not share one job channel. Instead an idle worker announces its number on the `ready` channel, and the dispatcher sends a URL on that worker's own channel ([2.17.4 multi-producer](../spec/refs-standard-libraries/200-core/217-channel.html#2174-multi-producer), [`channel`](../std/core/channel.html#fn.channel)).
+- Channels have many senders and one receiver (mpsc). A `Receiver` cannot be cloned, so the workers do not share one job channel. Instead an idle worker announces its number on the `ready` channel, and the dispatcher sends a URL on that worker's own channel ([2.17.4 multiple producers and consumers](../spec/refs-standard-libraries/200-core/217-channel.html#2174-multiple-producers-and-consumers), [`channel`](../std/core/channel.html#fn.channel)).
 - Each worker gets its own sender via `clone()` and `close()`s it when done. `for await r in done_rx` ends only once every sender is closed, so `main` closes its original `done_tx` early ([Concurrency](../learn/12-concurrency.html)).
 - `await job_rx.recv_async()` suspends the task, not the thread, until a value arrives. When the channel closes it yields `none`, and the `break` in the `let-else` leaves the worker loop.
 - `task::timeout` throws `TimeoutError` if the task does not finish in time. A timeout does not stop the task, so it is cancelled explicitly with `t.cancel()` ([`task::timeout`](../std/core/task.html#fn.timeout), [2.18.1 core API](../spec/refs-standard-libraries/200-core/218-task.html#2181-core-api)).

@@ -7,7 +7,7 @@ Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, 
 
 ## Hashes and MACs
 
-The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts `List<u8>`, `Slice<u8>`, a `str` (its UTF-8 bytes) or a `Secret` (the type `crypto::ByteInput`, for your own functions that pass bytes on), so byte strings and text can be passed directly. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
+The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts any `AsBytes` value: `List<u8>`, `Slice<u8>`, a byte array, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Your own functions that pass bytes on take `<B: AsBytes>` the same way, and a type of your own that implements `AsBytes` can be passed too. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};

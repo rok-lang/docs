@@ -7,7 +7,7 @@ Rok에는 자체 암호 구현이 들어 있습니다. `rok::core::crypto`에는
 
 ## 해시와 MAC
 
-알고리듬은 `rok::core::crypto`의 항목(`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519` 등)이고, 각각 자기 하위 모듈(`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`)에도 있습니다. 바이트를 받는 모든 함수는 `List<u8>`, `Slice<u8>`, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 이 네 가지를 묶은 타입이 `crypto::ByteInput`이므로, 바이트를 받아 그대로 넘기는 함수를 직접 만들 때 쓰면 됩니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고).
+알고리듬은 `rok::core::crypto`의 항목(`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519` 등)이고, 각각 자기 하위 모듈(`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`)에도 있습니다. 바이트를 받는 모든 함수는 `AsBytes` 값이면 무엇이든 받습니다. `List<u8>`, `Slice<u8>`, 바이트 배열, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 바이트를 받아 그대로 넘기는 함수를 직접 만들 때도 똑같이 `<B: AsBytes>`로 받으면 되고, 직접 만든 타입도 `AsBytes`를 구현하면 넘길 수 있습니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고).
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};

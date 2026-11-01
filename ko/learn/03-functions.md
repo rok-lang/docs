@@ -48,7 +48,7 @@ println(f"{double(4)} {id("hi")}");
 8 hi
 ```
 
-`pub`나 `pub(pkg)` 함수는 다릅니다. 다른 모듈이 호출하므로 시그니처를 다 적습니다. 매개변수마다 타입을 적고, `->`가 없으면 `()`를 반환합니다. 본체가 값을 내면 컴파일러가 적어야 할 `-> T`를 알려 줍니다([E0139](../errors/E0139.html)).
+`pub`나 `pub(pkg)` 함수는 다릅니다. 다른 모듈이 호출하므로 시그니처를 다 적습니다. 매개변수마다 타입을 적고, `->`가 없으면 `()`를 반환합니다(`main`과 제너레이터 `yield fn`은 예외). 본체가 값을 내면 컴파일러가 적어야 할 `-> T`를 알려 줍니다([E0139](../errors/E0139.html)).
 
 ```rok
 pub fn double(x: i32) -> i32 { x * 2 }   // pub: types written out
@@ -228,7 +228,7 @@ fn each(xs: List<i32>, body: fn(i32)) {
 }
 
 each([1, 2, 3]) |x| {
-    if x == 2 { return@each; }   // 이 호출만 끝남. 3은 그대로 출력됨
+    if x == 2 { return@each; }   // ends this call; 3 still prints
     println(f"{x}");
 }
 ```

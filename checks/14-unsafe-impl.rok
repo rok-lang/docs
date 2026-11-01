@@ -1,0 +1,7 @@
+unsafe trait Zeroable {
+    fn zeroed() -> Self;
+}
+
+impl Zeroable for i32 {
+    fn zeroed() -> i32 { 0 }
+}

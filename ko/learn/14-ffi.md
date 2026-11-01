@@ -168,6 +168,56 @@ println(f"17 / 5 = {r.quot} rem {r.rem}");
 17 / 5 = 3 rem 2
 ```
 
+## 컴파일러가 검사할 수 없는 약속: `unsafe trait`
+
+어떤 트레잇은 그것을 구현하는 모든 타입에 대해 컴파일러가 검사할 방법이 없는 약속을 합니다. 그런 트레잇은 `unsafe trait`로 선언하고, 그 impl은 모두 `unsafe impl`로 씁니다. 호출에 쓰는 `unsafe { }` 블록처럼, 이 `unsafe`는 약속이 지켜진다는 작성자의 보증입니다. 트레잇을 쓰는 쪽(바운드, 호출)에는 `unsafe`가 필요 없습니다.
+
+표준 라이브러리에서는 `rok::bare::mem::Pod`("plain old data")가 그렇습니다. 그 타입의 모든 비트 패턴이 값이라는 뜻입니다. 정수, 부동소수점, `c_char`는 이미 `Pod`입니다. `reinterpret`은 한 `Pod` 값의 비트를 같은 크기의 다른 `Pod` 값으로 읽습니다. `Pod` 필드로 된 `#[repr(C)]` struct는 `#[derive(Pod)]`로, 또는 직접 `unsafe impl Pod for T {}`로 참여합니다. 어느 쪽이든 컴파일러는 레이아웃과 필드, `Drop`이 없는지를 여전히 검사합니다.
+
+```rok
+use rok::bare::mem::{Pod, reinterpret};
+
+/// Every all-zero bit pattern is a value.
+unsafe trait Zeroable {
+    fn zeroed() -> Self;
+}
+
+unsafe impl Zeroable for i32 {
+    fn zeroed() -> i32 { 0 }
+}
+
+fn zero<T: Zeroable>() -> T { T::zeroed() }   // using the trait needs no `unsafe`
+
+#[derive(Pod)]
+#[repr(C)]
+struct Rgba { r: u8; g: u8; b: u8; a: u8; }
+
+#[repr(C)]
+struct Pair { lo: u16; hi: u16; }
+
+unsafe impl Pod for Pair {}                    // checked like the derive
+
+let z: i32 = zero();
+let bytes: [u8; 4] = reinterpret(Rgba { r: 1, g: 2, b: 3, a: 255 });
+let one: u32 = reinterpret(1.0f32);
+let p: Pair = reinterpret(0x0009_0007u32);
+println(f"{z} {bytes[3]} {one:x} {p.lo + p.hi}");
+```
+
+```output
+0 255 3f800000 16
+```
+
+`unsafe trait`를 그냥 `impl`로 구현하면 에러이고, 적어야 할 형태를 알려 줍니다([E0078](../errors/E0078.html)).
+
+```text check=checks/14-unsafe-impl.rok
+error[E0078]: `Zeroable` is an `unsafe trait`: the impl promises what the compiler cannot check; write `unsafe impl Zeroable for i32`
+  --> main.rok:5:1
+   |
+ 5 | impl Zeroable for i32 {
+   | ^^^^
+```
+
 ## 콜백: `extern "C" fn`
 
 `qsort`처럼 함수 포인터를 받는 C 함수에는 Rok 함수를 C ABI로 컴파일해 넘깁니다. 함수 정의 앞에 `extern "C"`만 붙이면 됩니다. 이런 함수는 클로저가 아니므로 주변 변수를 캡처할 수 없습니다. 매개변수와 반환 타입은 정수, 부동소수, 포인터, `#[repr(C)]` struct 같은 FFI 호환 타입이어야 합니다.
@@ -265,10 +315,11 @@ println(f"zlib {unsafe { zlibVersion() }}");
 - C 메모리는 `Ptr` / `ConstPtr`의 `read` / `write` / `add` / `cast`와 `rok::bare::alloc`으로 다룹니다.
 - struct는 `#[repr(C)]`, 콜백은 `extern "C" fn`, 내보내는 이름은 `#[export_name]`을 씁니다.
 - 위험한 호출은 작은 `unsafe` 함수에 가두고, 밖에는 안전한 함수를 드러냅니다.
+- `unsafe trait`(`Pod` 등)는 `unsafe impl`로 구현합니다. `#[repr(C)]` struct에는 `#[derive(Pod)]`가 그 impl을 써 줍니다.
 
 ## 더 읽을거리
 
-- 사양: [5.9 extern 블록](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html), [6.2.3 link 속성](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#623-link-외부-라이브러리-명시), [C 호환 문자](../spec/refs-lang/001-lexical/108-character-literals.html)
-- 표준 라이브러리 사양: [FFI](../spec/refs-standard-libraries/100-bare/107-ffi.html), [포인터](../spec/refs-standard-libraries/100-bare/101-ptr.html)
+- 사양: [5.9 extern 블록](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html), [4.15.4 unsafe trait](../spec/refs-lang/004-functions/415-unsafe.html#4154-트레잇-안에서), [6.2.3 link 속성](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#623-link-외부-라이브러리-명시), [C 호환 문자](../spec/refs-lang/001-lexical/108-character-literals.html)
+- 표준 라이브러리 사양: [FFI](../spec/refs-standard-libraries/100-bare/107-ffi.html), [포인터](../spec/refs-standard-libraries/100-bare/101-ptr.html), [`Pod` 트레잇](../spec/refs-standard-libraries/100-bare/103-mem.html#133-pod-트레잇)
 - API: [rok::bare::ptr](../../std/bare/ptr.html), [rok::bare::alloc](../../std/bare/alloc.html), [rok::bare::mem](../../std/bare/mem.html)
 - 다음 장: [15. ROKON](15-rokon.html)

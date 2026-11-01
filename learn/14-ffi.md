@@ -168,6 +168,56 @@ println(f"17 / 5 = {r.quot} rem {r.rem}");
 17 / 5 = 3 rem 2
 ```
 
+## Promises the compiler cannot check: `unsafe trait`
+
+Some traits promise something about every type that implements them that the compiler has no way to check. Such a trait is declared `unsafe trait`, and each impl of it is written `unsafe impl`: the `unsafe` is the author's word that the promise holds, just as an `unsafe { }` block is for a call. Using the trait (a bound, a call) needs no `unsafe`.
+
+The standard library's one is `rok::bare::mem::Pod`, "plain old data": every bit pattern of the type is a value. Integers, floats and `c_char` are `Pod` already. `reinterpret` takes the bits of one `Pod` value as another of the same size. A `#[repr(C)]` struct of `Pod` fields opts in with `#[derive(Pod)]`, or by hand with `unsafe impl Pod for T {}`; either way the compiler still checks the layout, the fields and that there is no `Drop`.
+
+```rok
+use rok::bare::mem::{Pod, reinterpret};
+
+/// Every all-zero bit pattern is a value.
+unsafe trait Zeroable {
+    fn zeroed() -> Self;
+}
+
+unsafe impl Zeroable for i32 {
+    fn zeroed() -> i32 { 0 }
+}
+
+fn zero<T: Zeroable>() -> T { T::zeroed() }   // using the trait needs no `unsafe`
+
+#[derive(Pod)]
+#[repr(C)]
+struct Rgba { r: u8; g: u8; b: u8; a: u8; }
+
+#[repr(C)]
+struct Pair { lo: u16; hi: u16; }
+
+unsafe impl Pod for Pair {}                    // checked like the derive
+
+let z: i32 = zero();
+let bytes: [u8; 4] = reinterpret(Rgba { r: 1, g: 2, b: 3, a: 255 });
+let one: u32 = reinterpret(1.0f32);
+let p: Pair = reinterpret(0x0009_0007u32);
+println(f"{z} {bytes[3]} {one:x} {p.lo + p.hi}");
+```
+
+```output
+0 255 3f800000 16
+```
+
+A plain `impl` of an `unsafe trait` is an error that gives the form to write ([E0078](../errors/E0078.html)):
+
+```text check=checks/14-unsafe-impl.rok
+error[E0078]: `Zeroable` is an `unsafe trait`: the impl promises what the compiler cannot check; write `unsafe impl Zeroable for i32`
+  --> main.rok:5:1
+   |
+ 5 | impl Zeroable for i32 {
+   | ^^^^
+```
+
 ## Callbacks: `extern "C" fn`
 
 For C functions that take a function pointer, such as `qsort`, compile a Rok function with the C ABI and pass it. Just put `extern "C"` before the function definition. Such a function is not a closure, so it cannot capture surrounding variables, and its parameters and return type must be FFI-compatible (integers, floats, pointers, `#[repr(C)]` structs).
@@ -265,10 +315,11 @@ println(f"zlib {unsafe { zlibVersion() }}");
 - Handle C memory with `read` / `write` / `add` / `cast` on `Ptr` / `ConstPtr`, and with `rok::bare::alloc`.
 - Structs use `#[repr(C)]`, callbacks use `extern "C" fn`, exported names use `#[export_name]`.
 - Confine dangerous calls to small `unsafe` functions and expose safe functions to the outside.
+- An `unsafe trait` (such as `Pod`) is implemented with `unsafe impl`; `#[derive(Pod)]` writes that impl for a `#[repr(C)]` struct.
 
 ## Further reading
 
-- Spec: [5.9 extern blocks](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html), [6.2.3 the link attribute](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#623-link-naming-an-external-library), [C-compatible characters](../spec/refs-lang/001-lexical/108-character-literals.html)
-- Standard library spec: [FFI](../spec/refs-standard-libraries/100-bare/107-ffi.html), [Pointers](../spec/refs-standard-libraries/100-bare/101-ptr.html)
+- Spec: [5.9 extern blocks](../spec/refs-lang/005-modules/509-extern-block.html), [4.15 unsafe](../spec/refs-lang/004-functions/415-unsafe.html), [4.15.4 unsafe trait](../spec/refs-lang/004-functions/415-unsafe.html#4154-in-traits), [6.2.3 the link attribute](../spec/refs-lang/006-meta-system/602-built-in-attributes.html#623-link-naming-an-external-library), [C-compatible characters](../spec/refs-lang/001-lexical/108-character-literals.html)
+- Standard library spec: [FFI](../spec/refs-standard-libraries/100-bare/107-ffi.html), [Pointers](../spec/refs-standard-libraries/100-bare/101-ptr.html), [The `Pod` trait](../spec/refs-standard-libraries/100-bare/103-mem.html#133-the-pod-trait)
 - API: [rok::bare::ptr](../std/bare/ptr.html), [rok::bare::alloc](../std/bare/alloc.html), [rok::bare::mem](../std/bare/mem.html)
 - Next chapter: [15. ROKON](15-rokon.html)

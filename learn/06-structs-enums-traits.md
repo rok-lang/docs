@@ -319,6 +319,8 @@ error[E0136]: method `name` comes from trait `zoo::Animal`, which is not in scop
    = help: add `use zoo::Animal;`
 ```
 
+A trait whose impls promise something the compiler cannot check is declared `unsafe trait`, and each impl of it is written `unsafe impl`. The standard library's `Pod` is one; [chapter 14](14-ffi.html) shows both.
+
 ## Automatic implementations with derive
 
 Mechanical implementations such as comparison, hashing, and debug output are generated with `#[derive(...)]`. The built-in derives are `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, and `Hash`; the standard library adds `Rokon` for ROKON serialization ([chapter 15](15-rokon.html)).

@@ -319,6 +319,8 @@ error[E0136]: method `name` comes from trait `zoo::Animal`, which is not in scop
    = help: add `use zoo::Animal;`
 ```
 
+impl이 컴파일러가 검사할 수 없는 약속을 하는 트레잇은 `unsafe trait`로 선언하고, 그 impl은 모두 `unsafe impl`로 씁니다. 표준 라이브러리의 `Pod`가 그렇습니다. 둘 다 [14장](14-ffi.html)에서 다룹니다.
+
 ## derive로 자동 구현
 
 비교, 해시, 디버그 출력처럼 기계적으로 쓸 수 있는 구현은 `#[derive(...)]`로 만듭니다. 내장 derive는 `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`이고, 표준 라이브러리가 ROKON 직렬화용 `Rokon`을 더합니다([15장](15-rokon.html)).

@@ -7,7 +7,7 @@ JSON values as an enum, a character-level recursive-descent parser that reports 
 ```rok
 // A small JSON parser: recursive descent over chars, errors with positions, pretty printer.
 
-enum Json { Null, Bool(bool), Num(f64), Str(str), Arr(List<Json>), Obj(OrderedDict<str, Json>) }
+enum Json { Null, Bool(bool), Num(f64), Str(str), Arr(List<Json>), Obj(Dict<str, Json>) }
 
 struct ParseError { msg: str; pos: usize; }
 
@@ -102,7 +102,7 @@ impl Parser {
 
     fn object(ref self) throws (ParseError) -> Json {
         self.pos += 1;
-        let fields: OrderedDict<str, Json> = OrderedDict::new();
+        let fields: Dict<str, Json> = Dict::new();
         if self.eat('}') { return Json::Obj(fields); }
         loop {
             self.skip_ws();
@@ -152,7 +152,7 @@ fn pretty(v: Json, depth: usize) -> str {
         },
         Json::Obj(fields) => {
             let parts: List<str> = [];
-            for (k, x) in fields.entries() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
+            for (k, x) in fields.iter() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
             block("{", "}", parts, depth)
         },
     }
@@ -194,7 +194,7 @@ fn main() {
 
 ## Walkthrough
 
-- A JSON value is the six-variant enum `Json`. Arrays and objects hold themselves recursively as `List<Json>` and `OrderedDict<str, Json>`; objects use `OrderedDict` to keep key order ([Sum types](../learn/05-sum-types.html), [Structs, enums and traits](../learn/06-structs-enums-traits.html)).
+- A JSON value is the six-variant enum `Json`. Arrays and objects hold themselves recursively as `List<Json>` and `Dict<str, Json>`; a `Dict` keeps key order ([Sum types](../learn/05-sum-types.html), [Structs, enums and traits](../learn/06-structs-enums-traits.html)).
 - The parser is a struct holding the position `pos`, and the methods that advance it take `ref self`. When such a method returns (or throws), the updated `self` is written back to the caller ([4.7.5 method receivers](../spec/refs-lang/004-functions/407-ref-keyword.html#475-exception-for-method-receivers)).
 - End of input is checked with `let c: char = self.peek() else { throw ...; };`. `peek()` returns `char | none`, so `let-else` leaves on `none`, and below it `c` is a `char` ([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-form)).
 - Every error is a single `ParseError` carrying a message and a position. Errors thrown by the standard library, such as a failed number parse, are turned into positioned errors with `catch _ { throw ParseError { ... }; }` ([Errors](../learn/10-errors.html)).

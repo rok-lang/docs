@@ -51,7 +51,7 @@ fn frequencies(text: str) -> Dict<str, i32> {
 
 fn top(counts: Dict<str, i32>, n: usize) -> List<(str, i32)> {
     let pairs: List<(str, i32)> = [];
-    for (w, c) in counts.entries() {
+    for (w, c) in counts.iter() {
         pairs.push((w, c));
     }
     // Most frequent first; ties broken alphabetically so output is stable.

@@ -99,17 +99,17 @@ key "lee" not found; use `d.get(k)` to get `i32 | none`
 > [!NOTE]
 > `Dict`와 `Set`은 삽입 순서대로 순회합니다. 이미 있는 키를 다시 넣으면 자리가 그대로이고, 지웠다가 다시 넣은 키는 맨 뒤로 갑니다. 해시 값 자체는 실행할 때마다 달라지므로 거기에 기대면 안 됩니다.
 
-## OrderedDict, OrderedSet, Deque
+## 삽입 순서와 Deque
 
-`OrderedDict`와 `OrderedSet`도 `Dict`, `Set`과 똑같이 삽입 순서대로 순회합니다. 이미 이 타입을 쓰는 코드를 위해 남아 있습니다. `Deque`는 양쪽 끝에서 넣고 뺄 수 있는 큐입니다.
+`Dict`와 `Set`이 삽입 순서를 지키므로 순서를 지키는 타입은 따로 없습니다. `iter()`는 `(키, 값)` 쌍을 넣은 순서대로 줍니다. `Deque`는 양쪽 끝에서 넣고 뺄 수 있는 큐입니다.
 
 ```rok
-let od: OrderedDict<str, i32> = OrderedDict::new();
-od.insert("zebra", 1);
-od.insert("apple", 2);
-for (k, v) in od.entries() { println(f"{k}={v}"); }
+let d: Dict<str, i32> = Dict::new();
+d.insert("zebra", 1);
+d.insert("apple", 2);
+for (k, v) in d.iter() { println(f"{k}={v}"); }
 
-let tags = OrderedSet::from(["b", "a", "b", "c"]);
+let tags: Set<str> = Set::from(["b", "a", "b", "c"]);
 println(f"{tags:?}");
 
 let q: Deque<i32> = Deque::new();
@@ -312,5 +312,5 @@ println(f"{c:?} {d:?} {r:?}");
 - [3.6. 인덱싱과 슬라이싱](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)
 - [stdlib 2.7. iter](../spec/refs-standard-libraries/200-core/207-iter.html), [4.11. 제너레이터](../spec/refs-lang/004-functions/411-generators.html)
 - [3.3. 브로드캐스트 연산자](../spec/refs-lang/003-expressions/303-broadcast-operators.html), [stdlib 2.6. broadcast](../spec/refs-standard-libraries/200-core/206-broadcast.html)
-- API: [`List`](../../std/core/collections/list.html#struct.List), [`Dict`](../../std/core/collections/dict.html#struct.Dict), [`Set`](../../std/core/collections/set.html#struct.Set), [`OrderedDict`](../../std/core/collections/ordered_dict.html#struct.OrderedDict), [`OrderedSet`](../../std/core/collections/ordered_set.html#struct.OrderedSet), [`Deque`](../../std/core/collections/deque.html#struct.Deque), [`Slice`](../../std/core/collections/slice.html#struct.Slice), [`Iterator`](../../std/core/iter.html#trait.Iterator), [`GenIter`](../../std/core/iter.html#struct.GenIter)
+- API: [`List`](../../std/core/collections/list.html#struct.List), [`Dict`](../../std/core/collections/dict.html#struct.Dict), [`Set`](../../std/core/collections/set.html#struct.Set), [`Deque`](../../std/core/collections/deque.html#struct.Deque), [`Slice`](../../std/core/collections/slice.html#struct.Slice), [`Iterator`](../../std/core/iter.html#trait.Iterator), [`GenIter`](../../std/core/iter.html#struct.GenIter)
 - 다음 장: [9. 문자열과 f-string](09-strings.html)

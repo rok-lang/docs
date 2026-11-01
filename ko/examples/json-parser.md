@@ -7,7 +7,7 @@ JSON 값을 enum으로 나타냅니다. 문자 단위 재귀 하강 파서는 �
 ```rok
 // A small JSON parser: recursive descent over chars, errors with positions, pretty printer.
 
-enum Json { Null, Bool(bool), Num(f64), Str(str), Arr(List<Json>), Obj(OrderedDict<str, Json>) }
+enum Json { Null, Bool(bool), Num(f64), Str(str), Arr(List<Json>), Obj(Dict<str, Json>) }
 
 struct ParseError { msg: str; pos: usize; }
 
@@ -102,7 +102,7 @@ impl Parser {
 
     fn object(ref self) throws (ParseError) -> Json {
         self.pos += 1;
-        let fields: OrderedDict<str, Json> = OrderedDict::new();
+        let fields: Dict<str, Json> = Dict::new();
         if self.eat('}') { return Json::Obj(fields); }
         loop {
             self.skip_ws();
@@ -152,7 +152,7 @@ fn pretty(v: Json, depth: usize) -> str {
         },
         Json::Obj(fields) => {
             let parts: List<str> = [];
-            for (k, x) in fields.entries() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
+            for (k, x) in fields.iter() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
             block("{", "}", parts, depth)
         },
     }
@@ -194,7 +194,7 @@ fn main() {
 
 ## 설명
 
-- JSON 값은 변형이 여섯인 enum `Json`입니다. 배열과 객체는 `List<Json>`과 `OrderedDict<str, Json>`으로 자기 자신을 재귀적으로 담습니다. 객체는 키 순서를 지키려고 `OrderedDict`를 씁니다([합 타입](../learn/05-sum-types.html), [struct, enum, 트레잇](../learn/06-structs-enums-traits.html)).
+- JSON 값은 변형이 여섯인 enum `Json`입니다. 배열과 객체는 `List<Json>`과 `Dict<str, Json>`으로 자기 자신을 재귀적으로 담습니다. `Dict`는 키 순서를 지킵니다([합 타입](../learn/05-sum-types.html), [struct, enum, 트레잇](../learn/06-structs-enums-traits.html)).
 - 파서는 위치 `pos`를 담은 struct이고, 위치를 옮기는 메서드는 `ref self`를 받습니다. 그런 메서드가 반환하거나 에러를 던지면 갱신된 `self`가 호출한 쪽에 다시 기록됩니다([4.7.5 메서드 receiver](../spec/refs-lang/004-functions/407-ref-keyword.html#475-메서드-수신자의-예외)).
 - 입력의 끝은 `let c: char = self.peek() else { throw ...; };`로 확인합니다. `peek()`는 `char | none`을 돌려주므로 `let-else`는 `none`이면 빠져나가고, 그 아래에서 `c`는 `char`입니다([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-형태)).
 - 모든 에러는 메시지와 위치를 담은 `ParseError` 하나입니다. 숫자 파싱 실패처럼 표준 라이브러리가 던지는 에러는 `catch _ { throw ParseError { ... }; }`로 위치가 붙은 에러로 바꿉니다([에러 처리](../learn/10-errors.html)).

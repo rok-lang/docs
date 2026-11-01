@@ -99,17 +99,17 @@ key "lee" not found; use `d.get(k)` to get `i32 | none`
 > [!NOTE]
 > `Dict` and `Set` iterate in insertion order. A key inserted again keeps its place, and a key removed and inserted again goes last. Hash values themselves change from run to run, so never rely on them.
 
-## OrderedDict, OrderedSet, Deque
+## Insertion order and Deque
 
-`OrderedDict` and `OrderedSet` also iterate in insertion order, just like `Dict` and `Set`; they remain for code that already uses them. `Deque` is a queue you can push to and pop from at both ends.
+Because `Dict` and `Set` keep insertion order, there is no separate ordered type: `iter()` gives the `(key, value)` pairs in the order they went in. `Deque` is a queue you can push to and pop from at both ends.
 
 ```rok
-let od: OrderedDict<str, i32> = OrderedDict::new();
-od.insert("zebra", 1);
-od.insert("apple", 2);
-for (k, v) in od.entries() { println(f"{k}={v}"); }
+let d: Dict<str, i32> = Dict::new();
+d.insert("zebra", 1);
+d.insert("apple", 2);
+for (k, v) in d.iter() { println(f"{k}={v}"); }
 
-let tags = OrderedSet::from(["b", "a", "b", "c"]);
+let tags: Set<str> = Set::from(["b", "a", "b", "c"]);
 println(f"{tags:?}");
 
 let q: Deque<i32> = Deque::new();
@@ -312,5 +312,5 @@ println(f"{c:?} {d:?} {r:?}");
 - [3.6. Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)
 - [stdlib 2.7. iter](../spec/refs-standard-libraries/200-core/207-iter.html), [4.11. Generators](../spec/refs-lang/004-functions/411-generators.html)
 - [3.3. Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html), [stdlib 2.6. broadcast](../spec/refs-standard-libraries/200-core/206-broadcast.html)
-- API: [`List`](../std/core/collections/list.html#struct.List), [`Dict`](../std/core/collections/dict.html#struct.Dict), [`Set`](../std/core/collections/set.html#struct.Set), [`OrderedDict`](../std/core/collections/ordered_dict.html#struct.OrderedDict), [`OrderedSet`](../std/core/collections/ordered_set.html#struct.OrderedSet), [`Deque`](../std/core/collections/deque.html#struct.Deque), [`Slice`](../std/core/collections/slice.html#struct.Slice), [`Iterator`](../std/core/iter.html#trait.Iterator), [`GenIter`](../std/core/iter.html#struct.GenIter)
+- API: [`List`](../std/core/collections/list.html#struct.List), [`Dict`](../std/core/collections/dict.html#struct.Dict), [`Set`](../std/core/collections/set.html#struct.Set), [`Deque`](../std/core/collections/deque.html#struct.Deque), [`Slice`](../std/core/collections/slice.html#struct.Slice), [`Iterator`](../std/core/iter.html#trait.Iterator), [`GenIter`](../std/core/iter.html#struct.GenIter)
 - Next chapter: [9. Strings and f-strings](09-strings.html)

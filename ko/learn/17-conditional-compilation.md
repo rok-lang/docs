@@ -106,6 +106,28 @@ error[E200]: no method `pidfd` found for type `Child`
   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```
 
+## std의 OS 전용 부분
+
+표준 라이브러리도 같은 방식으로 나뉩니다. 일부 시스템에만 있는 것은 `rok::std::os::unix`, `os::linux`, `os::windows`에 있고, 각 모듈은 해당 타깃에만 있습니다. 그 확장 트레잇은 그 타깃의 prelude에 들어 있어서, Linux와 macOS에서는 `Command::new("sh").process_group(0)`에 `use`가 필요 없습니다. Windows에서 같은 호출은 그 메서드가 어디에 있는지 알려 주는 에러가 됩니다.
+
+```text
+error: no method `process_group` found for type `Command`
+ = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
+ = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
+```
+
+그래서 그것을 쓰는 코드는 같은 조건 아래에 둡니다.
+
+```rok
+use rok::std::process::Command;
+
+#[cfg(target_family = "unix")]
+fn detached(cmd: Command) -> Command { cmd.process_group(0) }
+
+#[cfg(not(target_family = "unix"))]
+fn detached(cmd: Command) -> Command { cmd }
+```
+
 ## `cfg!`: 컴파일 타임 `bool`
 
 양쪽 가지가 어디서나 컴파일되고 선택만 다르다면 `cfg!(..)`가 더 짧습니다. 값이 상수 `bool`이므로 컴파일러가 죽은 가지를 버립니다. 다만 `#[cfg]`와 달리 양쪽 모두 타입 검사는 통과해야 합니다.
@@ -129,6 +151,7 @@ debug=true level=1
 - 항목, 필드, 변형, 문장, match 가지, struct 리터럴 필드, 매개변수에 붙습니다. 제거된 매개변수는 시그니처에서 사라집니다.
 - 플랫폼마다 다른 본문은 서로 배제하는 정의로 씁니다.
 - `cfg!(..)`는 보통의 `if`에 쓰는 상수 `bool`입니다.
+- OS 전용 std는 `rok::std::os::{unix, linux, windows}`에 있고, 그 확장 트레잇은 해당 타깃의 prelude에 있습니다.
 - `feature = ".."` 조건은 패키지의 feature가 정합니다. 다음 장에서 다룹니다.
 
 ## 더 읽을거리

@@ -106,6 +106,28 @@ error[E200]: no method `pidfd` found for type `Child`
   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```
 
+## OS-specific parts of std
+
+The standard library splits the same way. What only some systems have lives in `rok::std::os::unix`, `os::linux` and `os::windows`, and each exists only on its targets. Their extension traits are in the prelude there, so on Linux and macOS `Command::new("sh").process_group(0)` needs no `use`. On Windows the same call is an error that says where the method exists:
+
+```text
+error: no method `process_group` found for type `Command`
+ = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
+ = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
+```
+
+So the code that uses it goes under the same condition:
+
+```rok
+use rok::std::process::Command;
+
+#[cfg(target_family = "unix")]
+fn detached(cmd: Command) -> Command { cmd.process_group(0) }
+
+#[cfg(not(target_family = "unix"))]
+fn detached(cmd: Command) -> Command { cmd }
+```
+
 ## `cfg!`: a compile-time `bool`
 
 When both branches compile everywhere and only the choice differs, `cfg!(..)` is shorter. It is a constant `bool`, so the compiler drops the dead branch; unlike `#[cfg]`, both sides must still type-check.
@@ -129,6 +151,7 @@ debug=true level=1
 - It attaches to items, fields, variants, statements, match arms, struct literal fields and parameters. A removed parameter disappears from the signature.
 - Write mutually exclusive definitions for per-platform bodies.
 - `cfg!(..)` is a constant `bool` for an ordinary `if`.
+- OS-specific std lives in `rok::std::os::{unix, linux, windows}`; its extension traits are in the prelude on their targets.
 - `feature = ".."` conditions are set by the package's features, the subject of the next chapter.
 
 ## Further reading

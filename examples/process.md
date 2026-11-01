@@ -57,7 +57,17 @@ fn main() throws (IoError) {
     // 6. A working directory for the child.
     show("pwd", try Command::new("pwd").current_dir("/").output());
 
-    // 7. A missing program is an IoError, not a crash.
+    // 7. One base command, several variants: each builder call returns a
+    //    changed copy and leaves `base` as it was.
+    let base = Command::new("sh").args(["-c", "echo $0 $1", "greet"]);
+    show("variant", try base.arg("hi").output());
+    show("base", try base.output());
+
+    // 8. A child ended by a signal has no exit code; `signal()` names it.
+    let killed = try Command::new("sh").args(["-c", "kill -9 $$"]).status();
+    println(f"killed: code={killed.code() ?? -1} signal={killed.signal():?}");
+
+    // 9. A missing program is an IoError, not a crash.
     let ok = try Command::new("no-such-program").status().success() catch e {
         println(f"spawn failed: {e.kind():?}");
         false
@@ -77,6 +87,9 @@ env: [annyeong, rok] (exit status: 0)
 env_clear: [ONLY=1] (exit status: 0)
 tr: [SHOUT THIS] (exit status: 0)
 pwd: [/] (exit status: 0)
+variant: [greet hi] (exit status: 0)
+base: [greet] (exit status: 0)
+killed: code=-1 signal=Kill
 spawn failed: NotFound
 ok=false
 ```
@@ -88,4 +101,6 @@ ok=false
 - The pipe (`|`) is handled by `sh -c`, not by rok. It is the simplest option when you need shell syntax.
 - `env` adds a variable for the child only, and `env_clear` empties the inherited environment. The parent's environment does not change.
 - `spawn()` returns a [`Child`](../std/std/process.html#struct.Child) without waiting. Write to the `stdin` opened with `Stdio::Piped`, send EOF with `close()`, then read `stdout` and `wait()`.
+- Copies of a `Command` are independent: a builder method returns a changed copy, so `base.arg("hi")` leaves `base` as it was, and one base command can start several variants. A builder call whose result is dropped warns, since it changes nothing.
+- `signal()` comes from `ExitStatusExt` in `rok::std::os::unix::process`. On Linux and macOS it is in the prelude, so it needs no `use`; on Windows it does not exist ([3.11 `os::`](../spec/refs-standard-libraries/300-std/311-os.html)).
 - A missing executable throws an `IoError`. `try ... catch e { ... }` catches it on the spot and substitutes a default ([3.14 Error control flow](../spec/refs-lang/003-expressions/314-error-control-flow.html), [Errors](../learn/10-errors.html)).

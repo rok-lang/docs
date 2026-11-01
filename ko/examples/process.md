@@ -57,7 +57,17 @@ fn main() throws (IoError) {
     // 6. A working directory for the child.
     show("pwd", try Command::new("pwd").current_dir("/").output());
 
-    // 7. A missing program is an IoError, not a crash.
+    // 7. One base command, several variants: each builder call returns a
+    //    changed copy and leaves `base` as it was.
+    let base = Command::new("sh").args(["-c", "echo $0 $1", "greet"]);
+    show("variant", try base.arg("hi").output());
+    show("base", try base.output());
+
+    // 8. A child ended by a signal has no exit code; `signal()` names it.
+    let killed = try Command::new("sh").args(["-c", "kill -9 $$"]).status();
+    println(f"killed: code={killed.code() ?? -1} signal={killed.signal():?}");
+
+    // 9. A missing program is an IoError, not a crash.
     let ok = try Command::new("no-such-program").status().success() catch e {
         println(f"spawn failed: {e.kind():?}");
         false
@@ -77,6 +87,9 @@ env: [annyeong, rok] (exit status: 0)
 env_clear: [ONLY=1] (exit status: 0)
 tr: [SHOUT THIS] (exit status: 0)
 pwd: [/] (exit status: 0)
+variant: [greet hi] (exit status: 0)
+base: [greet] (exit status: 0)
+killed: code=-1 signal=Kill
 spawn failed: NotFound
 ok=false
 ```
@@ -88,4 +101,6 @@ ok=false
 - 파이프(`|`)는 Rok이 아니라 `sh -c`가 처리합니다. 셸 문법이 필요할 때 가장 간단한 방법입니다.
 - `env`는 자식에게만 변수를 더하고, `env_clear`는 물려받은 환경을 비웁니다. 부모의 환경은 바뀌지 않습니다.
 - `spawn()`은 기다리지 않고 [`Child`](../../std/std/process.html#struct.Child)를 돌려줍니다. `Stdio::Piped`로 연 `stdin`에 쓰고, `close()`로 EOF를 보낸 다음 `stdout`을 읽고 `wait()`로 기다립니다.
+- `Command`의 복사본은 서로 독립입니다. 빌더 메서드는 바뀐 복사본을 돌려주므로 `base.arg("hi")` 뒤에도 `base`는 그대로이고, 기본 명령 하나로 여러 변형을 띄울 수 있습니다. 결과를 버린 빌더 호출은 아무것도 바꾸지 않으므로 경고가 납니다.
+- `signal()`은 `rok::std::os::unix::process`의 `ExitStatusExt`에서 옵니다. Linux와 macOS에서는 prelude에 있어 `use`가 필요 없고, Windows에는 없습니다([3.11 `os::`](../spec/refs-standard-libraries/300-std/311-os.html)).
 - 실행 파일이 없으면 `IoError`를 던집니다. `try ... catch e { ... }`가 그 자리에서 잡아 기본값으로 대신합니다([3.14 에러 제어 흐름](../spec/refs-lang/003-expressions/314-error-control-flow.html), [에러 처리](../learn/10-errors.html)).

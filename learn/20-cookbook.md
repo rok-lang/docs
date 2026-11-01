@@ -171,7 +171,7 @@ JSON lives in the `json` stone on [rokstones.io](https://rokstones.io), not in t
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "json": Dep::version("^0.1.0"),
+    "json": Dep::version("^0.2.0"),
 } }
 ```
 
@@ -187,7 +187,7 @@ println(v.pointer("/langs/0")?.as_str() ?? "?");  // rok
 // Typed: decode into your own struct, and back.
 let u: User = try json::from_str("{\"name\": \"grace\", \"age\": 85}");
 println(f"{u.name} {u.age}");                      // grace 85
-println(json::to_string(u));                       // {"name":"grace","age":85,"tags":[]}
+println(json::to_str(u));                       // {"name":"grace","age":85,"tags":[]}
 ```
 
 ## Make an HTTP request, or serve HTTP
@@ -196,7 +196,7 @@ HTTP is the `http` stone, added the same way as `json` above (`rok add http`, or
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "http": Dep::version("^0.1.0"),
+    "http": Dep::version("^0.2.0"),
 } }
 ```
 

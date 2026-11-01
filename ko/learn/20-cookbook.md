@@ -171,7 +171,7 @@ JSON은 표준 라이브러리가 아니라 [rokstones.io](https://rokstones.io)
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "json": Dep::version("^0.1.0"),
+    "json": Dep::version("^0.2.0"),
 } }
 ```
 
@@ -187,7 +187,7 @@ println(v.pointer("/langs/0")?.as_str() ?? "?");  // rok
 // Typed: decode into your own struct, and back.
 let u: User = try json::from_str("{\"name\": \"grace\", \"age\": 85}");
 println(f"{u.name} {u.age}");                      // grace 85
-println(json::to_string(u));                       // {"name":"grace","age":85,"tags":[]}
+println(json::to_str(u));                       // {"name":"grace","age":85,"tags":[]}
 ```
 
 ## HTTP 요청 보내기, HTTP 서비스하기
@@ -196,7 +196,7 @@ HTTP는 `http` stone에 있고, 위의 `json`과 같은 방법으로 추가합�
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "http": Dep::version("^0.1.0"),
+    "http": Dep::version("^0.2.0"),
 } }
 ```
 

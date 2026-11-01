@@ -372,6 +372,8 @@ true
 
 The hasher `Dict` and `Set` use is keyed per process, so hash values differ from run to run; never store one.
 
+The standard library's own types follow the same rules. Every public type implements `Debug`, so `{x:?}` works on a range (`0..3`), a `File` (`File { path: "a.txt" }`) or an iterator; a type holding a key prints `{ .. }` instead of the secret. Value types such as `Path`, `Ipv4Addr` and `Ordering` implement `Eq` and `Hash`, so they work as `Dict` keys and `Set` elements. A std enum that may gain cases later, such as `IoErrorKind` or `HashAlgorithm`, is `#[non_exhaustive]`: a `match` on it needs a `_` arm.
+
 ## Traits are not types
 
 In Rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.

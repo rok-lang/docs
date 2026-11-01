@@ -229,6 +229,9 @@ none
 > [!NOTE]
 > Advanced: if a collection stores `none` itself (`List<i32?>`), the result of `get` is a two-level optional `(i32 | none)?` that distinguishes "no element" from "a stored none". `??`, `?.`, and `?` act only on the outer level. See [nested optionals](../spec/refs-lang/002-types/206-sum-types.html#nested-optional) for the full rules.
 
+> [!NOTE]
+> Advanced: `T?` values compare and sort with `none` first, so sorting `[3, none, 1]` gives `[none, 1, 3]`. A sum of two value types such as `i32 | str` has no order: `<`, `min` / `max` and `sort` on it are compile errors. Sort such values by a key with `sort_by_key` or `sort_by` ([canonical order](../spec/refs-lang/002-types/206-sum-types.html#canonical-order)).
+
 ## Summary
 
 - `A | B` is a closed sum type. Variant order and duplicates don't matter, and `match` must handle every variant.

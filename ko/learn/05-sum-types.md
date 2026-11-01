@@ -229,6 +229,9 @@ none
 > [!NOTE]
 > 심화: 컬렉션에 `none` 자체를 저장하면(`List<i32?>`) `get`의 결과는 두 층짜리 optional `(i32 | none)?`입니다. 바깥 층은 "원소 없음"을, 안쪽 층은 "저장된 none"을 나타냅니다. `??`, `?.`, `?`는 바깥 층에만 작용합니다. 전체 규칙은 [중첩 optional](../spec/refs-lang/002-types/206-sum-types.html#중첩-optional)에 있습니다.
 
+> [!NOTE]
+> 심화: `T?` 값은 `none`을 맨 앞에 두고 비교하고 정렬합니다. 그래서 `[3, none, 1]`을 정렬하면 `[none, 1, 3]`입니다. `i32 | str`처럼 값 타입이 둘인 합에는 순서가 없어서, 여기에 `<`, `min` / `max`, `sort`를 쓰면 컴파일 에러입니다. 이런 값은 `sort_by_key`나 `sort_by`로 키를 정해 정렬합니다([정규 순서](../spec/refs-lang/002-types/206-sum-types.html#정규-순서)).
+
 ## 정리
 
 - `A | B`는 닫힌 합 타입입니다. 항의 순서와 중복은 상관없고, `match`는 모든 항을 처리해야 합니다.

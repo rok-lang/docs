@@ -73,6 +73,8 @@ println(f"{parse_port("3000")} {parse_port("abc")}");
 3000 8080
 ```
 
+If `f()` itself returns `T | none`, `try? f()` is the two-level `(T | none)?`: the outer `none` means an error was thrown, the inner one is `f`'s own `none`, and `??` strips only the outer level. Write `(try? f()) ?? none` when both should mean the same thing.
+
 To ignore an error on purpose, write `let _ = try? f();`. `try! e` turns an error into a panic; use it only when failing there would be a bug.
 
 | Form     | On error                              |

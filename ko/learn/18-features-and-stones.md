@@ -109,6 +109,8 @@ let s: Server = try json::from_str("{\"host\": \"localhost\"}");
 println(json::to_string(s));      // {"host":"localhost","port":80}
 ```
 
+stone의 derive는 stone 이름을 붙여 `#[derive(json::Json)]`으로 쓰거나, `use json::Json;` 뒤에 이름만 씁니다. derive가 펼쳐 낸 코드는 stone 자신의 코드이므로 stone 내부의 도우미를 부를 수 있지만, 여러분의 코드는 부를 수 없습니다.
+
 다른 stone과 똑같이 추가합니다. 버전 요구 사항을 적지 않으면 `rok add`는 `^`과 최신 버전을 씁니다.
 
 ```bash

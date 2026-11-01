@@ -286,6 +286,25 @@ dog: woof!
 cat (9 lives): meow
 ```
 
+트레잇의 메서드는 그 트레잇이 스코프에 있을 때만 찾습니다. 같은 모듈에서 정의했거나, `use`로 들여왔거나, 표준 라이브러리의 `rok::` 트레잇일 때입니다. 다른 모듈의 트레잇 메서드를 쓰려면 그 트레잇을 `use`해야 하고, 없으면 컴파일러가 무엇을 추가할지 알려 줍니다.
+
+```rok norun
+mod zoo {
+    pub trait Animal { fn name(self) -> str; }
+    pub struct Dog;
+    impl Animal for Dog { fn name(self) -> str { "dog" } }
+}
+
+use zoo::Animal;              // 이 줄이 없으면 `zoo::Dog.name()`은 에러
+
+println(zoo::Dog.name());
+```
+
+```text
+error[E100]: method `name` comes from trait `zoo::Animal`, which is not in scope
+   = help: add `use zoo::Animal;`
+```
+
 ## derive로 자동 구현
 
 비교, 해시, 디버그 출력처럼 기계적으로 쓸 수 있는 구현은 `#[derive(...)]`로 만듭니다. 내장 derive는 `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`이고, 표준 라이브러리가 ROKON 직렬화용 `Rokon`을 더합니다([15장](15-rokon.html)).
@@ -369,7 +388,7 @@ MEOW
 ```rok
 struct V2 { x: i32; y: i32; }
 
-impl Add for V2 {
+impl ops::Add for V2 {
     type Output = V2;
     fn add(self, o: V2) -> V2 { V2 { x: self.x + o.x, y: self.y + o.y } }
 }

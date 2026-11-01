@@ -109,6 +109,8 @@ let s: Server = try json::from_str("{\"host\": \"localhost\"}");
 println(json::to_string(s));      // {"host":"localhost","port":80}
 ```
 
+A stone's derive is written with the stone's name, `#[derive(json::Json)]`, or bare after `use json::Json;`. What the derive expands to is the stone's own code: it may call the stone's internal helpers, which your code cannot.
+
 They are added like any other stone. Without a requirement, `rok add` writes `^` and the newest version:
 
 ```bash

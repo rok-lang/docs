@@ -286,6 +286,25 @@ dog: woof!
 cat (9 lives): meow
 ```
 
+A trait's methods are found only where the trait is in scope: defined in the same module, brought in with `use`, or one of the standard library's `rok::` traits. A method of a trait from another module needs a `use` of the trait; without it the compiler says which one to add:
+
+```rok norun
+mod zoo {
+    pub trait Animal { fn name(self) -> str; }
+    pub struct Dog;
+    impl Animal for Dog { fn name(self) -> str { "dog" } }
+}
+
+use zoo::Animal;              // without this, `zoo::Dog.name()` is an error
+
+println(zoo::Dog.name());
+```
+
+```text
+error[E100]: method `name` comes from trait `zoo::Animal`, which is not in scope
+   = help: add `use zoo::Animal;`
+```
+
 ## Automatic implementations with derive
 
 Mechanical implementations such as comparison, hashing, and debug output are generated with `#[derive(...)]`. The built-in derives are `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, and `Hash`; the standard library adds `Rokon` for ROKON serialization ([chapter 15](15-rokon.html)).
@@ -369,7 +388,7 @@ Operators such as `+`, `==`, and `<` are all trait method calls. `+` is `Add`, a
 ```rok
 struct V2 { x: i32; y: i32; }
 
-impl Add for V2 {
+impl ops::Add for V2 {
     type Output = V2;
     fn add(self, o: V2) -> V2 { V2 { x: self.x + o.x, y: self.y + o.y } }
 }

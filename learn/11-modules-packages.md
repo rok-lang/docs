@@ -94,6 +94,10 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
 
 Names like `List`, `Dict`, and `println`, which you have used so far without `use`, work thanks to the `use rok::core::**;` (a recursive glob: `*` plus submodules) implicitly present in every file. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
 
+A trait works the same way: its methods are found only where the trait is in scope, so a trait from another module or package needs a `use` (`use zoo::Animal;`) before `x.name()` resolves. The standard library's traits are always in scope.
+
+Macros, derives, and meta attributes belong to the package that defines them. Your own package and the standard library write them bare (`log!(..)`, `#[derive(Inspect)]`); another package's are written with its name, `json::log!(..)`, `#[derive(json::Json)]`, or imported once with `use json::log!;`. A bare name of another package's macro is an error whose help gives both forms.
+
 ## Visibility
 
 By default, an item is visible only within its own module. To make it visible outside, add a visibility keyword.

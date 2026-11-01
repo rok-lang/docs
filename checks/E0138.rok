@@ -1,0 +1,4 @@
+let xs = [1, 2, 3];
+let s: collections::SliceMut<i32> = xs[0:2];
+xs.push(4);
+s[0] = 9;

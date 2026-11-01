@@ -1,0 +1,5 @@
+let m = Mutex::new([1, 2, 3]);
+let (tx, rx) = channel::<List<i32>>();
+using g = m.lock() {
+    try! tx.send(g.get());
+}

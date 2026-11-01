@@ -1,0 +1,6 @@
+enum E { A(i32, i32, i32) }
+
+let v = E::A(1, 2, 3);
+match v {
+    E::A(x, .., y, ..) => println(f"{x}"),
+}

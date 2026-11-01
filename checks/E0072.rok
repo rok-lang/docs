@@ -1,0 +1,8 @@
+trait Shape {
+    fn area(self) -> f64;
+    fn name(self) -> str;
+}
+struct Sq { s: f64; }
+impl Shape for Sq {
+    fn area(self) -> f64 { self.s * self.s }
+}

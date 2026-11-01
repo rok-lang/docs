@@ -1,0 +1,5 @@
+fn nest<T>(x: T, n: i32) -> i32 {
+    if n == 0 { return 0; }
+    nest((x, x), n - 1)
+}
+println(f"{nest(1, 3)}");

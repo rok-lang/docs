@@ -1,0 +1,2 @@
+let total = 3;
+println(f"{total(1)}");

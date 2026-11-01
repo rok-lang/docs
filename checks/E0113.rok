@@ -1,0 +1,2 @@
+#[keyword("if")]
+fn my_if(c: bool) -> bool { c }

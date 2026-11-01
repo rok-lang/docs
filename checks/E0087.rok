@@ -1,0 +1,7 @@
+trait A { const N: i32; }
+trait B { const N: i32; }
+struct S {}
+impl A for S { const N: i32 = 1; }
+impl B for S { const N: i32 = 2; }
+
+println(f"{S::N}");

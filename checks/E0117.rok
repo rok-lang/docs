@@ -1,0 +1,4 @@
+#[impl_macro(twice)] @macro {
+    ( @e: expr ) => { { let v = @e; (v, v) } }
+}
+let p = twice!();

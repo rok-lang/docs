@@ -1,0 +1,2 @@
+let total = 120;
+println(f"{total[0]}");

@@ -1,0 +1,2 @@
+#[lang("add_trait")]
+trait BadAdd { fn plus(self, o: Self) -> Self; }

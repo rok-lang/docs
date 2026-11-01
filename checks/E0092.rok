@@ -1,0 +1,5 @@
+struct Conn { id: i32; }
+impl Drop for Conn { fn drop(ref self) {} }
+
+let c = Conn { id: 1 };
+c.drop();

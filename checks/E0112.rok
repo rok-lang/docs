@@ -1,0 +1,4 @@
+trait Before {
+    #[infix(">>>", precedence = 3)]
+    fn before(self, o: Self) -> bool;
+}

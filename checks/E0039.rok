@@ -1,0 +1,4 @@
+fn wrap<T>(t: T) -> i32 {
+    struct Holder { v: T; }
+    0
+}

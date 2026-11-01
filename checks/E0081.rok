@@ -1,0 +1,3 @@
+struct Sep<const C: char> {}
+
+let s = Sep::<97> {};

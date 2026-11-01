@@ -1,0 +1,3 @@
+#[impl_derive(Clone)] @derive {
+    impl Clone for @Self {}
+}

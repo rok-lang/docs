@@ -1,0 +1,7 @@
+use rok::std::env;
+use rok::std::fs::File;
+
+fn main() throws {
+    let f = try File::create(env::temp_dir() / "notes.txt");
+    try f.write_all("hi");
+}

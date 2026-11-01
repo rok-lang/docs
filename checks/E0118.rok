@@ -1,0 +1,7 @@
+#[impl_derive(Names)] @derive {
+    impl @Self {
+        fn names() -> str { @fild }
+    }
+}
+#[derive(Names)]
+struct P { x: i32; }

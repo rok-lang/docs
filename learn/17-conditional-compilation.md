@@ -102,8 +102,8 @@ The compiler remembers what a condition removed. Calling something that exists o
 
 ```text
 error[E0046]: no method `pidfd` found for type `Child`
-  = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
-  = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
+   = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
+   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```
 
 ## OS-specific parts of std
@@ -111,9 +111,9 @@ error[E0046]: no method `pidfd` found for type `Child`
 The standard library splits the same way. What only some systems have lives in `rok::std::os::unix`, `os::linux` and `os::windows`, and each exists only on its targets. Their extension traits are in the prelude there, so on Linux and macOS `Command::new("sh").process_group(0)` needs no `use`. On Windows the same call is an error that says where the method exists:
 
 ```text
-error: no method `process_group` found for type `Command`
- = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
- = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
+error[E0046]: no method `process_group` found for type `Command`
+   = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
+   = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
 ```
 
 So the code that uses it goes under the same condition:

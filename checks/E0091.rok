@@ -1,0 +1,5 @@
+fn add(a: i32, b: i32) -> i32 { a + b }
+
+let xs: [i32; 3] = [1, 2, 3];
+let ys: [i32; 4] = [10, 20, 30, 40];
+println(f"{add.(xs, ys):?}");

@@ -1,0 +1,3 @@
+impl Display for List<i32> {
+    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str("list"); }
+}

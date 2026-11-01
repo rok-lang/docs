@@ -1,0 +1,3 @@
+enum Light { Red, Green }
+
+let l = Light::Yellow;

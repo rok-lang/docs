@@ -1,0 +1,1 @@
+ffi::wit::import { "calc.wit" }

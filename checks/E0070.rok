@@ -1,0 +1,2 @@
+struct Sq { side: f64; }
+fn area(s: any Sq) -> f64 { 0.0 }

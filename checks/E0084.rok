@@ -1,0 +1,4 @@
+extern "C" {
+    fn abs(x: i32) -> i32;
+    fn abs(x: i64) -> i64;
+}

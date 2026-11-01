@@ -1,0 +1,5 @@
+struct Plain { msg: str; }
+
+fn f() throws {
+    throw Plain { msg: "bad" };
+}

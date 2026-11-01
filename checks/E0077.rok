@@ -1,0 +1,4 @@
+trait Base { fn id(self) -> i32; }
+trait Named: Base { fn name(self) -> str; }
+struct X {}
+impl Named for X { fn name(self) -> str { "x" } }

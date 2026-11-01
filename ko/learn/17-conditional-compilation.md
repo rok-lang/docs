@@ -102,8 +102,8 @@ Linux와 macOS에서는 `usr/local/bin`을 출력합니다.
 
 ```text
 error[E0046]: no method `pidfd` found for type `Child`
-  = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
-  = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
+   = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
+   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```
 
 ## std의 OS 전용 부분
@@ -111,9 +111,9 @@ error[E0046]: no method `pidfd` found for type `Child`
 표준 라이브러리도 같은 방식으로 나뉩니다. 일부 시스템에만 있는 것은 `rok::std::os::unix`, `os::linux`, `os::windows`에 있고, 각 모듈은 해당 타깃에만 있습니다. 그 확장 트레잇은 그 타깃의 prelude에 들어 있어서, Linux와 macOS에서는 `Command::new("sh").process_group(0)`에 `use`가 필요 없습니다. Windows에서 같은 호출은 그 메서드가 어디에 있는지 알려 주는 에러가 됩니다.
 
 ```text
-error: no method `process_group` found for type `Command`
- = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
- = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
+error[E0046]: no method `process_group` found for type `Command`
+   = note: `process_group` is only available on unix (`#[cfg(target_family = "unix")]`)
+   = help: put the code that uses it under the same `#[cfg(target_family = "unix")]`
 ```
 
 그래서 그것을 쓰는 코드는 같은 조건 아래에 둡니다.

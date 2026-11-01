@@ -1,0 +1,4 @@
+#[impl_macro(again)] @macro {
+    ( @e: expr ) => { again!(@e) }
+}
+let x = again!(1);

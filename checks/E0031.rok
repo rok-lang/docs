@@ -1,0 +1,5 @@
+mod a { pub fn item() -> i32 { 1 } }
+mod b { pub fn item() -> i32 { 2 } }
+use a::*;
+use b::*;
+println(f"{item()}");

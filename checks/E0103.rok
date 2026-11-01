@@ -1,0 +1,7 @@
+const LIMIT: i32 = 10;
+
+let n = 3;
+match n {
+    LIMIT => println("at the limit"),
+    _ => println("below"),
+}

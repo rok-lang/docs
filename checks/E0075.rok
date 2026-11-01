@@ -1,0 +1,3 @@
+trait Show { fn show(self) -> str; }
+impl<T> Show for T { fn show(self) -> str { "any" } }
+impl Show for i32 { fn show(self) -> str { "i32" } }

@@ -1,0 +1,2 @@
+let total = 0;
+let add = [ref totl] |x: i32| { total += x; };

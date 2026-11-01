@@ -1,0 +1,2 @@
+#[cfg(either(target_family = "unix", target_family = "windows"))]
+println("desktop");

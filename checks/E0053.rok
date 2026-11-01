@@ -1,0 +1,2 @@
+let n = 98u32;
+let c = n as char;

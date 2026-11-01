@@ -1,0 +1,3 @@
+use rok::bare::mem::size_of;
+
+let n = size_of();

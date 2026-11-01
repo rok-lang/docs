@@ -1,0 +1,8 @@
+enum Light { Red, Yellow, Green }
+
+fn next(l: Light) -> Light {
+    match l {
+        Light::Red => Light::Green,
+        Light::Green => Light::Yellow,
+    }
+}

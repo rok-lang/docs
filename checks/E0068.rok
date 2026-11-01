@@ -1,0 +1,6 @@
+struct Bag { n: i32; }
+
+let b = Bag { n: 3 };
+for x in b {
+    println(f"{x}");
+}

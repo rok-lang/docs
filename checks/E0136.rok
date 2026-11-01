@@ -1,0 +1,6 @@
+mod zoo {
+    pub trait Wave { fn wave(self) -> str; }
+    impl Wave for i32 { fn wave(self) -> str { "hi" } }
+}
+
+println(3.wave());

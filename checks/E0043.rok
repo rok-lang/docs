@@ -1,0 +1,4 @@
+struct P { x: i32; y: i32; }
+
+let p = P { x: 1, y: 2 };
+println(f"{p.z}");

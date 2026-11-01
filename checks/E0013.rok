@@ -1,0 +1,5 @@
+struct P { x: i32; }
+
+match P { x: 2 } {
+    P { x } => println(f"{x}"),
+}

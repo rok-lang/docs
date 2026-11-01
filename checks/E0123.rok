@@ -1,0 +1,4 @@
+#[keyword("twice")]
+fn twice_a(x: i32) -> i32 { x * 2 }
+#[keyword("twice")]
+fn twice_b(x: i32) -> i32 { x + x }

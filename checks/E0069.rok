@@ -1,0 +1,4 @@
+fn keep<T: Clone>(x: T) -> T { x }
+struct P { x: i32; }
+
+println(f"{keep(P { x: 1 }).x}");

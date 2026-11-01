@@ -1,0 +1,8 @@
+enum Shape { Circle(f64), Square(f64), Point }
+
+fn size(s: Shape) -> f64 {
+    match s {
+        Shape::Circle(r) | Shape::Point => r,
+        Shape::Square(w) => w,
+    }
+}

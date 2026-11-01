@@ -1,0 +1,4 @@
+fn inc(ref n: i32) { n += 1; }
+
+let c = 0;
+inc(c);

@@ -1,0 +1,3 @@
+let m = Mutex::new([1, 2, 3]);
+let xs = using g = m.lock() { g.get() };
+xs.push(4);

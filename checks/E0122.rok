@@ -1,0 +1,1 @@
+let s = include_str!("missing.txt");

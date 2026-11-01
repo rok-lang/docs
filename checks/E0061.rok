@@ -1,0 +1,2 @@
+unsafe fn danger() -> i32 { 1 }
+println(f"{danger()}");

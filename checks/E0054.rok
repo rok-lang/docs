@@ -1,0 +1,3 @@
+let a: i32 = 1;
+let b: i64 = 2;
+println(f"{a + b}");

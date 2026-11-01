@@ -161,7 +161,7 @@ println(f"{c.n}");
 The `write_to_copy` lint catches this. `rok check` and `rok lint` (and your editor) warn about a field set on a copy that nothing reads afterwards:
 
 ```text check=checks/06-write-to-copy.rok
-warning[E503]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
+warning[E0132]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
   --> main.rok:4:26
    |
  4 |     fn inc_wrong(self) { self.n += 1; }    // changes a copy
@@ -178,7 +178,7 @@ for p in ps { p.x *= 10; }
 ```
 
 ```text check=checks/06-loop-copy.rok
-warning[E503]: `p.x` is set on a copy of the element, so `ps` does not change
+warning[E0132]: `p.x` is set on a copy of the element, so `ps` does not change
   --> main.rok:4:15
    |
  4 | for p in ps { p.x *= 10; }
@@ -315,7 +315,7 @@ println(zoo::Dog.name());
 ```
 
 ```text
-error[E100]: method `name` comes from trait `zoo::Animal`, which is not in scope
+error[E0136]: method `name` comes from trait `zoo::Animal`, which is not in scope
    = help: add `use zoo::Animal;`
 ```
 
@@ -347,9 +347,11 @@ false
 
 `Ord` compares fields in declaration order, so `sort` orders by version. `Display` cannot be derived: the type's author decides its human-readable format (see the example in the operators section below).
 
-When equality is hand-written, `Hash` must be too, and it must feed the hasher exactly what equality looks at, so that equal values hash alike. A `Hash` impl does not compute a number; it writes its parts to the `Hasher` it is given:
+When equality is hand-written, `Hash` must be too, and it must feed the hasher exactly what equality looks at, so that equal values hash alike. A `Hash` impl does not compute a number; it writes its parts to the `Hasher` it is given. `Hasher` is not in the prelude, so the impl imports it from `rok::core::hash`:
 
 ```rok
+use rok::core::hash::Hasher;
+
 struct Tag { name: str; }
 
 impl PartialEq for Tag {
@@ -379,7 +381,7 @@ The standard library's own types follow the same rules. Every public type implem
 In Rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
 
 ```text check=checks/06-trait-as-type.rok
-error[E200]: trait `Animal` cannot be used as a type directly
+error[E0071]: trait `Animal` cannot be used as a type directly
   --> main.rok:2:1
    |
  2 | fn f(a: Animal) {}

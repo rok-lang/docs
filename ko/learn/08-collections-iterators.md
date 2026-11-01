@@ -62,9 +62,11 @@ println(f"{part.len()} {part[0]} {part.to_list():?}");
 3 20 [20, 30, 40]
 ```
 
-`Slice`는 읽기 전용입니다. 리스트의 일부를 채우거나 순서를 바꾸는 함수는 대신 `SliceMut<T>`를 받습니다. Rust의 `&mut [T]`와 같은, 쓸 수 있는 뷰입니다. `SliceMut`를 기대하는 자리에서는 `xs`가 리스트 전체를, `xs[a:b]`가 그 범위를 넘깁니다. 아무것도 복사하지 않으며, 쓰기는 리스트에 반영됩니다.
+`Slice`는 읽기 전용입니다. 리스트의 일부를 채우거나 순서를 바꾸는 함수는 대신 `SliceMut<T>`를 받습니다. Rust의 `&mut [T]`와 같은, 쓸 수 있는 뷰입니다(프렐류드에 없으므로 `rok::core::collections`에서 가져옵니다). `SliceMut`를 기대하는 자리에서는 `xs`가 리스트 전체를, `xs[a:b]`가 그 범위를 넘깁니다. 아무것도 복사하지 않으며, 쓰기는 리스트에 반영됩니다.
 
 ```rok
+use rok::core::collections::SliceMut;
+
 fn zero(buf: SliceMut<i32>) { buf.fill(0); }
 
 let ys = [5, 4, 3, 2, 1];

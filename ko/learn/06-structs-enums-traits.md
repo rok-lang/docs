@@ -161,7 +161,7 @@ println(f"{c.n}");
 `write_to_copy` 린트가 이 실수를 잡습니다. `rok check`와 `rok lint`(그리고 에디터)는 사본에 값을 쓴 뒤 아무도 읽지 않는 필드를 경고합니다.
 
 ```text check=checks/06-write-to-copy.rok
-warning[E503]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
+warning[E0132]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
   --> main.rok:4:26
    |
  4 |     fn inc_wrong(self) { self.n += 1; }    // changes a copy
@@ -178,7 +178,7 @@ for p in ps { p.x *= 10; }
 ```
 
 ```text check=checks/06-loop-copy.rok
-warning[E503]: `p.x` is set on a copy of the element, so `ps` does not change
+warning[E0132]: `p.x` is set on a copy of the element, so `ps` does not change
   --> main.rok:4:15
    |
  4 | for p in ps { p.x *= 10; }
@@ -315,7 +315,7 @@ println(zoo::Dog.name());
 ```
 
 ```text
-error[E100]: method `name` comes from trait `zoo::Animal`, which is not in scope
+error[E0136]: method `name` comes from trait `zoo::Animal`, which is not in scope
    = help: add `use zoo::Animal;`
 ```
 
@@ -347,9 +347,11 @@ false
 
 `Ord`는 필드를 선언 순서대로 비교하므로 `sort`는 버전 순으로 정렬합니다. `Display`는 derive로 구현할 수 없습니다. 사람이 읽는 형식은 타입을 만든 사람이 정합니다(아래 연산자 절의 예 참고).
 
-같음을 직접 구현했다면 `Hash`도 직접 구현해야 합니다. 같은 값은 같은 해시를 내도록, 같음이 보는 것을 그대로 해셔에 넣어야 합니다. `Hash` impl은 숫자를 계산하지 않고, 받은 `Hasher`에 자기 부분을 씁니다.
+같음을 직접 구현했다면 `Hash`도 직접 구현해야 합니다. 같은 값은 같은 해시를 내도록, 같음이 보는 것을 그대로 해셔에 넣어야 합니다. `Hash` impl은 숫자를 계산하지 않고, 받은 `Hasher`에 자기 부분을 씁니다. `Hasher`는 프렐류드에 없으므로 `rok::core::hash`에서 가져옵니다.
 
 ```rok
+use rok::core::hash::Hasher;
+
 struct Tag { name: str; }
 
 impl PartialEq for Tag {
@@ -379,7 +381,7 @@ true
 Rok에서는 트레잇 이름을 타입 자리에 그대로 쓸 수 없습니다. `fn f(a: Animal)`은 컴파일 에러입니다. 눈에 보이지 않는 동적 디스패치 비용을 막으려는 규칙입니다.
 
 ```text check=checks/06-trait-as-type.rok
-error[E200]: trait `Animal` cannot be used as a type directly
+error[E0071]: trait `Animal` cannot be used as a type directly
   --> main.rok:2:1
    |
  2 | fn f(a: Animal) {}

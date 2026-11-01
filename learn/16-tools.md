@@ -149,7 +149,7 @@ rok: error: not inside a package; pass a file or directory: `rok fmt <path>`
 ```text
 $ rok lint
     Checking mathx (.)
-warning[E503]: unused variable `unused`
+warning[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -174,7 +174,7 @@ Instead of a single lint (`unused_variables`), you can name a group (`unused`, `
 ```text
 $ rok lint -D unused
     Checking mathx (.)
-error[E503]: unused variable `unused`
+error[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -191,7 +191,7 @@ To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D
 ```text
 $ rok lint
     Checking mathx (.)
-error[E503]: unused variable `unused`
+error[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -208,7 +208,7 @@ error[E503]: unused variable `unused`
 ```text
 $ rok check
     Checking hello (.)
-error[E200]: mismatched types: `let s` expects `str`, found `i32`
+error[E0040]: mismatched types: `let s` expects `str`, found `i32`
   --> src/main.rok:2:14
    |
  2 | let s: str = square(7);
@@ -228,9 +228,9 @@ $ rok build
 error: could not build hello (1 error, 0 warnings)
 ```
 
-For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 1`): its code and message, spans with start and end line and column, `help` lines, the `fixes` it suggests, the `lint` name of a lint warning, and the spec section of the rule.
+For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 2`): its code and kind, its message, spans with start and end line and column, `help` lines, the `fixes` it suggests, the `lint` name of a lint warning, and the spec section of the rule.
 
-The code in brackets names the kind of error; the [error code index](../errors/index.html) has a page for each one, with an example and its fix. If rokc itself crashes (an internal compiler error), it exits with code 70, apart from a panicking program's 101; please report it.
+The code in brackets names the error, one code per kind of error (every lint shares `E0132` and names itself in a note). `rokc --explain E0040` (or `rok --explain E0040`) prints what that code means and how to fix it, and the [error code index](../errors/index.html) lists every code. If rokc itself crashes (an internal compiler error), it exits with code 70, apart from a panicking program's 101; please report it.
 
 ## `rok doc`: doc comments and API docs
 
@@ -285,7 +285,7 @@ A closer look at the REPL (`rok` or `rok repl`) from chapter 1. On a terminal it
 
 ```text
 $ rok repl
-Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.2.0 (<commit> <date>) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()
@@ -376,7 +376,7 @@ To see how long each build stage takes, add `-v`.
 
 ```text
 $ rok build -v
-         Std prebuilt (/Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
+         Std prebuilt (/Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
    Compiling hello (.)
    Stage: front end (34ms)
       Reused: 93 of 94 files parsed, 0 of 2 bodies lowered, the library's items collected

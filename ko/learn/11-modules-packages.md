@@ -81,7 +81,7 @@ fn square(x: f64) -> f64 { x * x }
 ```
 
 ```text check=checks/11-import-clash.rok
-error[E102]: `square` is both imported from `shapes::square` and defined in this module
+error[E0032]: `square` is both imported from `shapes::square` and defined in this module
   --> main.rok:1:5
    |
  1 | use shapes::square;
@@ -164,7 +164,7 @@ geom/
 
 ## 패키지와 `rok.rokon`
 
-`rok new`는 패키지를 만듭니다. 실행 파일이면 `src/main.rok`을, `--lib`을 주면 예제 함수와 `#[test]` 하나가 든 `src/lib.rok`을 만듭니다. 매니페스트 `rok.rokon`은 [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) 형식입니다. 이름과 버전 말고도 패키지를 만든 toolchain의 시리즈인 `toolchain: "0.1"`을 적어 둡니다. 그래서 나중에 다른 시리즈의 toolchain이 이 패키지를 뜻하지 않게 빌드하는 일이 없습니다([1장](01-getting-started.html#toolchain-관리)).
+`rok new`는 패키지를 만듭니다. 실행 파일이면 `src/main.rok`을, `--lib`을 주면 예제 함수와 `#[test]` 하나가 든 `src/lib.rok`을 만듭니다. 매니페스트 `rok.rokon`은 [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) 형식입니다. 이름과 버전 말고도 패키지를 만든 toolchain의 시리즈인 `toolchain: "0.2"`를 적어 둡니다. 그래서 나중에 다른 시리즈의 toolchain이 이 패키지를 뜻하지 않게 빌드하는 일이 없습니다([1장](01-getting-started.html#toolchain-관리)).
 
 ```bash
 rok new --lib geom
@@ -244,15 +244,15 @@ $ rok run
 ```text
 $ rok search json
     Updating index https://github.com/rok-lang/rokstones.io-index
-json 0.1.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
-$ rok add json@^0.1
+json 0.2.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
+$ rok add json@^0.2
     Fetching https://github.com/rok-lang/json.git
-       Added json v0.1.0
+       Added json v0.2.0
 ```
 
 ```rokon
 Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
-    "json": Dep::version("^0.1"),
+    "json": Dep::version("^0.2"),
 } }
 ```
 
@@ -265,7 +265,7 @@ rok: error: no stone named `jsn` in https://github.com/rok-lang/rokstones.io-ind
 help: did you mean `json`? (or search: `rok search jsn`)
 ```
 
-그냥 문자열은 `Dep::version`의 축약이고, 연산자가 없는 요구 사항은 `^`을 뜻합니다. 그래서 다음 세 줄은 같은 것을 요청합니다. stone의 README에는 짧은 형태인 `"json": "0.1"`이 자주 나옵니다. 이 형태는 `>=0.1.0, <0.2.0`을 뜻합니다.
+그냥 문자열은 `Dep::version`의 축약이고, 연산자가 없는 요구 사항은 `^`을 뜻합니다. 그래서 다음 세 줄은 같은 것을 요청합니다. stone의 README에는 짧은 형태인 `"json": "0.2"`가 자주 나옵니다. 이 형태는 `>=0.2.0, <0.3.0`을 뜻합니다.
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {

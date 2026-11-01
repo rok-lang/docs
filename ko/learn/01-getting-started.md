@@ -28,7 +28,7 @@ Windows에서는 PowerShell에서 다음을 실행합니다. `%USERPROFILE%\.rok
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 고릅니다. 버전(`0.1.6`)이나 시리즈(`0.1`, 그 시리즈의 최신 릴리스)를 적습니다.
+`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 고릅니다. 버전(`0.2.0`)이나 시리즈(`0.2`, 그 시리즈의 최신 릴리스)를 적습니다.
 
 설치 위치는 `ROK_HOME` 환경 변수로 바꿀 수 있습니다(기본값 `~/.rok`). 스크립트가 끝나면 다음 구조가 생깁니다.
 
@@ -36,7 +36,7 @@ powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | ie
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.6-aarch64-apple-darwin/
+    └── 0.2.0-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -46,8 +46,8 @@ powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | ie
 스크립트는 `~/.rok/bin`을 `PATH`에도 넣습니다. `~/.rok/env`(와 `~/.rok/env.fish`)를 만들고, `~/.zshenv`, `~/.bashrc`, `~/.profile` 같은 셸 시작 파일이 이 파일을 읽게 합니다. fish용으로는 `~/.config/fish/conf.d/rok.fish`를 추가합니다. 바꾼 파일은 모두 이름을 출력합니다.
 
 ```text
- Downloading rok 0.1.6 (aarch64-apple-darwin)
-   Installed rok 0.1.6 to ~/.rok
+ Downloading rok 0.2.0 (aarch64-apple-darwin)
+   Installed rok 0.2.0 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -73,10 +73,10 @@ rok toolchain list
 
 ```text
 $ rok --version -v
-rok 0.1.6 (9103a4909 2026-10-31)
-binary:    /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rok
-toolchain: 0.1.6-aarch64-apple-darwin (the default)
-rokc:      /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rokc
+rok 0.2.0 (<commit> <date>)
+binary:    /Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/bin/rok
+toolchain: 0.2.0-aarch64-apple-darwin (the default)
+rokc:      /Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/bin/rokc
 host:      aarch64-apple-darwin
 ```
 
@@ -90,7 +90,7 @@ host:      aarch64-apple-darwin
 
 ### toolchain 관리
 
-`rok toolchain`은 설치된 toolchain을 관리합니다. 활성 toolchain은 명령줄의 `+version`(`rok +0.1 build`), `ROK_TOOLCHAIN` 환경 변수, 가장 가까운 `rok.rokon`(또는 스크립트의 `//! rokon` 블록)의 `toolchain` 필드, 기본값 순서로 정해집니다. 고정 값으로는 시리즈(`"0.1"`, 설치된 0.1.x 중 최신), 버전(`"0.1.6"`), 요구 조건(`"^0.1.5"`)을 쓸 수 있습니다. 명령 하나는 처음부터 끝까지 toolchain 하나로 실행됩니다. 어떤 toolchain의 `bin/rok`을 전체 경로로 직접 실행해도 프로젝트가 고정한 toolchain에 명령을 넘기고, 각 toolchain의 `rok`은 자기 `rokc`만 씁니다.
+`rok toolchain`은 설치된 toolchain을 관리합니다. 활성 toolchain은 명령줄의 `+version`(`rok +0.2 build`), `ROK_TOOLCHAIN` 환경 변수, 가장 가까운 `rok.rokon`(또는 스크립트의 `//! rokon` 블록)의 `toolchain` 필드, 기본값 순서로 정해집니다. 고정 값으로는 시리즈(`"0.2"`, 설치된 0.2.x 중 최신), 버전(`"0.2.0"`), 요구 조건(`"^0.2.1"`)을 쓸 수 있습니다. 명령 하나는 처음부터 끝까지 toolchain 하나로 실행됩니다. 어떤 toolchain의 `bin/rok`을 전체 경로로 직접 실행해도 프로젝트가 고정한 toolchain에 명령을 넘기고, 각 toolchain의 `rok`은 자기 `rokc`만 씁니다.
 
 ```bash
 rok toolchain list                     # installed toolchains
@@ -239,7 +239,7 @@ hi
 
 ```text
 $ rok
-Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.2.0 (<commit> <date>) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

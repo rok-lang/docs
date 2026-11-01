@@ -111,7 +111,7 @@ let g = m.lock();
 ```
 
 ```text check=checks/12-guard-let.rok
-error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
+error[E0065]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
 ```
 
 ### 읽기 전용 데이터: `Frozen`
@@ -190,7 +190,7 @@ ys.push(4);
 ```
 
 ```text check=checks/12-handoff-copy.rok
-error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
+error[E0105]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
   --> main.rok:4:1
    |
  3 | let m = Mutex::new(xs);
@@ -206,7 +206,7 @@ error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
 원소도 셉니다. 컬렉션에서 읽어 낸 것과 컬렉션 자체는 한 값입니다. 그래서 `rows`를 보낸 뒤 `first = rows[0]`에 원소를 넣는 것도 같은 경쟁입니다.
 
 ```text check=checks/12-handoff-element.rok
-error[E202]: `first` shares `rows`, which was sent through a channel at line 4
+error[E0105]: `first` shares `rows`, which was sent through a channel at line 4
   --> main.rok:5:1
    |
  4 | try! tx.send(rows);
@@ -246,7 +246,7 @@ smallest items add up to 12, jobs left: 0
 잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체의 뷰이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다. 그 값을 돌려주거나, 에러에 담아 던지거나, 보내면 에러입니다.
 
 ```text check=checks/12-lock-value.rok
-error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
+error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
   --> main.rok:2:10
    |
  2 | let xs = using g = m.lock() { g.get() };
@@ -267,7 +267,7 @@ using g = m.lock() { remember(kept, g.get()); }
 ```
 
 ```text check=checks/12-lock-view-kept.rok
-error[E202]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
+error[E0106]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
   --> main.rok:5:37
    |
  5 | using g = m.lock() { remember(kept, g.get()); }
@@ -454,7 +454,7 @@ data.push(4);
 ```
 
 ```text check=checks/12-task-handoff.rok
-error[E202]: `data` was spawned as a task at line 8
+error[E0105]: `data` was spawned as a task at line 8
  9 | data.push(4);
    | ^^^^
    = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen`
@@ -576,7 +576,7 @@ tick 30
 **`[ref x]` 캡처는 스레드를 건널 수 없습니다.** `[ref x]` 셀([3장](03-functions.html))에는 동기화가 없습니다. 그래서 `thread::spawn`, `task::spawn`, `par::*`에 주는 클로저에서는 컴파일러가 이 캡처를 거부합니다. 이런 클로저에서는 두 스레드가 셀을 동시에 바꿀 수 있기 때문입니다.
 
 ```text check=checks/12-ref-thread.rok
-error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
+error[E0085]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
    = help: write `let count = Atomic::new(count);` before the closure, capture `count` without `ref`, and use `count.load()` / `count.store(..)`; or return the value from the closure instead
 ```
 
@@ -621,7 +621,7 @@ println(f"{using g = SEEN.lock() { g.get_clone() }:?}");
 **기다리지 않은 스레드는 `main`이 반환될 때 죽습니다.** 프로그램은 `main`이 끝날 때 끝나고, 아직 실행 중인 스레드는 도중에 함께 멈춥니다. `JoinHandle`을 보관해 두고 `join`으로 기다리세요. `rok check`와 `rok lint`는 한 번도 기다리지 않는 핸들을 경고합니다.
 
 ```text check=checks/12-unjoined.rok
-warning[E503]: this thread is never joined, so the program may end before it finishes
+warning[E0132]: this thread is never joined, so the program may end before it finishes
   --> main.rok:3:1
    |
  3 | thread::spawn(|| println("hi"));
@@ -696,7 +696,7 @@ println(f"{compute()}");
 - 채널은 `channel()`로 만듭니다. `Sender`는 마지막 주인이 스코프를 벗어나는 곳에서 해제됩니다. 스레드 안에서나, 같은 스코프에서 받는 쪽이 읽을 때는 직접 `close()`로 닫습니다.
 - `task`, `par`, `channel`, `Mutex`, `Atomic`은 프렐류드에 있고, `rok::std::thread`에는 `use`가 필요합니다.
 - 공유하는 값은 `Atomic`이나 `Mutex`로 보호합니다. 잠금 가드는 `using`으로 바인딩해야 하고, 다른 방법은 컴파일 에러입니다. `[ref x]` 캡처는 스레드를 건널 수 없고, `static`은 `Sync`여야 합니다.
-- `Mutex::new`나 `send`에 넘긴 값은 새 소유자의 것입니다. 그 뒤에 그 값이나 그 원소를 쓰면 컴파일 에러(`E202`)입니다. 잠금을 거쳐 쓰거나, `clone()`을 넘기거나, 보내기 전에 `pop` / `remove`로 원소를 꺼냅니다. `g.get()`이 반환한 것은 `using` 블록 안에 머물며, 남겨 둘 것은 `g.get_clone()`입니다.
+- `Mutex::new`나 `send`에 넘긴 값은 새 소유자의 것입니다. 그 뒤에 그 값이나 그 원소를 쓰면 컴파일 에러(`E0105`)입니다. 잠금을 거쳐 쓰거나, `clone()`을 넘기거나, 보내기 전에 `pop` / `remove`로 원소를 꺼냅니다. `g.get()`이 반환한 것은 `using` 블록 안에 머물며, 남겨 둘 것은 `g.get_clone()`입니다.
 - 받는 쪽은 값에 든 컬렉션을 복사해서 받습니다. 복사본은 공유 관계를 유지하고, 복사에는 크기에 비례해 시간이 듭니다. `any Tr`은 트레잇에 `Send + Sync`가 있을 때에만 스레드를 건너고, `Weak`는 결코 건너지 않습니다.
 - `thread::local`은 스레드마다 자기 값을 줍니다. `with(|v| ..)` 안에서 쓰거나 `set` / `replace` / `take`로 넣고 꺼냅니다.
 - 읽기만 하는 데이터는 `Frozen<T>`로 공유합니다. `get()`은 매번 읽는 쪽에 따로 복사본을 주므로 큰 읽기 전용 부분은 자기 `Frozen` 필드에 둡니다.

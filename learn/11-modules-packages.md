@@ -81,7 +81,7 @@ fn square(x: f64) -> f64 { x * x }
 ```
 
 ```text check=checks/11-import-clash.rok
-error[E102]: `square` is both imported from `shapes::square` and defined in this module
+error[E0032]: `square` is both imported from `shapes::square` and defined in this module
   --> main.rok:1:5
    |
  1 | use shapes::square;
@@ -164,7 +164,7 @@ A package's sources live in `src/`. The package root module is `src/main.rok` fo
 
 ## Packages and `rok.rokon`
 
-`rok new` creates a package: `src/main.rok` for an executable, or with `--lib`, `src/lib.rok` holding an example function and one `#[test]`. The manifest `rok.rokon` is in [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) format. Besides the name and version it records `toolchain: "0.1"`, the toolchain series the package was made with, so a later toolchain from another series does not build it by surprise ([chapter 1](01-getting-started.html#managing-toolchains)).
+`rok new` creates a package: `src/main.rok` for an executable, or with `--lib`, `src/lib.rok` holding an example function and one `#[test]`. The manifest `rok.rokon` is in [ROKON](../spec/refs-standard-libraries/300-std/309-rokon.html) format. Besides the name and version it records `toolchain: "0.2"`, the toolchain series the package was made with, so a later toolchain from another series does not build it by surprise ([chapter 1](01-getting-started.html#managing-toolchains)).
 
 ```bash
 rok new --lib geom
@@ -244,15 +244,15 @@ A package on the registry is called a stone, and the default registry is [roksto
 ```text
 $ rok search json
     Updating index https://github.com/rok-lang/rokstones.io-index
-json 0.1.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
-$ rok add json@^0.1
+json 0.2.0 - JSON (RFC 8259): Value tree, strict parser, streaming tokenizer, typed encode/decode, JSON Pointer
+$ rok add json@^0.2
     Fetching https://github.com/rok-lang/json.git
-       Added json v0.1.0
+       Added json v0.2.0
 ```
 
 ```rokon
 Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
-    "json": Dep::version("^0.1"),
+    "json": Dep::version("^0.2"),
 } }
 ```
 
@@ -265,7 +265,7 @@ rok: error: no stone named `jsn` in https://github.com/rok-lang/rokstones.io-ind
 help: did you mean `json`? (or search: `rok search jsn`)
 ```
 
-A plain string is shorthand for `Dep::version`, and a requirement with no operator means `^`, so these three lines ask for the same thing. Stone READMEs often use the short form (`"json": "0.1"`, which means `>=0.1.0, <0.2.0`).
+A plain string is shorthand for `Dep::version`, and a requirement with no operator means `^`, so these three lines ask for the same thing. Stone READMEs often use the short form (`"json": "0.2"`, which means `>=0.2.0, <0.3.0`).
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {

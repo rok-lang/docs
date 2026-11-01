@@ -62,9 +62,11 @@ println(f"{part.len()} {part[0]} {part.to_list():?}");
 3 20 [20, 30, 40]
 ```
 
-A `Slice` is read-only. A function that fills or reorders part of a list takes a `SliceMut<T>` instead, a writable view like Rust's `&mut [T]`. Where a `SliceMut` is expected, `xs` passes the whole list and `xs[a:b]` that range; nothing is copied, and writes go to the list.
+A `Slice` is read-only. A function that fills or reorders part of a list takes a `SliceMut<T>` instead, a writable view like Rust's `&mut [T]` (import it from `rok::core::collections`; it is not in the prelude). Where a `SliceMut` is expected, `xs` passes the whole list and `xs[a:b]` that range; nothing is copied, and writes go to the list.
 
 ```rok
+use rok::core::collections::SliceMut;
+
 fn zero(buf: SliceMut<i32>) { buf.fill(0); }
 
 let ys = [5, 4, 3, 2, 1];

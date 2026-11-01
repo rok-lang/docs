@@ -111,7 +111,7 @@ let g = m.lock();
 ```
 
 ```text check=checks/12-guard-let.rok
-error[E200]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
+error[E0065]: `g` holds a `MutexGuard` that is never released: only `using` releases a lock guard, so bind it with `using g = .. { .. }`
 ```
 
 ### Read-only data: `Frozen`
@@ -190,7 +190,7 @@ ys.push(4);
 ```
 
 ```text check=checks/12-handoff-copy.rok
-error[E202]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
+error[E0105]: `ys` shares `xs`, which was moved into the `Mutex` at line 3
   --> main.rok:4:1
    |
  3 | let m = Mutex::new(xs);
@@ -206,7 +206,7 @@ Use the value through the lock, or hand over a `clone()` if you still need your 
 Elements count too. What you read out of a collection and the collection itself are one value, so sending `rows` and then pushing to `first = rows[0]` is the same race:
 
 ```text check=checks/12-handoff-element.rok
-error[E202]: `first` shares `rows`, which was sent through a channel at line 4
+error[E0105]: `first` shares `rows`, which was sent through a channel at line 4
   --> main.rok:5:1
    |
  4 | try! tx.send(rows);
@@ -246,7 +246,7 @@ smallest items add up to 12, jobs left: 0
 A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error.
 
 ```text check=checks/12-lock-value.rok
-error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
+error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
   --> main.rok:2:10
    |
  2 | let xs = using g = m.lock() { g.get() };
@@ -267,7 +267,7 @@ using g = m.lock() { remember(kept, g.get()); }
 ```
 
 ```text check=checks/12-lock-view-kept.rok
-error[E202]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
+error[E0106]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
   --> main.rok:5:37
    |
  5 | using g = m.lock() { remember(kept, g.get()); }
@@ -454,7 +454,7 @@ data.push(4);
 ```
 
 ```text check=checks/12-task-handoff.rok
-error[E202]: `data` was spawned as a task at line 8
+error[E0105]: `data` was spawned as a task at line 8
  9 | data.push(4);
    | ^^^^
    = help: the task works on its own copy, so changes it makes are not seen here: return them from the task (`await`), hand over `data.clone()` to keep a separate copy, or share read-only data through `Frozen`
@@ -576,7 +576,7 @@ The `Stream` trait has combinators such as `map`, `filter`, `take`, and `throttl
 **A `[ref x]` capture can't cross threads.** A `[ref x]` cell ([chapter 3](03-functions.html)) has no synchronization, so the compiler rejects it in a closure given to `thread::spawn`, `task::spawn`, or `par::*`, where two threads could change it at once.
 
 ```text check=checks/12-ref-thread.rok
-error[E200]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
+error[E0085]: `[ref count]` can't be used in a closure that may run on another thread: both threads could change `count` at once
    = help: write `let count = Atomic::new(count);` before the closure, capture `count` without `ref`, and use `count.load()` / `count.store(..)`; or return the value from the closure instead
 ```
 
@@ -621,7 +621,7 @@ println(f"{using g = SEEN.lock() { g.get_clone() }:?}");
 **Threads you don't join are killed when `main` returns.** The program ends when `main` does, and threads that are still running stop with it, halfway through. Keep the `JoinHandle` and `join` it. `rok check` and `rok lint` warn about a handle that is never joined:
 
 ```text check=checks/12-unjoined.rok
-warning[E503]: this thread is never joined, so the program may end before it finishes
+warning[E0132]: this thread is never joined, so the program may end before it finishes
   --> main.rok:3:1
    |
  3 | thread::spawn(|| println("hi"));
@@ -696,7 +696,7 @@ println(f"{compute()}");
 - Create channels with `channel()`. A `Sender` is released where its last owner leaves scope; `close()` it yourself in a thread, or when the receiver reads in the same scope.
 - The prelude has `task`, `par`, `channel`, `Mutex` and `Atomic`; `rok::std::thread` needs a `use`.
 - Protect shared values with `Atomic` or `Mutex`. Lock guards must be bound with `using`; anything else is a compile error. `[ref x]` captures can't cross threads, and a `static` must be `Sync`.
-- A value handed to `Mutex::new` or `send` belongs to its new owner: using it afterwards, or using one of its elements, is a compile error (`E202`). Use it through the lock, hand over a `clone()`, or take elements out with `pop` / `remove` before sending them. What `g.get()` returns stays inside the `using` block; keep a `g.get_clone()`.
+- A value handed to `Mutex::new` or `send` belongs to its new owner: using it afterwards, or using one of its elements, is a compile error (`E0105`). Use it through the lock, hand over a `clone()`, or take elements out with `pop` / `remove` before sending them. What `g.get()` returns stays inside the `using` block; keep a `g.get_clone()`.
 - The receiver gets its own copy of the collections in the value; the copy keeps its sharing and costs time in proportion to its size. `any Tr` crosses threads only with `Send + Sync` on the trait, and a `Weak` never does.
 - `thread::local` gives each thread its own value: use it inside `with(|v| ..)`, or move it in and out with `set` / `replace` / `take`.
 - Share data that is only read through `Frozen<T>`: every `get()` is the reader's own copy, so keep big read-only parts in a `Frozen` field of their own.

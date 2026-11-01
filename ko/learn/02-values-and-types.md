@@ -21,7 +21,7 @@ rok: 2
 선언과 재할당은 문법이 다르므로 오타 때문에 새 변수가 조용히 생기는 일이 없습니다. 선언한 적 없는 이름에 대입하면 컴파일 에러입니다.
 
 ```text check=checks/02-undeclared.rok
-error[E200]: `coutn` is not declared; a variable is created only by `let`
+error[E0057]: `coutn` is not declared; a variable is created only by `let`
   --> main.rok:2:1
    |
  2 | coutn = count + 1;
@@ -81,7 +81,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 Rok은 서로 다른 숫자 타입을 자동으로 섞지 않습니다. `i32`와 `i64`를 더하면 에러입니다.
 
 ```text check=checks/02-mixed-int.rok
-error[E200]: operator `+` cannot be applied to `i32` and `i64`
+error[E0054]: operator `+` cannot be applied to `i32` and `i64`
   --> main.rok:3:12
    |
  3 | println(f"{a + b}");
@@ -118,7 +118,7 @@ Python, Go, JavaScript를 쓰던 사람이 놀랄 만한 정수 규칙이 몇 �
 **`len()`은 `usize`입니다.** 길이와 인덱스는 `usize`이고, 접미사 없는 리터럴은 `i32`입니다. 암묵 변환이 없으므로 `total`이 `i32`이면 `total / xs.len()`은 에러입니다. 한쪽을 `as`로 변환하세요.
 
 ```text check=checks/02-len-usize.rok
-error[E200]: operator `/` cannot be applied to `i32` and `usize`
+error[E0054]: operator `/` cannot be applied to `i32` and `usize`
 ```
 
 ```rok

@@ -101,7 +101,7 @@ A whole module can be conditional too. `#[cfg(target_os = "linux")] mod linux;` 
 The compiler remembers what a condition removed. Calling something that exists only in another build is an error that says where it exists and how to guard the call:
 
 ```text
-error[E200]: no method `pidfd` found for type `Child`
+error[E0046]: no method `pidfd` found for type `Child`
   = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```

@@ -101,7 +101,7 @@ Linux와 macOS에서는 `usr/local/bin`을 출력합니다.
 컴파일러는 조건 때문에 빠진 것을 기억합니다. 다른 빌드에만 있는 것을 부르면, 그것이 어디에 있는지와 호출을 어떻게 감싸면 되는지를 알려 주는 에러가 납니다.
 
 ```text
-error[E200]: no method `pidfd` found for type `Child`
+error[E0046]: no method `pidfd` found for type `Child`
   = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
   = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
 ```

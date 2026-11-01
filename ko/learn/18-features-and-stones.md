@@ -99,14 +99,14 @@ Rok 프로젝트는 몇몇 라이브러리를 표준 라이브러리 밖의 독�
 | `markdown` | CommonMark와 GitHub 확장(표, 콜아웃, 각주, 제목 앵커)을 HTML로 변환. 이 사이트를 렌더링함 |
 | `rok-syntax` | Rok과 ROKON 소스의 토크나이저와 HTML 강조기. 이 사이트의 코드를 강조함 |
 
-`json`과 `toml`은 std의 [`rokon`](15-rokon.html) 모듈과 같은 모양을 따릅니다. `parse` / `to_string` / `from_str` / `encode` / `decode`, 그리고 자기 타입을 위한 derive입니다.
+`json`과 `toml`은 std의 [`rokon`](15-rokon.html) 모듈과 같은 모양을 따릅니다. `parse` / `to_str` / `from_str` / `encode` / `decode`, 그리고 자기 타입을 위한 derive입니다.
 
 ```rok norun
 #[derive(json::Json)]
 struct Server { host: str; port: u16 = 80; }
 
 let s: Server = try json::from_str("{\"host\": \"localhost\"}");
-println(json::to_string(s));      // {"host":"localhost","port":80}
+println(json::to_str(s));      // {"host":"localhost","port":80}
 ```
 
 stone의 derive는 stone 이름을 붙여 `#[derive(json::Json)]`으로 쓰거나, `use json::Json;` 뒤에 이름만 씁니다. derive가 펼쳐 낸 코드는 stone 자신의 코드이므로 stone 내부의 도우미를 부를 수 있지만, 여러분의 코드는 부를 수 없습니다.
@@ -120,8 +120,8 @@ rok add http --no-default-features --features http1,tls
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "json": Dep::version("^0.1.0"),
-    "http": Dep::version("^0.1.0", default_features: false, features: ["http1", "tls"]),
+    "json": Dep::version("^0.2.0"),
+    "http": Dep::version("^0.2.0", default_features: false, features: ["http1", "tls"]),
 } }
 ```
 
@@ -206,7 +206,7 @@ pub fn wrap(s: str) -> str { wrap_width(s, 80) }
 ```
 
 ```text
-warning[E503]: use of deprecated function `wrap`
+warning[E0132]: use of deprecated function `wrap`
   --> src/main.rok:6:9
    |
  6 | println(textwrap::wrap("hi"));

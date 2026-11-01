@@ -352,7 +352,7 @@ working
 close tmp
 ```
 
-A type whose close can fail, such as a `File`, is not closed for you, since its error would be lost: close it with `try f.close()`, or bind it with `using`. Leaving its scope with it still open is a compile error.
+A type whose close can fail, such as a `File`, is not closed for you, since its error would be lost: close it with `try f.close()`, or bind it with `using`. Leaving its scope with it still open is a compile error. For the same reason `try?` cannot drop an error that may hold such a value, like the `SendError<TcpStream>` of a failed `tx.send(conn)`, which gives the stream back: catch it with `try .. catch e { .. }`, take the value out and close it.
 
 ## Errors and panics
 

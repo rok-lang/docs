@@ -204,7 +204,7 @@ sum: 6
 6 [2, 4]
 ```
 
-A trailing-closure call that starts a statement, like `repeat(3) |i| { .. }` above, ends at its `}`, as an `if` does: no `;` is needed, and a next line that starts with an operator (`-1`) is a statement of its own. Inside a larger expression, such as `let total = measure("sum") { 6 } - 1;`, the operator continues the call.
+A trailing-closure call that starts a statement, like `repeat(3) |i| { .. }` above, ends at its `}` as if a `;` followed: no `;` is needed, and a next line that starts with an operator (`-1`) is a statement of its own. It is an expression statement like any other, so a non-unit result is dropped and the `unused_result` lint warns about it (write `_ = f(..) { .. };` to drop it on purpose). Inside a larger expression, such as `let total = measure("sum") { 6 } - 1;`, the operator continues the call.
 
 A bare `return` inside such a closure would end only that call of the closure, not the function around it, so it is an error. To end the call, name the function that takes the closure: `return@each` (with a value, `return@find x`). To leave the surrounding function, write a `for` loop instead.
 

@@ -99,14 +99,14 @@ The Rok project maintains a few libraries as stones of their own, outside the st
 | `markdown` | CommonMark plus GitHub extensions (tables, callouts, footnotes, heading anchors) to HTML. It renders this site |
 | `rok-syntax` | A tokenizer and HTML highlighter for Rok and ROKON source. It highlights the code on this site |
 
-`json` and `toml` follow the shape of std's [`rokon`](15-rokon.html) module: `parse` / `to_string` / `from_str` / `encode` / `decode`, and a derive for your own types.
+`json` and `toml` follow the shape of std's [`rokon`](15-rokon.html) module: `parse` / `to_str` / `from_str` / `encode` / `decode`, and a derive for your own types.
 
 ```rok norun
 #[derive(json::Json)]
 struct Server { host: str; port: u16 = 80; }
 
 let s: Server = try json::from_str("{\"host\": \"localhost\"}");
-println(json::to_string(s));      // {"host":"localhost","port":80}
+println(json::to_str(s));      // {"host":"localhost","port":80}
 ```
 
 A stone's derive is written with the stone's name, `#[derive(json::Json)]`, or bare after `use json::Json;`. What the derive expands to is the stone's own code: it may call the stone's internal helpers, which your code cannot.
@@ -120,8 +120,8 @@ rok add http --no-default-features --features http1,tls
 
 ```rokon
 Package { name: "app", version: "0.1.0", deps: {
-    "json": Dep::version("^0.1.0"),
-    "http": Dep::version("^0.1.0", default_features: false, features: ["http1", "tls"]),
+    "json": Dep::version("^0.2.0"),
+    "http": Dep::version("^0.2.0", default_features: false, features: ["http1", "tls"]),
 } }
 ```
 
@@ -206,7 +206,7 @@ pub fn wrap(s: str) -> str { wrap_width(s, 80) }
 ```
 
 ```text
-warning[E503]: use of deprecated function `wrap`
+warning[E0132]: use of deprecated function `wrap`
   --> src/main.rok:6:9
    |
  6 | println(textwrap::wrap("hi"));

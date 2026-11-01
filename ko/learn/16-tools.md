@@ -149,7 +149,7 @@ rok: error: not inside a package; pass a file or directory: `rok fmt <path>`
 ```text
 $ rok lint
     Checking mathx (.)
-warning[E503]: unused variable `unused`
+warning[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -174,7 +174,7 @@ warning[E503]: unused variable `unused`
 ```text
 $ rok lint -D unused
     Checking mathx (.)
-error[E503]: unused variable `unused`
+error[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -191,7 +191,7 @@ error[E503]: unused variable `unused`
 ```text
 $ rok lint
     Checking mathx (.)
-error[E503]: unused variable `unused`
+error[E0132]: unused variable `unused`
    --> src/main.rok:11:9
     |
  11 |     let unused = 1;
@@ -208,7 +208,7 @@ error[E503]: unused variable `unused`
 ```text
 $ rok check
     Checking hello (.)
-error[E200]: mismatched types: `let s` expects `str`, found `i32`
+error[E0040]: mismatched types: `let s` expects `str`, found `i32`
   --> src/main.rok:2:14
    |
  2 | let s: str = square(7);
@@ -228,9 +228,9 @@ $ rok build
 error: could not build hello (1 error, 0 warnings)
 ```
 
-기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄(`"schema": 1`)로 출력됩니다. 코드와 메시지, 시작과 끝의 줄·열이 담긴 위치, `help` 줄, 진단이 제안하는 `fixes`, 린트 경고라면 그 `lint` 이름, 규칙의 사양 절이 들어 있습니다.
+기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄(`"schema": 2`)로 출력됩니다. 코드와 종류, 메시지, 시작과 끝의 줄·열이 담긴 위치, `help` 줄, 진단이 제안하는 `fixes`, 린트 경고라면 그 `lint` 이름, 규칙의 사양 절이 들어 있습니다.
 
-대괄호 안의 코드는 에러의 종류를 가리킵니다. [에러 코드 목록](../errors/index.html)에 코드마다 예제와 고치는 법을 담은 페이지가 있습니다. rokc 자체가 멈추면(내부 컴파일러 에러) 종료 코드 70으로 끝납니다. panic이 난 프로그램의 101과는 다릅니다. 이런 일이 생기면 알려 주세요.
+대괄호 안의 코드는 에러를 가리키며, 에러 종류마다 코드가 하나씩 있습니다(린트는 모두 `E0132`를 쓰고 노트에 자기 이름을 밝힙니다). `rokc --explain E0040`(또는 `rok --explain E0040`)은 그 코드의 뜻과 고치는 법을 출력하고, [에러 코드 목록](../errors/index.html)에는 모든 코드가 있습니다. rokc 자체가 멈추면(내부 컴파일러 에러) 종료 코드 70으로 끝납니다. panic이 난 프로그램의 101과는 다릅니다. 이런 일이 생기면 알려 주세요.
 
 ## `rok doc`: 문서 주석과 API 문서
 
@@ -285,7 +285,7 @@ VS Code 같은 다른 에디터에서는 범용 LSP 클라이언트 확장에 `r
 
 ```text
 $ rok repl
-Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.2.0 (<commit> <date>) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [3, 1, 2]
 >>> xs.len()
@@ -376,7 +376,7 @@ macOS에서는 `~/Library/Jupyter` 아래에, Windows에서는 `%APPDATA%\jupyte
 
 ```text
 $ rok build -v
-         Std prebuilt (/Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
+         Std prebuilt (/Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/lib/rok-cache/5cbf37af5441372c-fe4fdd5b06e0f175-3074122f20802b47/rok.rokhir)
    Compiling hello (.)
    Stage: front end (34ms)
       Reused: 93 of 94 files parsed, 0 of 2 bodies lowered, the library's items collected

@@ -28,7 +28,7 @@ On Windows, run this in PowerShell. It installs into `%USERPROFILE%\.rok` and ad
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release: a version (`0.1.6`) or a series (`0.1`, its newest release).
+`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release: a version (`0.2.0`) or a series (`0.2`, its newest release).
 
 You can change the install location with the `ROK_HOME` environment variable (default `~/.rok`). When the script finishes, you get the following layout.
 
@@ -36,7 +36,7 @@ You can change the install location with the `ROK_HOME` environment variable (de
 ~/.rok/
 ├── bin/                        # rok, rokc, rokls proxy
 └── toolchains/
-    └── 0.1.6-aarch64-apple-darwin/
+    └── 0.2.0-aarch64-apple-darwin/
         ├── bin/{rok, rokc, rokls}
         └── lib/                # runtime and standard library sources
 ```
@@ -46,8 +46,8 @@ The toolchain you just installed becomes the default. The three executables in `
 The script also puts `~/.rok/bin` on your `PATH`. It writes `~/.rok/env` (and `~/.rok/env.fish`), loads it from your shell's startup files such as `~/.zshenv`, `~/.bashrc` or `~/.profile`, and adds `~/.config/fish/conf.d/rok.fish` for fish. It names every file it changed:
 
 ```text
- Downloading rok 0.1.6 (aarch64-apple-darwin)
-   Installed rok 0.1.6 to ~/.rok
+ Downloading rok 0.2.0 (aarch64-apple-darwin)
+   Installed rok 0.2.0 to ~/.rok
 
     Modified ~/.zshenv (PATH)
 
@@ -73,10 +73,10 @@ rok toolchain list
 
 ```text
 $ rok --version -v
-rok 0.1.6 (9103a4909 2026-10-31)
-binary:    /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rok
-toolchain: 0.1.6-aarch64-apple-darwin (the default)
-rokc:      /Users/me/.rok/toolchains/0.1.6-aarch64-apple-darwin/bin/rokc
+rok 0.2.0 (<commit> <date>)
+binary:    /Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/bin/rok
+toolchain: 0.2.0-aarch64-apple-darwin (the default)
+rokc:      /Users/me/.rok/toolchains/0.2.0-aarch64-apple-darwin/bin/rokc
 host:      aarch64-apple-darwin
 ```
 
@@ -90,7 +90,7 @@ Three executables are installed.
 
 ### Managing toolchains
 
-`rok toolchain` manages installed toolchains. The active toolchain is chosen, in order, by `+version` on the command line (`rok +0.1 build`), the `ROK_TOOLCHAIN` environment variable, the `toolchain` field of the nearest `rok.rokon` (or of a script's `//! rokon` block), and finally the default. A pin is a series (`"0.1"`, the newest installed 0.1.x), a version (`"0.1.6"`) or a requirement (`"^0.1.5"`). One command runs on one toolchain from start to finish: even a toolchain's own `bin/rok`, run by its full path, hands the command to the toolchain the project pins, and each toolchain's `rok` drives only its own `rokc`.
+`rok toolchain` manages installed toolchains. The active toolchain is chosen, in order, by `+version` on the command line (`rok +0.2 build`), the `ROK_TOOLCHAIN` environment variable, the `toolchain` field of the nearest `rok.rokon` (or of a script's `//! rokon` block), and finally the default. A pin is a series (`"0.2"`, the newest installed 0.2.x), a version (`"0.2.0"`) or a requirement (`"^0.2.1"`). One command runs on one toolchain from start to finish: even a toolchain's own `bin/rok`, run by its full path, hands the command to the toolchain the project pins, and each toolchain's `rok` drives only its own `rokc`.
 
 ```bash
 rok toolchain list                     # installed toolchains
@@ -239,7 +239,7 @@ Running `rok` with no arguments opens the REPL. Enter an expression and it print
 
 ```text
 $ rok
-Rok 0.1.6 (9103a4909 2026-10-31) on aarch64-apple-darwin
+Rok 0.2.0 (<commit> <date>) on aarch64-apple-darwin
 Type :help for help, :exit to quit.
 >>> let xs = [1, 2, 3]
 >>> xs.len() * 2

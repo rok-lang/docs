@@ -21,7 +21,7 @@ rok: 2
 Because declaration and reassignment are syntactically distinct, a typo never silently creates a new variable. Assigning to a name that was never declared is a compile error.
 
 ```text check=checks/02-undeclared.rok
-error[E200]: `coutn` is not declared; a variable is created only by `let`
+error[E0057]: `coutn` is not declared; a variable is created only by `let`
   --> main.rok:2:1
    |
  2 | coutn = count + 1;
@@ -81,7 +81,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 Rok never mixes different numeric types automatically. Adding an `i32` and an `i64` is an error.
 
 ```text check=checks/02-mixed-int.rok
-error[E200]: operator `+` cannot be applied to `i32` and `i64`
+error[E0054]: operator `+` cannot be applied to `i32` and `i64`
   --> main.rok:3:12
    |
  3 | println(f"{a + b}");
@@ -118,7 +118,7 @@ A few integer rules surprise people coming from Python, Go, or JavaScript.
 **`len()` is a `usize`.** Lengths and indexes are `usize`, while an unsuffixed literal is an `i32`. Since nothing converts implicitly, `total / xs.len()` with an `i32` `total` is an error. Convert one side with `as`.
 
 ```text check=checks/02-len-usize.rok
-error[E200]: operator `/` cannot be applied to `i32` and `usize`
+error[E0054]: operator `/` cannot be applied to `i32` and `usize`
 ```
 
 ```rok

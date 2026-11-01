@@ -137,7 +137,7 @@ for i in 1..=4 {
 }
 for h in hs { try h.join(); }
 
-let all = using g = seen.lock() { g.get().clone() };
+let all = using g = seen.lock() { g.get_clone() };
 all.sort();
 println(f"{hits.load()} {all:?}");
 ```

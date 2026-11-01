@@ -1,0 +1,5 @@
+fn remember(c: Cell<List<i32>>, xs: List<i32>) { c.set(xs); }
+
+let m = Mutex::new([1, 2, 3]);
+let kept: Cell<List<i32>> = Cell::new([]);
+using g = m.lock() { remember(kept, g.get()); }

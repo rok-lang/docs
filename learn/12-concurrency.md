@@ -95,7 +95,7 @@ for i in 1..=5 {
 }
 for h in hs { try h.join(); }
 
-let items = using g = log.lock() { g.get().clone() };   // a copy: the list itself stays behind the lock
+let items = using g = log.lock() { g.get_clone() };   // a copy: the list itself stays behind the lock
 items.sort();
 println(f"sum = {counter.load()}, items = {items:?}");
 ```
@@ -128,7 +128,7 @@ struct Settings {
     limits: List<i32>;
 }
 
-static SETTINGS: Frozen<Settings> = Frozen::new(Settings { name: "demo", limits: [10, 20, 30] });
+static SETTINGS: sync::Frozen<Settings> = sync::Frozen::new(Settings { name: "demo", limits: [10, 20, 30] });
 
 let hs: List<thread::JoinHandle<i32>> = [];
 for i in 0..3 {
@@ -149,6 +149,32 @@ demo [10, 20, 30] 42
 ```
 
 Each `get` copies the collections inside the value, so keep big read-only parts out of that copy: give them a `Frozen` field of their own and read it only where it is needed, as in `table: Frozen<List<Entry>>`. Parts that are `Sync` already, such as a `Mutex` or a cache that locks itself, are shared, not copied.
+
+### Per-thread values: `thread::local`
+
+You can skip this subsection on a first read.
+
+`thread::local(init)` gives each thread its own value, made by `init` on the thread's first use. `with` lends this thread's value to a closure; what the closure returns comes out, but the value itself stays lent: returning it, storing it outside the closure, or sending it is an error, and the closure can't be `async`. `set`, `replace` and `take` move whole values in and out, and `get` copies a `Copy` value such as a number.
+
+```rok
+use rok::std::thread;
+
+static NOTES: thread::ThreadLocal<List<i32>> = thread::local(|| -> List<i32> { [] });
+
+fn note(x: i32) { NOTES.with(|l| l.push(x)); }
+
+note(1);
+note(2);
+let h = thread::spawn(|| { note(9); NOTES.with(|l| l.len()) });
+println(f"worker {try h.join()}, main {NOTES.with(|l| l.clone()):?}");
+let mine = NOTES.take();
+println(f"took {mine:?}, left {NOTES.with(|l| l.len())}");
+```
+
+```output
+worker 1, main [1, 2]
+took [1, 2], left 0
+```
 
 ## Handing values to other threads
 
@@ -217,7 +243,7 @@ println(f"smallest items add up to {try worker.join()}, jobs left: {jobs.len()}"
 smallest items add up to 12, jobs left: 0
 ```
 
-A lock guard's value works the same way. What `g.get()` returns is the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it.
+A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error.
 
 ```text check=checks/12-lock-value.rok
 error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
@@ -228,6 +254,26 @@ error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and 
    |          ----- taken out of the lock here
    |
    = help: use it inside the `using` block, or make the block's value `using.clone()`
+```
+
+Passing it to a function is fine while that function only uses it. A function that keeps it (in a `Cell`, a field, a closure, a thread-local) would let it outlive the lock, so that call is an error too. Keep a deep copy instead: `g.get_clone()` copies the value and everything in it, and the copy is yours.
+
+```rok norun
+fn remember(c: Cell<List<i32>>, xs: List<i32>) { c.set(xs); }
+
+let m = Mutex::new([1, 2, 3]);
+let kept: Cell<List<i32>> = Cell::new([]);
+using g = m.lock() { remember(kept, g.get()); }
+```
+
+```text check=checks/12-lock-view-kept.rok
+error[E202]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
+  --> main.rok:5:37
+   |
+ 5 | using g = m.lock() { remember(kept, g.get()); }
+   |                                     ^^^^^^^
+   |
+   = help: `g`'s `using` block releases the lock while `remember` still holds it; pass a deep copy, `g.get_clone()`
 ```
 
 ### What the receiver gets
@@ -336,7 +382,7 @@ async fn slow() -> i32 {
 }
 
 let r = try await task::timeout(Duration::ms(10), task::spawn(slow()))
-    catch e: TimeoutError { -1 };
+    catch e: task::TimeoutError { -1 };
 println(f"{r}");
 ```
 
@@ -544,7 +590,7 @@ fn record(x: i32) {
 
 record(1);
 record(2);
-println(f"{using g = SEEN.lock() { g.get().clone() }:?}");
+println(f"{using g = SEEN.lock() { g.get_clone() }:?}");
 ```
 
 ```output
@@ -629,8 +675,9 @@ println(f"{compute()}");
 - Create channels with `channel()`, and `close()` each `Sender` yourself once it is done sending.
 - `rok::core` (`task`, `par`, `channel`, `Mutex`, `Atomic`) is always in scope; `rok::std::thread` needs a `use`.
 - Protect shared values with `Atomic` or `Mutex`. Lock guards must be bound with `using`; anything else is a compile error. `[ref x]` captures can't cross threads, and a `static` must be `Sync`.
-- A value handed to `Mutex::new` or `send` belongs to its new owner: using it afterwards, or using one of its elements, is a compile error (`E202`). Use it through the lock, hand over a `clone()`, or take elements out with `pop` / `remove` before sending them. What `g.get()` returns stays inside the `using` block.
+- A value handed to `Mutex::new` or `send` belongs to its new owner: using it afterwards, or using one of its elements, is a compile error (`E202`). Use it through the lock, hand over a `clone()`, or take elements out with `pop` / `remove` before sending them. What `g.get()` returns stays inside the `using` block; keep a `g.get_clone()`.
 - The receiver gets its own copy of the collections in the value; the copy keeps its sharing and costs time in proportion to its size. `any Tr` crosses threads only with `Send + Sync` on the trait, and a `Weak` never does.
+- `thread::local` gives each thread its own value: use it inside `with(|v| ..)`, or move it in and out with `set` / `replace` / `take`.
 - Share data that is only read through `Frozen<T>`: every `get()` is the reader's own copy, so keep big read-only parts in a `Frozen` field of their own.
 - `await` is a prefix operator on the call after it (`await f() == x` compares the result). Use `async fn` / `await` and `task::spawn` / `task::join` to run wait-heavy work concurrently.
 - `task::spawn` hands its future over like a send: the task works on its own copy of what the future captured, so return its changes with `await`.

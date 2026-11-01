@@ -95,7 +95,7 @@ for i in 1..=5 {
 }
 for h in hs { try h.join(); }
 
-let items = using g = log.lock() { g.get().clone() };   // a copy: the list itself stays behind the lock
+let items = using g = log.lock() { g.get_clone() };   // a copy: the list itself stays behind the lock
 items.sort();
 println(f"sum = {counter.load()}, items = {items:?}");
 ```
@@ -128,7 +128,7 @@ struct Settings {
     limits: List<i32>;
 }
 
-static SETTINGS: Frozen<Settings> = Frozen::new(Settings { name: "demo", limits: [10, 20, 30] });
+static SETTINGS: sync::Frozen<Settings> = sync::Frozen::new(Settings { name: "demo", limits: [10, 20, 30] });
 
 let hs: List<thread::JoinHandle<i32>> = [];
 for i in 0..3 {
@@ -149,6 +149,32 @@ demo [10, 20, 30] 42
 ```
 
 `get`은 호출할 때마다 값 안의 컬렉션을 복사합니다. 그러니 큰 읽기 전용 부분은 그 복사에서 빼 두세요. `table: Frozen<List<Entry>>`처럼 그 부분에 자기 `Frozen` 필드를 주고, 필요한 곳에서만 읽습니다. `Mutex`나 스스로 잠그는 캐시처럼 이미 `Sync`인 부분은 복사되지 않고 공유됩니다.
+
+### 스레드마다의 값: `thread::local`
+
+처음 읽을 때는 이 절을 건너뛰어도 됩니다.
+
+`thread::local(init)`은 스레드마다 자기 값을 주며, 그 값은 스레드가 처음 쓸 때 `init`이 만듭니다. `with`는 이 스레드의 값을 클로저에 빌려 줍니다. 클로저가 돌려준 것은 밖으로 나오지만 값 자체는 빌려 준 것일 뿐입니다. 그 값을 돌려주거나, 클로저 밖에 저장하거나, 보내면 에러이고, 클로저는 `async`일 수 없습니다. `set`, `replace`, `take`는 값을 통째로 넣고 꺼내며, `get`은 수처럼 `Copy`인 값을 복사합니다.
+
+```rok
+use rok::std::thread;
+
+static NOTES: thread::ThreadLocal<List<i32>> = thread::local(|| -> List<i32> { [] });
+
+fn note(x: i32) { NOTES.with(|l| l.push(x)); }
+
+note(1);
+note(2);
+let h = thread::spawn(|| { note(9); NOTES.with(|l| l.len()) });
+println(f"worker {try h.join()}, main {NOTES.with(|l| l.clone()):?}");
+let mine = NOTES.take();
+println(f"took {mine:?}, left {NOTES.with(|l| l.len())}");
+```
+
+```output
+worker 1, main [1, 2]
+took [1, 2], left 0
+```
 
 ## 다른 스레드로 값 넘기기
 
@@ -217,7 +243,7 @@ println(f"smallest items add up to {try worker.join()}, jobs left: {jobs.len()}"
 smallest items add up to 12, jobs left: 0
 ```
 
-잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다.
+잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체의 뷰이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다. 그 값을 돌려주거나, 에러에 담아 던지거나, 보내면 에러입니다.
 
 ```text check=checks/12-lock-value.rok
 error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
@@ -228,6 +254,26 @@ error[E202]: the value of `g`'s `using` block is what the `Mutex` protects, and 
    |          ----- taken out of the lock here
    |
    = help: use it inside the `using` block, or make the block's value `using.clone()`
+```
+
+그 값을 함수에 넘기는 것은 그 함수가 쓰기만 한다면 괜찮습니다. 값을 간직하는 함수(`Cell`, 필드, 클로저, 스레드 로컬에 저장하는 함수)는 값이 잠금보다 오래 살게 하므로, 그런 호출도 에러입니다. 대신 깊은 복사본을 남깁니다. `g.get_clone()`은 값과 그 안의 모든 것을 복사하며, 그 복사본은 여러분의 것입니다.
+
+```rok norun
+fn remember(c: Cell<List<i32>>, xs: List<i32>) { c.set(xs); }
+
+let m = Mutex::new([1, 2, 3]);
+let kept: Cell<List<i32>> = Cell::new([]);
+using g = m.lock() { remember(kept, g.get()); }
+```
+
+```text check=checks/12-lock-view-kept.rok
+error[E202]: `g.get()` is a view of what the `Mutex` behind `g` protects, and `remember` keeps it past the call
+  --> main.rok:5:37
+   |
+ 5 | using g = m.lock() { remember(kept, g.get()); }
+   |                                     ^^^^^^^
+   |
+   = help: `g`'s `using` block releases the lock while `remember` still holds it; pass a deep copy, `g.get_clone()`
 ```
 
 ### 받는 쪽이 받는 것
@@ -336,7 +382,7 @@ async fn slow() -> i32 {
 }
 
 let r = try await task::timeout(Duration::ms(10), task::spawn(slow()))
-    catch e: TimeoutError { -1 };
+    catch e: task::TimeoutError { -1 };
 println(f"{r}");
 ```
 
@@ -544,7 +590,7 @@ fn record(x: i32) {
 
 record(1);
 record(2);
-println(f"{using g = SEEN.lock() { g.get().clone() }:?}");
+println(f"{using g = SEEN.lock() { g.get_clone() }:?}");
 ```
 
 ```output
@@ -629,8 +675,9 @@ println(f"{compute()}");
 - 채널은 `channel()`로 만들고, 각 `Sender`는 보내기를 마치면 직접 `close()`로 닫습니다.
 - `rok::core`(`task`, `par`, `channel`, `Mutex`, `Atomic`)는 언제나 스코프에 있고, `rok::std::thread`에는 `use`가 필요합니다.
 - 공유하는 값은 `Atomic`이나 `Mutex`로 보호합니다. 잠금 가드는 `using`으로 바인딩해야 하고, 다른 방법은 컴파일 에러입니다. `[ref x]` 캡처는 스레드를 건널 수 없고, `static`은 `Sync`여야 합니다.
-- `Mutex::new`나 `send`에 넘긴 값은 새 소유자의 것입니다. 그 뒤에 그 값이나 그 원소를 쓰면 컴파일 에러(`E202`)입니다. 잠금을 거쳐 쓰거나, `clone()`을 넘기거나, 보내기 전에 `pop` / `remove`로 원소를 꺼냅니다. `g.get()`이 반환한 것은 `using` 블록 안에 머뭅니다.
+- `Mutex::new`나 `send`에 넘긴 값은 새 소유자의 것입니다. 그 뒤에 그 값이나 그 원소를 쓰면 컴파일 에러(`E202`)입니다. 잠금을 거쳐 쓰거나, `clone()`을 넘기거나, 보내기 전에 `pop` / `remove`로 원소를 꺼냅니다. `g.get()`이 반환한 것은 `using` 블록 안에 머물며, 남겨 둘 것은 `g.get_clone()`입니다.
 - 받는 쪽은 값에 든 컬렉션을 복사해서 받습니다. 복사본은 공유 관계를 유지하고, 복사에는 크기에 비례해 시간이 듭니다. `any Tr`은 트레잇에 `Send + Sync`가 있을 때에만 스레드를 건너고, `Weak`는 결코 건너지 않습니다.
+- `thread::local`은 스레드마다 자기 값을 줍니다. `with(|v| ..)` 안에서 쓰거나 `set` / `replace` / `take`로 넣고 꺼냅니다.
 - 읽기만 하는 데이터는 `Frozen<T>`로 공유합니다. `get()`은 매번 읽는 쪽에 따로 복사본을 주므로 큰 읽기 전용 부분은 자기 `Frozen` 필드에 둡니다.
 - `await`는 뒤따르는 호출에 붙는 전위 연산자입니다(`await f() == x`는 결과를 비교합니다). 기다림이 많은 작업을 동시에 실행하려면 `async fn` / `await`와 `task::spawn` / `task::join`을 씁니다.
 - `task::spawn`은 send처럼 future를 넘깁니다. task는 future가 캡처한 것의 자기 복사본으로 작업하므로 변경 결과는 `await`로 돌려받습니다.

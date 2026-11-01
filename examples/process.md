@@ -6,7 +6,7 @@ Run external programs such as `echo`, a shell pipeline and `tr` with `rok::std::
 
 ```rok
 use rok::std::process::{Command, Stdio, Output};
-use rok::std::io::IoError;
+use rok::core::io::IoError;
 
 // Captured bytes as trimmed text.
 fn text(bytes: List<u8>) -> str {
@@ -49,7 +49,7 @@ fn main() throws (IoError) {
         .stdout(Stdio::Piped)
         .spawn();
     let input = child.stdin ?? panic("stdin not piped");
-    try input.write_str("shout this\n");
+    try input.write_all("shout this\n");
     try input.close();   // EOF lets `tr` finish
     let shouted = try (child.stdout ?? panic("stdout not piped")).read_to_str();
     println(f"tr: [{shouted.trim()}] ({try child.wait()})");

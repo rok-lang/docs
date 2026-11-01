@@ -9,7 +9,7 @@
 use rok::std::env;
 use rok::std::fs;
 use rok::std::fs::File;
-use rok::std::io::{IoError, BufReader, BufWriter, Reader, Writer};
+use rok::core::io::{IoError, BufReader, BufWriter};
 
 const ROWS: str = "date,region,product,units,unit_price
 2026-01-03,north,widget,12,2.50

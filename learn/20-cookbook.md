@@ -27,14 +27,11 @@ three
 
 ## Read stdin line by line
 
-Each item of `io::stdin().lines()` is a line without its newline, or the error that ended the input; `try item.get()` takes the line out ([chapter 13](13-io.html#standard-io-and-the-environment)). The output below is `0 lines` because this page builds with no input; run it locally and pipe a file in (`rok run count.rok < file`).
+`io::stdin().lines()` yields each line without its newline; a read error ends the loop by throwing, and `try for` passes it on ([chapter 13](13-io.html#standard-io-and-the-environment)). The output below is `0 lines` because this page builds with no input; run it locally and pipe a file in (`rok run count.rok < file`).
 
 ```rok
-use rok::std::io;
-
 let count = 0;
-for item in io::stdin().lines() {
-    let line = try item.get();
+try for line in io::stdin().lines() {
     count += 1;
     println(f"{count}: {line}");
 }
@@ -232,4 +229,4 @@ hello from /hi
 ## Further reading
 
 - [Examples](../examples/index.html): longer complete programs, among them a [command-line tool](../examples/cli-args.html), a [TCP echo server](../examples/tcp-echo.html), and a [JSON parser](../examples/json-parser.html) written from scratch.
-- Standard library API: [`fs`](../std/std/fs.html), [`io`](../std/std/io.html), [`env`](../std/std/env.html), [`thread`](../std/std/thread.html), [`task`](../std/core/task.html), [`sync`](../std/core/sync.html)
+- Standard library API: [`fs`](../std/std/fs.html), [`io`](../std/core/io.html), [`env`](../std/std/env.html), [`thread`](../std/std/thread.html), [`task`](../std/core/task.html), [`sync`](../std/core/sync.html)

@@ -27,14 +27,11 @@ three
 
 ## 표준 입력을 한 줄씩 읽기
 
-`io::stdin().lines()`의 각 원소는 줄바꿈이 빠진 한 줄이거나 입력을 끝낸 에러입니다. `try item.get()`이 줄을 꺼냅니다([13장](13-io.html#표준-io와-환경)). 이 페이지는 입력 없이 빌드되므로 아래 출력은 `0 lines`입니다. 직접 실행하면서 파일을 파이프로 넣어 보세요(`rok run count.rok < file`).
+`io::stdin().lines()`는 줄바꿈을 뺀 한 줄씩을 내놓습니다. 읽기 에러는 던져서 루프를 끝내고, `try for`가 그 에러를 전파합니다([13장](13-io.html#표준-io와-환경)). 이 페이지는 입력 없이 빌드되므로 아래 출력은 `0 lines`입니다. 직접 실행하면서 파일을 파이프로 넣어 보세요(`rok run count.rok < file`).
 
 ```rok
-use rok::std::io;
-
 let count = 0;
-for item in io::stdin().lines() {
-    let line = try item.get();
+try for line in io::stdin().lines() {
     count += 1;
     println(f"{count}: {line}");
 }
@@ -232,4 +229,4 @@ hello from /hi
 ## 더 읽을거리
 
 - [예제](../examples/index.html): 더 긴 완전한 프로그램들입니다. [명령줄 도구](../examples/cli-args.html), [TCP echo 서버](../examples/tcp-echo.html), 처음부터 작성한 [JSON parser](../examples/json-parser.html) 등이 있습니다.
-- 표준 라이브러리 API: [`fs`](../../std/std/fs.html), [`io`](../../std/std/io.html), [`env`](../../std/std/env.html), [`thread`](../../std/std/thread.html), [`task`](../../std/core/task.html), [`sync`](../../std/core/sync.html)
+- 표준 라이브러리 API: [`fs`](../../std/std/fs.html), [`io`](../../std/core/io.html), [`env`](../../std/std/env.html), [`thread`](../../std/std/thread.html), [`task`](../../std/core/task.html), [`sync`](../../std/core/sync.html)

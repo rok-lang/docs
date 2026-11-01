@@ -223,7 +223,7 @@ use rok::std::env;
 use rok::std::process;
 use rok::std::rokon;
 use rok::std::rokon::RokonError;
-use rok::std::io::IoError;
+use rok::core::io::IoError;
 
 #[derive(Rokon)]
 struct Site {

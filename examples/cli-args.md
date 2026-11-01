@@ -8,7 +8,7 @@
 // mgrep: print the lines of FILEs that contain PATTERN.
 use rok::std::env;
 use rok::std::fs;
-use rok::std::io::IoError;
+use rok::core::io::IoError;
 
 const USAGE: str = "usage: mgrep [-i] [-n] [-c] [-m NUM] PATTERN [FILE]...
   -i, --ignore-case   match case-insensitively

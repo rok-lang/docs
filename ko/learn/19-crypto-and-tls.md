@@ -125,7 +125,6 @@ println((try str::from_utf8(resp)).lines().next() ?? "");   // HTTP/1.1 200 OK
 
 ```rok
 use rok::std::net;
-use rok::std::io::byte_buf;
 use rok::std::net::{TcpStream, tls};
 
 // A self-signed Ed25519 certificate for `localhost` and its key (a demo
@@ -155,7 +154,7 @@ let addr = try! l.local_addr();
 let server = task::spawn_local(async {
     let (conn, _) = try! await l.accept_async();
     let s = try! await tls::Server::new_async(conn, scfg);
-    let buf = byte_buf(64);
+    let buf = List::filled(64, 0u8);
     let n = try! await s.read_async(buf);
     try! await s.write_all_async(b"pong");
     try! await s.close_notify_async();

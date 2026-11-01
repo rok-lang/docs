@@ -390,7 +390,7 @@ println(f"{r}");
 -1
 ```
 
-An `async` method may take `ref self`, like a synchronous one: its changes reach the receiver when the future completes. Such a call is awaited where it is made, `await r.next_byte()`; keeping the future to await later is an error, since the receiver could change meanwhile.
+An `async` method may take `ref self`, like a synchronous one: its changes reach the receiver when the future completes. Such a call is awaited where it is made, `await r.next_byte()`; keeping the future to await later is an error, since the receiver could change meanwhile. The async io methods (`read_async`, `write_all_async`, .., [chapter 13](13-io.html)) take `ref self` too.
 
 ```rok
 struct Cursor { pos: usize; data: List<u8>; }

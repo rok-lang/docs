@@ -390,7 +390,7 @@ println(f"{r}");
 -1
 ```
 
-`async` 메서드도 동기 메서드처럼 `ref self`를 받을 수 있습니다. 메서드가 바꾼 내용은 future가 끝날 때 수신자에 반영됩니다. 이런 호출은 부른 자리에서 기다립니다(`await r.next_byte()`). future를 보관했다가 나중에 기다리면 그 사이에 수신자가 바뀔 수 있으므로 에러입니다.
+`async` 메서드도 동기 메서드처럼 `ref self`를 받을 수 있습니다. 메서드가 바꾼 내용은 future가 끝날 때 수신자에 반영됩니다. 이런 호출은 부른 자리에서 기다립니다(`await r.next_byte()`). future를 보관했다가 나중에 기다리면 그 사이에 수신자가 바뀔 수 있으므로 에러입니다. async io 메서드(`read_async`, `write_all_async` 등, [13장](13-io.html))도 `ref self`를 받습니다.
 
 ```rok
 struct Cursor { pos: usize; data: List<u8>; }

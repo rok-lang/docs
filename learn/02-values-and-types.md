@@ -35,7 +35,7 @@ A few more rules:
 - An initial value is required. `let x;` is an error. If there is no value yet, state the absence explicitly: `let x: i32 | none = none;`.
 - You cannot redeclare the same name with `let` in the same scope (there is no Rust-style shadowing). A `let` in an inner block creates a separate variable from the outer one.
 - A variable's type is fixed at declaration and never changes. Assigning a string to an `i32` variable is an error.
-- Six words become keywords in Rok 0.2.0: `macro`, `defer`, `dyn`, `move`, `gen` and `do`. Naming something with one of them warns now. Pick another name, or put `r#` in front (`r#move`): `r#` makes any word a plain name, even a keyword (`r#type`).
+- Keywords cannot be names. Six of them are reserved for later and have no syntax yet: `macro`, `defer`, `dyn`, `move`, `gen` and `do`. To use a keyword as a name anyway, put `r#` in front (`r#move`, `r#type`); the error suggests it.
 
 ```rok
 let a = 1;
@@ -74,7 +74,7 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 3 -3 3.5
 ```
 
-`_` is a digit separator, and `0x` / `0b` / `0o` mean hexadecimal / binary / octal. A leading zero alone does not make a number octal: `0755` is seven hundred fifty-five, and rokc warns and suggests `0o755`. Integer division truncates toward zero. A literal outside its type's range (`let x: u8 = 256;`) is a compile error.
+`_` is a digit separator, and `0x` / `0b` / `0o` mean hexadecimal / binary / octal. A leading zero does not make a number octal, and `0755` is a compile error: write `0o755` for octal or `755` for decimal. Integer division truncates toward zero. A literal outside its type's range (`let x: u8 = 256;`) is a compile error.
 
 ## No implicit conversions: `as`
 
@@ -108,6 +108,8 @@ println(f"{2.9 as i32} {300 as u8} {x as f64 / 4.0}");
 ```
 
 `2.9 as i32` drops the fractional part, and `300 as u8` keeps only the low 8 bits. For a conversion that must not lose anything, `.try_into::<T>()` checks the range and throws an error instead; [chapter 10](10-errors.html) shows how to handle errors.
+
+A number never casts to `bool`: `n as bool` is an error. Write the comparison you mean, `n != 0` (or `x != 0.0` for a float).
 
 ## Integer gotchas
 
@@ -149,6 +151,16 @@ println(f"{i % len} {i %% len}");
 ```output
 -3 -1 1
 -1 4
+```
+
+**Operators bind as in Rust.** `*` `/` `%` bind tighter than `+` `-`, those tighter than the shifts `<<` `>>`, then `&`, `^`, `|`, and all of them tighter than comparisons. So `1 + 2 << 3` is `(1 + 2) << 3`, and `x & mask == 0` is `(x & mask) == 0`, not C's `x & (mask == 0)`.
+
+```rok
+println(f"{1 + 2 << 3} {6 & 3 == 2}");
+```
+
+```output
+24 true
 ```
 
 **Overflow panics.** Going past the range of a fixed-width integer panics in every build, debug or `--release`, so a wrong value never slips through silently.
@@ -270,7 +282,7 @@ An `int` becomes an `f64` with `big.to_f64()`, which rounds to the nearest value
 
 ## Constants
 
-`const` is a value fixed at compile time. Unlike `let`, the type must be written, and it can appear at the top level of a module. The value is inlined at every use.
+`const` is a value fixed at compile time. Unlike `let`, the type must be written, and it can appear at the top level of a module. The value is inlined at every use, so each use is a new value: changing one (`XS.push(4)` on a `const` list) is an error; copy it into a variable first (`let xs = XS;`).
 
 ```rok
 const MAX_USERS: i32 = 100;

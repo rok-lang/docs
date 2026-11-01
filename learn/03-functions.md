@@ -139,7 +139,7 @@ snapshot: 1
 count: 12
 ```
 
-If you try to assign to a variable captured by value, the compiler tells you to add `[ref count]`. Heap objects such as `List` are different: the variable is a reference to the object, so even a by-value capture can mutate the object itself, for example with `push`.
+If you try to assign to a variable captured by value, or to a field of a struct captured by value, it is an error that tells you to add `[ref count]`. Heap objects such as `List` are different: the variable is a reference to the object, so even a by-value capture can mutate the object itself, for example with `push`.
 
 ## Function types
 
@@ -190,7 +190,7 @@ fn measure(label: str, body: fn() -> i32) -> i32 {
 
 repeat(3) |i| {
     println(f"tick {i}");
-};
+}
 let total = measure("sum") { 1 + 2 + 3 };
 let evens: List<i32> = [1, 2, 3, 4].iter().filter |x| { x % 2 == 0 }.collect();
 println(f"{total} {evens:?}");
@@ -204,10 +204,25 @@ sum: 6
 6 [2, 4]
 ```
 
-Two things about a trailing-closure call written as a statement:
+A trailing-closure call that starts a statement, like `repeat(3) |i| { .. }` above, ends at its `}`, as an `if` does: no `;` is needed, and a next line that starts with an operator (`-1`) is a statement of its own. Inside a larger expression, such as `let total = measure("sum") { 6 } - 1;`, the operator continues the call.
 
-- End it with `;` after the `}`, as `repeat(3) |i| { .. };` does above. Without it, a next line that starts with an operator continues the call: `measure("sum") { 6 }` followed by a line `-1` is `measure("sum") { 6 } - 1`. rokc warns about such a line, and Rok 0.2.0 ends the call at the `}`.
-- A bare `return` inside the closure ends only that call of the closure, not the function around it, so rokc warns about it. To leave the function early, write a `for` loop instead.
+A bare `return` inside such a closure would end only that call of the closure, not the function around it, so it is an error. To end the call, name the function that takes the closure: `return@each` (with a value, `return@find x`). To leave the surrounding function, write a `for` loop instead.
+
+```rok
+fn each(xs: List<i32>, body: fn(i32)) {
+    for x in xs { body(x); }
+}
+
+each([1, 2, 3]) |x| {
+    if x == 2 { return@each; }   // ends this call; 3 still prints
+    println(f"{x}");
+}
+```
+
+```output
+1
+3
+```
 
 ## A preview of methods
 
@@ -270,7 +285,7 @@ println(f"{shifted(1)} {scale(base, 3)}");
 - The last expression of a function body is its return value. Use `return` to exit early.
 - Parameters can have default values, and calls can name arguments with `name: value`. `...T` takes variadic arguments.
 - A closure `|x| expr` captures by copying values by default; `[ref x]` requests a by-reference capture.
-- A function value has type `fn(A) -> R`. A closure in the last argument position can be written in trailing form.
+- A function value has type `fn(A) -> R`. A closure in the last argument position can be written in trailing form; inside it, `return@name` ends that call.
 - A top-level `let` is a local of the implicit `main`, so other functions cannot see it.
 
 ## Further reading

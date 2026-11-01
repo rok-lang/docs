@@ -29,9 +29,9 @@ Config {
 
 `//` comments and trailing commas are allowed. "Code" such as variables, operators, function calls, and f-strings is not. ROKON is pure data that never executes.
 
-## `#[derive(Rokon)]` with `from_str` / `to_string`
+## `#[derive(Rokon)]` with `from_str` / `to_str`
 
-Put `#[derive(Rokon)]` on a struct or enum and you can read it with `from_str` and write it with `to_string` from `rok::std::rokon`. The variable's type annotation decides which type is read.
+Put `#[derive(Rokon)]` on a struct or enum and you can read it with `from_str` and write it with `to_str` from `rok::std::rokon`. The variable's type annotation decides which type is read.
 
 ```rok
 use rok::std::rokon;
@@ -69,7 +69,7 @@ Config {
         println(f"  {s.host}:{s.port} tls={s.tls ?? false}");
     }
     println(f"cpu limit: {cfg.limits["cpu"]}");
-    println(rokon::to_string(cfg));
+    println(try rokon::to_str(cfg));
 }
 ```
 
@@ -95,7 +95,7 @@ Nested structs, lists, and enums are all read the same way. When a field is miss
 - If the type is `T | none`, `none` (`tls`).
 - Otherwise, an error.
 
-`to_string` writes the **canonical form**: 4-space indentation, one line if it fits in 100 columns, otherwise one element per line with a trailing comma. Reading the canonical form back yields the same value.
+`to_str` writes the **canonical form**: 4-space indentation, one line if it fits in 100 columns, otherwise one element per line with a trailing comma. Reading the canonical form back yields the same value. `to_str_flat` writes the same text on one line, whatever its width. Both throw a `RokonError` for a value with no ROKON form, such as a NaN float.
 
 ## Enums, tuple structs, Dict
 
@@ -124,7 +124,7 @@ for s in shapes {
     println(d);
 }
 
-println(rokon::to_string(Point(3, -4)));
+println(try! rokon::to_str(Point(3, -4)));
 let p: Point = try! rokon::from_str("Point(1, 2)");
 println(f"{p.0} {p.1}");
 
@@ -145,7 +145,7 @@ primes: [2, 3, 5]
 ```
 
 > [!TIP]
-> `Dict` and `Set` keep insertion order, so `to_string` writes their entries in the order they were added, the same on every run.
+> `Dict` and `Set` keep insertion order, so `to_str` writes their entries in the order they were added, the same on every run.
 
 ## Bad input and errors
 
@@ -178,15 +178,15 @@ ok: h:22
 error: 1:1: missing field `port` in Server
 error: 1:27: integer 70000 is out of range for u16
 error: 1:16: bare identifier `h` is not allowed in ROKON (strings are quoted, variants are written `Enum::h`)
-error: 1:31: unknown field `user` in Server
+ok: h:22
 error: 1:1: expected Server, found `Client { .. }`
 ```
 
-Note that an unknown field is also an error, so a misspelled configuration key is never silently ignored.
+A field the type does not have (`user`) is skipped, so a file written for a newer version of the program still reads. To make such a field an error, for example to catch a misspelled key, put `#[rokon(deny_unknown_fields)]` on the type.
 
 ## Reading without a type: `Value`
 
-Data whose structure you don't know in advance can be read into the `Value` enum with `rokon::parse`. `Value` has variants such as `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, and `Variant`, and `kind()` returns the name of the kind.
+Data whose structure you don't know in advance can be read into the `Value` enum with `rokon::parse`. `Value` has variants such as `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, and `Variant`, and `kind_name()` returns the name of the kind. Later releases may add variants, so a `match` on a `Value` needs a `_` arm.
 
 ```rok
 use rok::std::rokon;
@@ -197,10 +197,10 @@ match v {
     Value::Struct { name, fields } => {
         println(f"struct {name ?? "(anonymous)"}");
         for (k, x) in fields {
-            println(f"  {k}: {x.kind()} = {x}");
+            println(f"  {k}: {x.kind_name()} = {x}");
         }
     },
-    _ => println(f"not a struct: {v.kind()}"),
+    _ => println(f"not a struct: {v.kind_name()}"),
 }
 ```
 
@@ -248,7 +248,7 @@ let site = try! load(path);
 println(f"{site.title} -> {site.out}");
 
 site.out = "dist";
-try! fs::write(path, rokon::to_string(site) + "\n");
+try! fs::write(path, rokon::to_str(site) + "\n");
 print(try! fs::read_to_str(path));
 
 try! fs::write(path, "Site { title: 1 }");
@@ -264,13 +264,13 @@ bad config: 1:15: expected str, found integer
 missing: NotFound
 ```
 
-Notice also that rewriting with `to_string` drops comments. Files that people edit are better left for programs not to overwrite. `rok fmt` only fixes indentation in `.rokon` files and leaves comments and layout alone.
+Notice also that rewriting with `to_str` drops comments. Files that people edit are better left for programs not to overwrite. `rok fmt` only fixes indentation in `.rokon` files and leaves comments and layout alone.
 
 ## Summary
 
 - ROKON is a data format that uses Rok literal syntax as is; the file extension is `.rokon`.
-- Add `#[derive(Rokon)]`, read with `rokon::from_str`, write with `rokon::to_string`.
-- A missing field takes its `= default`, or `none` if its type is `T | none`; otherwise it is an error. Unknown fields are errors too.
+- Add `#[derive(Rokon)]`, read with `rokon::from_str`, write with `rokon::to_str` (or `to_str_flat` for one line).
+- A missing field takes its `= default`, or `none` if its type is `T | none`; otherwise it is an error. Unknown fields are skipped unless the type says `#[rokon(deny_unknown_fields)]`.
 - Error messages have the form `line:column: description`.
 - If you don't know the structure, use `rokon::parse` to get a `Value`.
 - `Dict` keeps insertion order, so a map is written back in the order it was read.

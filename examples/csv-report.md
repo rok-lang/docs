@@ -53,29 +53,30 @@ fn write_csv(path: str) throws (IoError) {
     for line in ROWS.lines() {
         try w.write_fmt(f"{line}\n");
     }
-    try w.flush();
+    try w.close();                   // flushes, then closes the file
 }
 
 fn summarize(path: str) throws (IoError) -> Dict<str, Group> {
     let groups: Dict<str, Group> = Dict::new();
-    let r = BufReader::new(try File::open(path));
-    let n: usize = 0;
-    for item in r.lines() {
-        let line = try item.get();
-        n += 1;
-        if n == 1 || line.is_empty() { continue; } // header
-        let sale = try parse_row(line) catch e: RowError {
-            match e {
-                RowError::Fields(k) => println(f"line {n}: expected 5 fields, got {k}, skipped"),
-                RowError::Number(s) => println(f"line {n}: bad number '{s}', skipped"),
-            }
-            continue;
-        };
-        let g = groups.get(sale.region) ?? Group {};
-        g.orders += 1;
-        g.units += sale.units;
-        g.revenue += sale.units as f64 * sale.price;
-        groups[sale.region] = g;
+    using r = BufReader::new(try File::open(path)) {
+        let n: usize = 0;
+        for item in r.lines() {
+            let line = try item.get();
+            n += 1;
+            if n == 1 || line.is_empty() { continue; } // header
+            let sale = try parse_row(line) catch e: RowError {
+                match e {
+                    RowError::Fields(k) => println(f"line {n}: expected 5 fields, got {k}, skipped"),
+                    RowError::Number(s) => println(f"line {n}: bad number '{s}', skipped"),
+                }
+                continue;
+            };
+            let g = groups.get(sale.region) ?? Group {};
+            g.orders += 1;
+            g.units += sale.units;
+            g.revenue += sale.units as f64 * sale.price;
+            groups[sale.region] = g;
+        }
     }
     groups
 }
@@ -121,7 +122,7 @@ total   |      7|    70|   267.46|
 ## Walkthrough
 
 - The file is created under `env::temp_dir()` and removed in the `finally` of `main`, so no temporary file is left behind even if summarizing fails ([Files and I/O](../learn/13-io.html), [`env::temp_dir`](../std/std/env.html#fn.temp_dir)).
-- Writing goes through a `BufWriter` and reading through a `BufReader`. Each item of `r.lines()` is a `Result<str, IoError>`, so `try item.get()` takes the line out and propagates read errors ([`BufReader`](../std/std/io.html#struct.BufReader), [`fs`](../std/std/fs.html)).
+- Writing goes through a `BufWriter` and reading through a `BufReader`. Closing a file can fail, so the compiler does not close one for you: `w.close()` flushes and closes the writer, and the reader is bound with `using` ([`using`](../learn/10-errors.html)). Each item of `r.lines()` is a `Result<str, IoError>`, so `try item.get()` takes the line out and propagates read errors ([`BufReader`](../std/std/io.html#struct.BufReader), [`fs`](../std/std/fs.html)).
 - `parse_row` throws a `RowError` for a malformed row; the caller prints a warning in its `catch` block and moves on with `continue`. One bad line does not sink the whole report ([Errors](../learn/10-errors.html)).
 - The totals are a `Dict<str, Group>`. `groups.get(region) ?? Group {}` fetches an entry or starts a new one, and `groups[region] = g` stores the updated value back. Every field of `Group` has a default, so `Group {}` alone starts at zero ([Collections and iterators](../learn/08-collections-iterators.html)).
 - Format specs line up the table: `{name:<8}` left-aligns, `{g.revenue:>9.2}` uses width 9 and two decimals, and `{"":-<8}` fills an empty string with `-` to draw the rule ([2.10.8 align and width](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

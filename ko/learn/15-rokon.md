@@ -29,9 +29,9 @@ Config {
 
 `//` 주석과 끝에 붙는 쉼표는 쓸 수 있습니다. 변수, 연산자, 함수 호출, f-string 같은 "코드"는 쓸 수 없습니다. ROKON은 실행되는 일이 없는 순수한 데이터입니다.
 
-## `#[derive(Rokon)]`과 `from_str` / `to_string`
+## `#[derive(Rokon)]`과 `from_str` / `to_str`
 
-struct나 enum에 `#[derive(Rokon)]`을 붙이면 `rok::std::rokon`의 `from_str`로 읽고 `to_string`으로 쓸 수 있습니다. 어떤 타입으로 읽을지는 변수의 타입 표기가 정합니다.
+struct나 enum에 `#[derive(Rokon)]`을 붙이면 `rok::std::rokon`의 `from_str`로 읽고 `to_str`로 쓸 수 있습니다. 어떤 타입으로 읽을지는 변수의 타입 표기가 정합니다.
 
 ```rok
 use rok::std::rokon;
@@ -69,7 +69,7 @@ Config {
         println(f"  {s.host}:{s.port} tls={s.tls ?? false}");
     }
     println(f"cpu limit: {cfg.limits["cpu"]}");
-    println(rokon::to_string(cfg));
+    println(try rokon::to_str(cfg));
 }
 ```
 
@@ -95,7 +95,7 @@ Config {
 - 타입이 `T | none`이면 `none`(`tls`).
 - 그 밖에는 에러.
 
-`to_string`은 **정규 형식**(canonical form)으로 씁니다. 들여쓰기는 4칸입니다. 값이 100열 안에 들어가면 한 줄로 쓰고, 아니면 원소마다 한 줄씩 끝에 쉼표를 붙여 씁니다. 정규 형식을 다시 읽으면 같은 값이 됩니다.
+`to_str`은 **정규 형식**(canonical form)으로 씁니다. 들여쓰기는 4칸입니다. 값이 100열 안에 들어가면 한 줄로 쓰고, 아니면 원소마다 한 줄씩 끝에 쉼표를 붙여 씁니다. 정규 형식을 다시 읽으면 같은 값이 됩니다. `to_str_flat`은 같은 내용을 폭과 상관없이 한 줄로 씁니다. 둘 다 NaN 실수처럼 ROKON으로 쓸 수 없는 값을 만나면 `RokonError`를 던집니다.
 
 ## enum, 튜플 struct, Dict
 
@@ -124,7 +124,7 @@ for s in shapes {
     println(d);
 }
 
-println(rokon::to_string(Point(3, -4)));
+println(try! rokon::to_str(Point(3, -4)));
 let p: Point = try! rokon::from_str("Point(1, 2)");
 println(f"{p.0} {p.1}");
 
@@ -145,7 +145,7 @@ primes: [2, 3, 5]
 ```
 
 > [!TIP]
-> `Dict`와 `Set`은 삽입 순서를 지킵니다. 그래서 `to_string`은 항목을 넣은 순서대로 쓰고, 그 순서는 실행할 때마다 같습니다.
+> `Dict`와 `Set`은 삽입 순서를 지킵니다. 그래서 `to_str`은 항목을 넣은 순서대로 쓰고, 그 순서는 실행할 때마다 같습니다.
 
 ## 잘못된 입력과 에러
 
@@ -178,15 +178,15 @@ ok: h:22
 error: 1:1: missing field `port` in Server
 error: 1:27: integer 70000 is out of range for u16
 error: 1:16: bare identifier `h` is not allowed in ROKON (strings are quoted, variants are written `Enum::h`)
-error: 1:31: unknown field `user` in Server
+ok: h:22
 error: 1:1: expected Server, found `Client { .. }`
 ```
 
-모르는 필드도 에러입니다. 그래서 설정 키를 잘못 적어도 조용히 무시되지 않습니다.
+타입에 없는 필드(`user`)는 건너뜁니다. 그래서 프로그램의 새 버전에 맞춰 쓴 파일도 읽힙니다. 잘못 적은 키를 잡아내는 것처럼 이런 필드를 에러로 만들려면 타입에 `#[rokon(deny_unknown_fields)]`를 붙입니다.
 
 ## 타입 없이 읽기: `Value`
 
-구조를 미리 알 수 없는 데이터는 `rokon::parse`로 `Value` enum에 읽어 들일 수 있습니다. `Value`에는 `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, `Variant` 같은 변형이 있습니다. `kind()`는 그 종류의 이름을 돌려줍니다.
+구조를 미리 알 수 없는 데이터는 `rokon::parse`로 `Value` enum에 읽어 들일 수 있습니다. `Value`에는 `None`, `Int`, `Str`, `List`, `Dict`, `Struct`, `Variant` 같은 변형이 있습니다. `kind_name()`은 그 종류의 이름을 돌려줍니다. 이후 릴리스에서 변형이 늘어날 수 있으므로 `Value`에 대한 `match`에는 `_` 갈래가 필요합니다.
 
 ```rok
 use rok::std::rokon;
@@ -197,10 +197,10 @@ match v {
     Value::Struct { name, fields } => {
         println(f"struct {name ?? "(anonymous)"}");
         for (k, x) in fields {
-            println(f"  {k}: {x.kind()} = {x}");
+            println(f"  {k}: {x.kind_name()} = {x}");
         }
     },
-    _ => println(f"not a struct: {v.kind()}"),
+    _ => println(f"not a struct: {v.kind_name()}"),
 }
 ```
 
@@ -248,7 +248,7 @@ let site = try! load(path);
 println(f"{site.title} -> {site.out}");
 
 site.out = "dist";
-try! fs::write(path, rokon::to_string(site) + "\n");
+try! fs::write(path, rokon::to_str(site) + "\n");
 print(try! fs::read_to_str(path));
 
 try! fs::write(path, "Site { title: 1 }");
@@ -264,13 +264,13 @@ bad config: 1:15: expected str, found integer
 missing: NotFound
 ```
 
-`to_string`으로 다시 쓰면 주석이 사라집니다. 사람이 편집하는 파일은 프로그램이 덮어쓰지 않는 편이 좋습니다. `rok fmt`는 `.rokon` 파일의 들여쓰기만 고치고, 주석과 배치는 그대로 둡니다.
+`to_str`로 다시 쓰면 주석이 사라집니다. 사람이 편집하는 파일은 프로그램이 덮어쓰지 않는 편이 좋습니다. `rok fmt`는 `.rokon` 파일의 들여쓰기만 고치고, 주석과 배치는 그대로 둡니다.
 
 ## 요약
 
 - ROKON은 Rok 리터럴 문법을 그대로 쓰는 데이터 형식이고, 확장자는 `.rokon`입니다.
-- `#[derive(Rokon)]`을 붙이고, `rokon::from_str`로 읽고, `rokon::to_string`으로 씁니다.
-- 빠진 필드는 `= default` 값을, 타입이 `T | none`이면 `none`을 받고, 그 밖에는 에러입니다. 모르는 필드도 에러입니다.
+- `#[derive(Rokon)]`을 붙이고, `rokon::from_str`로 읽고, `rokon::to_str`(한 줄이면 `to_str_flat`)로 씁니다.
+- 빠진 필드는 `= default` 값을, 타입이 `T | none`이면 `none`을 받고, 그 밖에는 에러입니다. 모르는 필드는 건너뛰고, 타입에 `#[rokon(deny_unknown_fields)]`가 있으면 에러입니다.
 - 에러 메시지는 `line:column: description` 형태입니다.
 - 구조를 모르면 `rokon::parse`로 `Value`를 얻습니다.
 - `Dict`는 삽입 순서를 지키므로, 맵은 읽은 순서 그대로 다시 쓰입니다.

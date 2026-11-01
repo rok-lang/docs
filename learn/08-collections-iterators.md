@@ -62,6 +62,25 @@ println(f"{part.len()} {part[0]} {part.to_list():?}");
 3 20 [20, 30, 40]
 ```
 
+A `Slice` is read-only. A function that fills or reorders part of a list takes a `SliceMut<T>` instead, a writable view like Rust's `&mut [T]`. Where a `SliceMut` is expected, `xs` passes the whole list and `xs[a:b]` that range; nothing is copied, and writes go to the list.
+
+```rok
+fn zero(buf: SliceMut<i32>) { buf.fill(0); }
+
+let ys = [5, 4, 3, 2, 1];
+let mid: SliceMut<i32> = ys[1:4];
+mid.sort();
+mid[0] = 20;
+zero(ys[4:]);
+println(f"{ys:?}");
+```
+
+```output
+[5, 20, 3, 4, 0]
+```
+
+A view does not survive a resize of its list (`push`, `insert`, `clear`, ...): using it after one is an error where the compiler can see it, and a panic where it cannot. Make the view again after the resize.
+
 ## Dict and Set
 
 `{"key": value}` is a hash map, `Dict<K, V>`, and `{1, 2}` is a hash set, `Set<T>`. An empty `{}` is a block, so create empty collections with `Dict::new()` / `Set::new()`. `d[k]` panics if the key is missing; `d.get(k)` returns `V | none`.
@@ -258,14 +277,14 @@ You can skip this section on a first read. Dotted operators such as `.+`, `.*`, 
 ```rok
 struct Vector { xs: List<f64>; }
 
-impl DotAdd for Vector {
+impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
         Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
     }
 }
 
-impl DotMul<f64> for Vector {
+impl ops::DotMul<f64> for Vector {
     type Output = Vector;
     fn dot_mul(self, k: f64) -> Vector {
         Vector { xs: self.xs.iter().map(|x| x * k).collect() }
@@ -301,7 +320,7 @@ println(f"{c:?} {d:?} {r:?}");
 
 - `List` provides `push` / `pop` / `insert` / `remove` / `sort` / `get`, `Dict` provides `d[k]` / `get` / `entry`, and `Set` provides set operations.
 - Collections are reference handles. Call `clone()` when you need a copy.
-- `xs[a:b:s]` slicing works like Python and never panics on out-of-range bounds (a step of 0 does). The result is a `Slice<T>` view.
+- `xs[a:b:s]` slicing works like Python and never panics on out-of-range bounds (a step of 0 does). The result is a `Slice<T>` view; a `SliceMut<T>` writes the list.
 - `Dict` and `Set` keep insertion order; for a double-ended queue, use `Deque`.
 - Chain adapters after `iter()` and consume with `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
 - `yield fn` and `yield { }` make iterators easy to write.

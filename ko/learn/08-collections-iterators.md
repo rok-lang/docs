@@ -62,6 +62,25 @@ println(f"{part.len()} {part[0]} {part.to_list():?}");
 3 20 [20, 30, 40]
 ```
 
+`Slice`는 읽기 전용입니다. 리스트의 일부를 채우거나 순서를 바꾸는 함수는 대신 `SliceMut<T>`를 받습니다. Rust의 `&mut [T]`와 같은, 쓸 수 있는 뷰입니다. `SliceMut`를 기대하는 자리에서는 `xs`가 리스트 전체를, `xs[a:b]`가 그 범위를 넘깁니다. 아무것도 복사하지 않으며, 쓰기는 리스트에 반영됩니다.
+
+```rok
+fn zero(buf: SliceMut<i32>) { buf.fill(0); }
+
+let ys = [5, 4, 3, 2, 1];
+let mid: SliceMut<i32> = ys[1:4];
+mid.sort();
+mid[0] = 20;
+zero(ys[4:]);
+println(f"{ys:?}");
+```
+
+```output
+[5, 20, 3, 4, 0]
+```
+
+리스트의 크기가 바뀌면(`push`, `insert`, `clear` 등) 그 뷰는 더 쓸 수 없습니다. 크기가 바뀐 뒤에 뷰를 쓰면, 컴파일러가 볼 수 있는 곳에서는 에러이고 볼 수 없는 곳에서는 panic입니다. 크기를 바꾼 뒤에는 뷰를 다시 만듭니다.
+
 ## Dict와 Set
 
 `{"key": value}`는 해시 맵 `Dict<K, V>`이고, `{1, 2}`는 해시 집합 `Set<T>`입니다. 빈 `{}`는 블록이므로 빈 컬렉션은 `Dict::new()` / `Set::new()`로 만듭니다. `d[k]`는 키가 없으면 panic을 일으키고, `d.get(k)`는 `V | none`을 반환합니다.
@@ -258,14 +277,14 @@ done
 ```rok
 struct Vector { xs: List<f64>; }
 
-impl DotAdd for Vector {
+impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
         Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
     }
 }
 
-impl DotMul<f64> for Vector {
+impl ops::DotMul<f64> for Vector {
     type Output = Vector;
     fn dot_mul(self, k: f64) -> Vector {
         Vector { xs: self.xs.iter().map(|x| x * k).collect() }
@@ -301,7 +320,7 @@ println(f"{c:?} {d:?} {r:?}");
 
 - `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `entry`가, `Set`에는 집합 연산이 있습니다.
 - 컬렉션은 참조 핸들입니다. 복사본이 필요하면 `clone()`을 호출합니다.
-- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 범위를 벗어나도 panic을 일으키지 않습니다(간격이 0이면 panic입니다). 결과는 `Slice<T>` 뷰입니다.
+- `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 범위를 벗어나도 panic을 일으키지 않습니다(간격이 0이면 panic입니다). 결과는 `Slice<T>` 뷰이고, 리스트에 쓰려면 `SliceMut<T>`를 씁니다.
 - `Dict`와 `Set`은 삽입 순서를 지킵니다. 양방향 큐가 필요하면 `Deque`를 씁니다.
 - `iter()` 뒤에 어댑터를 이어 붙이고 `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
 - `yield fn`과 `yield { }`를 쓰면 반복자를 짧게 작성할 수 있습니다.

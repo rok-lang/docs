@@ -137,7 +137,26 @@ println(try await r.body.text());
 
 ## stone 공개하기
 
-공개는 레지스트리 index에 줄 하나를 더하는 일입니다. 그 줄은 git 저장소의 커밋 하나를 가리킵니다. 소스 아카이브를 올리지는 않습니다. 패키지에는 `src/lib.rok`(라이브러리), `src/main.rok`(`rok install`로 설치하는 프로그램) 중 하나나 둘 다와 readme가 있어야 하고, 원격 `origin`이 있는 깨끗한 git 작업 트리의 루트에 있어야 합니다. 일반 의존성은 모두 그 자체가 stone이어야 합니다. 경로 의존성과 git 의존성은 거부되고, 경로와 git의 `dev_deps`는 빠집니다. `description`, `license`, `repository`를 채우세요. 이 값이 `rok search`와 웹사이트에 나타납니다.
+공개는 레지스트리 index에 줄 하나를 더하는 일입니다. 그 줄은 git 저장소의 커밋 하나를 가리킵니다. 소스 아카이브를 올리지는 않습니다. 패키지에는 `src/lib.rok`(라이브러리), `src/main.rok`(`rok install`로 설치하는 프로그램) 중 하나나 둘 다와 readme가 있어야 하고, 원격 `origin`이 있는 깨끗한 git 작업 트리의 루트에 있어야 합니다. 일반 의존성은 모두 그 자체가 stone이어야 합니다. 경로 의존성과 git 의존성은 거부되고, 경로와 git의 `dev_deps`는 빠집니다. `description`, `license`, `repository`를 채우세요. 이 값이 `rok search`와 웹사이트에 나타납니다. stone 페이지에 나오는 나머지 필드는 Cargo처럼 선택입니다.
+
+```rokon
+Package {
+    name: "textwrap",
+    version: "0.1.0",
+    description: "Word wrapping for terminals",
+    license: "MIT OR Apache-2.0",
+    repository: "https://github.com/you/textwrap",
+    authors: ["You <you@example.com>"],
+    homepage: "https://example.com/textwrap",
+    documentation: "https://example.com/textwrap/docs",
+    keywords: ["text", "terminal"],
+    categories: ["text-processing"],
+    exclude: ["bench/**"],
+    deps: {},
+}
+```
+
+`keywords`와 `categories`는 각각 5개까지 적을 수 있습니다. `include` / `exclude`는 stone에 담을 파일을 고릅니다. `license_file`, `readme`, `links`, `default_run`, 자유 형식의 `metadata` 테이블도 있습니다. `rok`이 모르는 필드는 에러가 아니라 경고이고, 레지스트리에는 그대로 보내집니다.
 
 > [!IMPORTANT]
 > 지금은 rokstones.io 관리자만 stone을 공개할 수 있습니다. 누구나 로그인해 stone을 쓸 수 있지만, `rok login`은 아직 공개 권한이 없는 계정을 거절합니다.
@@ -152,30 +171,30 @@ a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
    Logged in as your-name at https://rokstones.io (token in ~/.rok/tokens.rokon)
 ```
 
-인자가 없으면 토큰을 화면에 보이지 않게 표준 입력에서 읽습니다. `rok login`은 레지스트리에 토큰이 누구의 것인지 묻고, 레지스트리가 거부하는 토큰은 아무것도 저장하지 않고 거절합니다. 올바른 토큰은 `~/.rok/tokens.rokon`(본인만 읽을 수 있음)에 그 토큰을 만든 index별로 저장되고, 그 index에만 보내집니다. 다른 index의 토큰은 `rok login --registry <url>`로 저장합니다. 기본 index의 토큰은 rok 0.1.5 이하가 찾는 `~/.rok/credentials.rokon`에도 저장됩니다. `rok logout`은 두 파일에서 토큰을 지우고, 파일의 다른 필드는 그대로 둡니다. `rok logout --all`은 모든 index의 토큰을 지웁니다. CI에서는 대신 `ROK_REGISTRY_TOKEN`을 설정합니다.
+인자가 없으면 토큰을 화면에 보이지 않게 표준 입력에서 읽습니다. `rok login`은 레지스트리에 토큰이 누구의 것인지 묻고, 레지스트리가 거부하는 토큰은 아무것도 저장하지 않고 거절합니다. 올바른 토큰은 `~/.rok/tokens.rokon`(본인만 읽을 수 있음)에 그 토큰을 만든 index별로 저장되고, 그 index에만 보내집니다. 다른 index의 토큰은 `rok login --registry <url>`로 저장합니다. `rok logout`은 그 토큰을 지우고, `rok logout --all`은 모든 index의 토큰을 지웁니다. CI에서는 대신 `ROK_REGISTRY_TOKEN`을 설정합니다. 이 토큰은 rokstones.io에만 보내집니다.
 
 ### `rok publish`
 
-`rok publish --dry-run`은 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다. 0.1.6에서는 `--dry-run`도 `--commit`도 없이 `rok publish`만 써도 시험 실행이지만 경고가 나옵니다. 0.2.0부터는 `cargo publish`처럼 `rok publish`만 쓰면 바로 게시하므로, 미리 보려면 `--dry-run`을 적으세요.
+`rok publish --dry-run`은 시험 실행(dry run)입니다. 더할 index 항목을 출력할 뿐, 아무것도 기계 밖으로 보내지 않습니다. `rok publish`는 `cargo publish`처럼 바로 게시합니다.
 
 ```text
 $ rok publish --dry-run
-Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
-note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
+Stone { name: "textwrap", version: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), tree: "823a3592..", yanked: false, toolchain: "0.2" }
+note: dry run; `rok publish` sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
-항목에는 HEAD 커밋과 그 트리 해시가 기록되므로 그 커밋을 먼저 원격 저장소에 올리세요(push). `rok publish --commit`은 토큰과 함께 항목을 레지스트리에 보냅니다(`Published textwrap 0.1.0 to https://rokstones.io`). index에 항목이 들어가면 그 버전이 공개됩니다. 한 버전은 두 번 공개할 수 없습니다. 기존 stone과 대소문자나 `-` / `_`만 다른 이름은 이미 쓰인 것으로 봅니다.
+항목에는 의존성 해소에 필요한 것만 들어갑니다. HEAD 커밋과 그 트리 해시, 의존성, 툴체인 시리즈입니다. 그러니 그 커밋을 먼저 원격 저장소에 올리세요(push). 설명, 라이선스 같은 나머지 메타데이터는 항목과 함께 레지스트리로 가고, 레지스트리는 버전마다 누가 공개했는지와 함께 이를 보여 줍니다. `rok publish`는 토큰과 함께 둘을 레지스트리에 보냅니다(`Published textwrap 0.1.0 to https://rokstones.io`). index에 항목이 들어가면 그 버전이 공개됩니다. 한 버전은 두 번 공개할 수 없습니다. 기존 stone과 대소문자나 `-` / `_`만 다른 이름은 이미 쓰인 것으로 봅니다.
 
 ### `rok yank`
 
 심각한 버그가 있는 버전은 철회(yank)할 수 있습니다. 새로 의존성을 해소할 때는 그 버전을 건너뜁니다. 하지만 `rok.lock`이 이미 그 버전을 고정한 프로젝트는 계속 빌드되므로 철회가 누군가의 빌드를 깨뜨리는 일은 없습니다. `--undo`로 되돌립니다.
 
 ```bash
-rok yank textwrap@0.1.0
+rok yank textwrap@0.1.0 --message "wraps CJK text wrong; use 0.1.1"
 rok yank textwrap@0.1.0 --undo
 ```
 
-예전 형태인 `rok yank --vers 0.1.0`(패키지 디렉터리에서)도 동작하지만 경고가 나옵니다.
+`--message`로 이유를 적으면 레지스트리가 stone 페이지에 보여 줍니다.
 
 ### 공개한 API 바꾸기
 
@@ -198,6 +217,22 @@ warning[E503]: use of deprecated function `wrap`
    = note: `#[warn(deprecated)]` on by default
 ```
 
+자랄 여지를 남기는 속성이 둘 있습니다. enum에 `#[non_exhaustive]`를 붙이면 다른 패키지의 `match`는 `_ =>`로 끝나야 하므로 나중에 변형을 더할 수 있습니다. struct에 붙이면 필드를 더할 수 있는 레코드가 됩니다. 다른 패키지는 여전히 리터럴로 값을 만들고 기본값이 있는 필드는 생략할 수 있지만, 그 struct에 대한 패턴은 `..`로 끝나야 합니다. 나중에 더하는 필드에는 모두 기본값을 주어야 그런 리터럴이 계속 컴파일됩니다.
+
+```rok norun
+#[non_exhaustive]
+pub struct WrapOptions {
+    pub width: i32 = 80;
+    pub break_words: bool = false;
+}
+
+// 다른 패키지에서
+let o = textwrap::WrapOptions { width: 60 };
+let textwrap::WrapOptions { width, .. } = o;
+```
+
+트레잇에 `#[sealed]`를 붙이면 그 트레잇은 내 패키지만 구현합니다. 다른 패키지도 바운드에 쓰고 메서드를 부를 수 있지만, 다른 곳의 `impl`은 에러입니다. 그래서 구현이 무엇무엇인지 다 안다고 믿고 코드를 쓸 수 있습니다.
+
 ## 요약
 
 - `rok.rokon`의 `features`는 feature 이름마다 켤 항목을 적습니다. 항목은 다른 feature, `dep:<d>`, `<d>/<f>`, `<d>?/<f>`입니다. `default`는 끄지 않는 한 켜져 있습니다.
@@ -205,7 +240,7 @@ warning[E503]: use of deprecated function `wrap`
 - feature는 `--features`, `--no-default-features`, `--all-features`로, 의존성마다는 `features:` / `default_features: false`로 고릅니다. feature는 빌드 전체에서 합쳐지므로 더하기만 해야 합니다.
 - 코드는 `#[cfg(feature = "..")]`와 `cfg!(feature = "..")`로 feature를 검사합니다.
 - `json`, `toml`, `http`, `markdown`, `rok-syntax`가 Rok 프로젝트의 stone입니다.
-- 공개는 `rok login`(rokstones.io 토큰), `rok publish --dry-run`, `rok publish --commit` 순서로 하고, 철회는 `rok yank name@version`으로 합니다. API를 없앨 때는 먼저 `#[deprecated]`를 붙입니다. 지금은 관리자만 공개할 수 있습니다.
+- 공개는 `rok login`(rokstones.io 토큰), `rok publish --dry-run`, `rok publish` 순서로 하고, 철회는 `rok yank name@version --message <이유>`로 합니다. API를 없앨 때는 먼저 `#[deprecated]`를 붙입니다. `#[non_exhaustive]`와 `#[sealed]`는 변형, 필드, 구현을 더할 여지를 남깁니다. 지금은 관리자만 공개할 수 있습니다.
 
 ## 더 읽을거리
 

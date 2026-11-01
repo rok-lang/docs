@@ -59,7 +59,7 @@ An explicit `fn main()` that is not `throws` must handle every error itself; wri
 
 ## `try?` and `??`: a default instead of an error
 
-Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. Close the `try?` with parentheses before `??`: `try? f() ?? d` reads as `try? (f() ?? d)`, which gives `none` on an error: rokc warns, and when `f()` is not optional it is a compile error.
+Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. Close the `try?` with parentheses before `??`: without them, `try? f() ?? d` is an error, since it would read as `try? (f() ?? d)` and give `none` on an error.
 
 ```rok
 fn parse_port(s: str) -> i32 {
@@ -159,6 +159,34 @@ failed: 3 is odd
 done with 6
 result 0
 ```
+
+A `return`, `break` or `continue` that leaves the `finally` block itself is an error: it would drop an error that is on its way out. Put the jump after the `try` expression.
+
+## `try for`: loops whose steps can fail
+
+Some iterators can fail at each step: a generator that throws, or bytes read from a stream. Such an iterator is a `TryIterator`, and a `for` over it is written `try for`. The `try` covers the iterable and each step, not the body: a call in the body that can throw needs its own `try`.
+
+```rok
+yield fn numbers(words: List<str>) throws (ParseError) -> i32 {
+    for w in words { yield try w.parse::<i32>(); }
+}
+
+fn total(words: List<str>) throws -> i32 {
+    let sum = 0;
+    try for n in numbers(words) {   // a failed step propagates
+        sum += n;
+    }
+    sum
+}
+
+println(f"{try! total(["1", "2", "3"])} {(try? total(["1", "x"])) ?? -1}");
+```
+
+```output
+6 -1
+```
+
+`try! for` panics on a failed step, and `try? for` ends the loop there. To go on past errors, loop over `it.results()`, which gives each step as a `Result`.
 
 ## Your own error types
 
@@ -300,7 +328,31 @@ close db
 work failed: query failed
 ```
 
-`using` is an expression, so it can also produce a value, as in `let text = using f = try fs::open(path) { try f.read_to_end() };`. Remember that ordinary `let` bindings are not `drop`ped when they go out of scope. When you need deterministic cleanup, use `using`.
+`using` is an expression, so it can also produce a value, as in `let text = using f = try fs::open(path) { try f.read_to_end() };`. 
+A value whose type implements `Drop` has one owner. `let b = a` moves it, and using `a` afterwards is an error; `a.clone()` makes a second value with its own owner. Without `using`, the compiler releases the value where its owner leaves scope, on every way out:
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+fn short_job() {
+    let c = Conn { name: "tmp" };
+    let d = c;               // moves: `c` is gone
+    println("working");
+}                            // the compiler releases `d` here
+
+short_job();
+```
+
+```output
+working
+close tmp
+```
+
+A type whose close can fail, such as a `File`, is not closed for you, since its error would be lost: close it with `try f.close()`, or bind it with `using`. Leaving its scope with it still open is a compile error.
 
 ## Errors and panics
 
@@ -340,11 +392,12 @@ for n in [4, 5] {
 
 - A function that can throw declares `throws` (before `->`) and throws with `throw`; `ValueError::new(msg)` covers most needs.
 - Calls are marked with `try`. An uncaught error propagates to the enclosing function; at the top of a script it ends the program with exit code 1.
-- `(try? e) ?? default` gives a fallback (without the parentheses, rokc warns or rejects it); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
+- `(try? e) ?? default` gives a fallback (the parentheses are required); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
 - `catch` is an expression that selects by pattern, and `finally` always runs.
 - Define your own error types (`Display` + `Error`) when callers must tell failures apart, and list them with `throws (A | B)`.
 - `rethrows` throws only when the function it received throws.
-- Resources bound with `using` are cleaned up however the block is exited.
+- Resources bound with `using` are cleaned up however the block is exited. Other `Drop` values are released where their owner leaves scope; a `File` must be closed or bound with `using`.
+- `try for` loops over an iterator whose steps can fail; the body marks its own `try`.
 - A panic is an uncatchable bug signal. Use `Result` only when you need to hold an error as a value.
 
 ## Further reading

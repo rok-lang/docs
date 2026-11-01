@@ -144,7 +144,7 @@ cd hello
 The second line is the command to run next. There are two files. The manifest `rok.rokon` holds the package name, version, the toolchain series it was made with, and dependencies.
 
 ```rokon
-Package { name: "hello", version: "0.1.0", toolchain: "0.1", deps: {} }
+Package { name: "hello", version: "0.1.0", toolchain: "0.2", deps: {} }
 ```
 
 The source lives in `src/`; `src/main.rok` is a single line that prints a greeting.

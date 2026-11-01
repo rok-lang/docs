@@ -92,9 +92,17 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
    = help: import it under another name, `use shapes::square as shapes_square;`, or remove this `use` if the module does not need it
 ```
 
-Names like `List`, `Dict`, and `println`, which you have used so far without `use`, work thanks to the `use rok::core::**;` (a recursive glob: `*` plus submodules) implicitly present in every file. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
+Names like `List`, `Dict`, and `println`, which you have used so far without `use`, come from the *prelude*: every file starts with an implicit `use rok::core::prelude::*;`. The prelude is a fixed, short list: the common types (`List`, `Dict`, `Result`, `Duration`, `Mutex`, ...), the traits written in `impl` headers and bounds (`Clone`, `Hash`, `Display`, `Iterator`, `From`, ...), the printing and panic functions, and the top-level modules of `rok::core` (`task`, `par`, `ops`, `num`, `sync`, `iter`, ...). Everything else in `rok::core` is reached through one of those modules or imported:
 
-A trait works the same way: its methods are found only where the trait is in scope, so a trait from another module or package needs a `use` (`use zoo::Animal;`) before `x.name()` resolves. The standard library's traits are always in scope.
+```rok norun
+task::sleep(Duration::ms(1));          // the module `task` is in the prelude
+impl ops::Add for V { .. }             // operator traits live in `ops`
+use rok::core::sync::Frozen;           // or import the name
+```
+
+Your own names always win over the prelude's. Enum variants are not in the prelude; they are written bare where the expected type picks the enum ([chapter 6](06-structs-enums-traits.html)). When a name is not in scope, the error gives the path to write and the `use` that imports it. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
+
+A trait works the same way: its methods are found only where the trait is in scope, so a trait from another module or package needs a `use` (`use zoo::Animal;`) before `x.name()` resolves. The methods of `rok::core`'s traits work everywhere, without a `use`; a `rok::std` trait such as `io::Reader` is imported like any other.
 
 Macros, derives, and meta attributes belong to the package that defines them. Your own package and the standard library write them bare (`log!(..)`, `#[derive(Inspect)]`); another package's are written with its name, `json::log!(..)`, `#[derive(json::Json)]`, or imported once with `use json::log!;`. A bare name of another package's macro is an error whose help gives both forms.
 
@@ -134,7 +142,9 @@ println(f"{a.owner}: {bank::balance(a)}");
 kim: 500
 ```
 
-The `balance` field and the `check` function are not visible outside `bank`, so the balance changes only through `bank`'s functions.
+The `balance` field and the `check` function are not visible outside `bank`, so the balance changes only through `bank`'s functions. For the same reason, code outside `bank` cannot write `bank::Account { owner: "kim" }`: a struct literal may leave out a private field only when the field has a default. That is why `bank::open` builds the account.
+
+A few `pub` items of the standard library are marked `#[internal]`: the toolchain's own packages share them, and a use from any other package is an error, "internal to the Rok toolchain". The API docs and the editor leave them out.
 
 ## Splitting into files
 
@@ -204,7 +214,7 @@ rok add geom --path ../geom
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
     "geom": Dep::path("../geom"),
 } }
 ```
@@ -225,7 +235,7 @@ $ rok run
 15.70795
 ```
 
-`PI` is `pub(pkg)`, so it can be used anywhere inside `geom` but is not visible from `app`. A git repository is added with something like `rok add parser --git <url> --tag v1.2`. For git and stone dependencies, the exact commit is pinned in `rok.lock`, so commit `rok.lock` to version control as well. Only `rok update` moves pinned versions forward.
+`PI` is `pub(pkg)`, so it can be used anywhere inside `geom` but is not visible from `app`. A git repository is added with something like `rok add parser --git <url> --tag v1.2`. For git and stone dependencies, the exact commit is pinned in `rok.lock`, so commit `rok.lock` to version control as well. Only `rok update` moves pinned versions forward. A `rok.lock` written by rok 0.1 is rewritten once in the current lock format, with the same pins.
 
 ## Stones and rokstones.io
 
@@ -241,7 +251,7 @@ $ rok add json@^0.1
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
     "json": Dep::version("^0.1"),
 } }
 ```
@@ -266,6 +276,21 @@ Package { name: "app", version: "0.1.0", deps: {
 ```
 
 A path is not a version: write `Dep::path("../geom")`, not `"../geom"`.
+
+Two more keys of a dependency: `package:` renames it, so code calls the stone `json5` as `j5`, and `target:` limits it to builds for matching targets.
+
+```rokon
+Package { name: "app", version: "0.1.0", deps: {
+    "j5": Dep::version("^0.2", package: "json5"),
+    "nix": Dep::version("^0.4", target: "cfg(target_family = \"unix\")"),
+} }
+```
+
+A bare requirement always means the rokstones.io index. To fetch that index from a mirror, put the mirror in `~/.rok/sources.rokon`; `rok.lock` still names rokstones.io, so the lock stays the same with or without the mirror.
+
+```rokon
+Sources { replace: { "https://github.com/rok-lang/rokstones.io-index": "https://mirror.example.com/rokstones-index" } }
+```
 
 A library can offer **features** that its users turn on and off, and you can publish your own library as a stone with `rok login` and `rok publish`. Both are covered in [chapter 18](18-features-and-stones.html), together with the stones the Rok project maintains (`json`, `toml`, `http`, `markdown`, `rok-syntax`).
 
@@ -334,6 +359,7 @@ $ rok install tool@0.2
 ## Summary
 
 - Create modules with `mod`, and refer to names with `pkg::` / `sup::` / `rok::` paths and `use`.
+- Names used without `use` come from the prelude, a fixed list of common `rok::core` names and modules; the rest is reached through a module (`task::sleep`, `ops::Add`) or imported.
 - Items are private by default. Widen their scope with `pub(sub)`, `pub(pkg)`, and `pub`.
 - `mod x;` maps to `x.rok` (and `x/`). The root is `main.rok` or `lib.rok`.
 - Create packages with `rok new [--lib]` and add dependencies (path, git, stone) with `rok add`. Commit `rok.lock`.

@@ -59,7 +59,7 @@ $ echo $?
 
 ## `try?`와 `??`: 에러 대신 기본값
 
-대체 값만 있으면 되는 경우가 많습니다. `try? e`는 에러를 버리고 `none`을 내놓습니다. `??`는 `none`을 기본값으로 바꿉니다. `??` 앞에서는 `try?` 식을 괄호로 감쌉니다. `try? f() ?? d`는 `try? (f() ?? d)`로 읽혀 에러가 나면 `none`이 됩니다. rokc가 경고하고, `f()`가 옵셔널이 아니면 컴파일 에러입니다.
+대체 값만 있으면 되는 경우가 많습니다. `try? e`는 에러를 버리고 `none`을 내놓습니다. `??`는 `none`을 기본값으로 바꿉니다. `??` 앞에서는 `try?` 식을 괄호로 감쌉니다. 괄호가 없으면 `try? f() ?? d`는 `try? (f() ?? d)`로 읽혀 에러가 날 때 `none`이 되므로 에러입니다.
 
 ```rok
 fn parse_port(s: str) -> i32 {
@@ -159,6 +159,34 @@ failed: 3 is odd
 done with 6
 result 0
 ```
+
+`finally` 블록 자체를 빠져나가는 `return`, `break`, `continue`는 에러입니다. 밖으로 나가던 에러를 버리게 되기 때문입니다. 이런 점프는 `try` 식 뒤에 둡니다.
+
+## `try for`: 단계마다 실패할 수 있는 루프
+
+단계마다 실패할 수 있는 반복자가 있습니다. 에러를 던지는 제너레이터나 스트림에서 읽는 바이트가 그렇습니다. 이런 반복자는 `TryIterator`이고, 이것을 도는 `for`는 `try for`로 씁니다. `try`는 반복 대상과 각 단계를 덮고, 본문은 덮지 않습니다. 본문에서 에러를 던질 수 있는 호출에는 따로 `try`를 붙입니다.
+
+```rok
+yield fn numbers(words: List<str>) throws (ParseError) -> i32 {
+    for w in words { yield try w.parse::<i32>(); }
+}
+
+fn total(words: List<str>) throws -> i32 {
+    let sum = 0;
+    try for n in numbers(words) {   // 실패한 단계는 전파됨
+        sum += n;
+    }
+    sum
+}
+
+println(f"{try! total(["1", "2", "3"])} {(try? total(["1", "x"])) ?? -1}");
+```
+
+```output
+6 -1
+```
+
+`try! for`는 단계가 실패하면 panic을 일으키고, `try? for`는 그 자리에서 루프를 끝냅니다. 에러가 나도 계속 돌려면 `it.results()`를 돕니다. 각 단계를 `Result`로 줍니다.
 
 ## 직접 만드는 에러 타입
 
@@ -300,7 +328,31 @@ close db
 work failed: query failed
 ```
 
-`using`은 식이므로 `let text = using f = try fs::open(path) { try f.read_to_end() };`처럼 값을 내놓을 수도 있습니다. 일반 `let` 바인딩은 스코프를 벗어나도 `drop`을 호출하지 않습니다. 정해진 시점에 정리해야 하면 `using`을 씁니다.
+`using`은 식이므로 `let text = using f = try fs::open(path) { try f.read_to_end() };`처럼 값을 내놓을 수도 있습니다. 
+타입이 `Drop`을 구현한 값은 주인이 하나입니다. `let b = a`는 값을 옮기고, 그 뒤에 `a`를 쓰면 에러입니다. `a.clone()`은 따로 주인을 가진 두 번째 값을 만듭니다. `using`이 없으면 컴파일러가 주인이 스코프를 벗어나는 곳에서, 어떤 길로 나가든 값을 해제합니다.
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+fn short_job() {
+    let c = Conn { name: "tmp" };
+    let d = c;               // 옮김: `c`는 이제 없음
+    println("working");
+}                            // 컴파일러가 여기서 `d`를 해제함
+
+short_job();
+```
+
+```output
+working
+close tmp
+```
+
+`File`처럼 닫기가 실패할 수 있는 타입은 대신 닫아 주지 않습니다. 닫기 에러를 잃게 되기 때문입니다. `try f.close()`로 닫거나 `using`으로 묶습니다. 열린 채로 스코프를 벗어나면 컴파일 에러입니다.
 
 ## 에러와 panic
 
@@ -340,11 +392,12 @@ for n in [4, 5] {
 
 - 에러를 던질 수 있는 함수는 `->` 앞에 `throws`를 선언하고 `throw`로 던집니다. 대부분은 `ValueError::new(msg)`로 충분합니다.
 - 호출은 `try`로 표시합니다. 잡지 않은 에러는 감싸는 함수로 전파되고, 스크립트 최상위에서는 종료 코드 1로 프로그램을 끝냅니다.
-- `(try? e) ?? default`는 대체 값을 주고(괄호가 없으면 rokc가 경고하거나 거부합니다), `let _ = try? f();`는 에러를 무시하며, `try!`는 에러를 panic으로 바꿉니다.
+- `(try? e) ?? default`는 대체 값을 주고(괄호는 꼭 써야 합니다), `let _ = try? f();`는 에러를 무시하며, `try!`는 에러를 panic으로 바꿉니다.
 - `catch`는 패턴으로 고르는 식이고, `finally`는 항상 실행됩니다.
 - 호출자가 실패를 구별해야 하면 에러 타입(`Display` + `Error`)을 직접 정의하고 `throws (A | B)`로 나열합니다.
 - `rethrows`는 받은 함수가 던질 때에만 던집니다.
-- `using`으로 바인딩한 자원은 블록을 어떻게 빠져나가든 정리됩니다.
+- `using`으로 바인딩한 자원은 블록을 어떻게 빠져나가든 정리됩니다. 다른 `Drop` 값은 주인이 스코프를 벗어나는 곳에서 해제됩니다. `File`은 직접 닫거나 `using`으로 묶어야 합니다.
+- `try for`는 단계마다 실패할 수 있는 반복자를 돕니다. 본문의 호출에는 따로 `try`를 붙입니다.
 - panic은 잡을 수 없는 버그 신호입니다. 에러를 값으로 담아 두어야 할 때에만 `Result`를 씁니다.
 
 ## 더 읽을거리

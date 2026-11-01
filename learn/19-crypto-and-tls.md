@@ -7,24 +7,19 @@ Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, 
 
 ## Hashes and MACs
 
-The algorithms are items of `rok::core::crypto` (`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519`, ...), each also in its submodule (`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`). Every function that takes bytes accepts any `AsBytes` value: `List<u8>`, `Slice<u8>`, a byte array, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Your own functions that pass bytes on take `<B: AsBytes>` the same way, and a type of your own that implements `AsBytes` can be passed too. Results are `List<u8>`, except key material, which comes back as a `Secret` (below).
+The common items are at `rok::core::crypto` (`HashAlgorithm`, `Digest`, `Hmac`, `Aead`, `Secret`, ...). Keys and HKDF are reached through their algorithm's module, since several of them have a `PublicKey`: `crypto::ed25519::SigningKey`, `crypto::x25519::PrivateKey`, `crypto::hkdf::extract`. The modules are `sha2`, `sha3`, `hmac`, `hkdf`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa` and `mlkem`. Every function that takes bytes accepts any `AsBytes` value: `List<u8>`, `Slice<u8>`, a byte array, a `str` (its UTF-8 bytes) or a `Secret`, so byte strings and text can be passed directly. Your own functions that pass bytes on take `<B: AsBytes>` the same way, and a type of your own that implements `AsBytes` can be passed too. Results are `List<u8>`, except key material, which comes back as a `Secret` (below). To show bytes as text, `encoding::hex::encode` and `encoding::base64::encode` turn them into hex or base64 (`base64::encode(x, base64::URL_SAFE_NO_PAD)` picks another alphabet and padding), and `decode` turns the text back.
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};
+use rok::core::encoding::hex;
 
-fn hex(bytes: List<u8>) -> str {
-    let s = StrBuf::new();
-    for b in bytes { s.push_str(f"{b:02x}"); }
-    s.to_str()
-}
-
-println(hex(HashAlgorithm::Sha256.digest("abc")));
+println(hex::encode(HashAlgorithm::Sha256.digest("abc")));
 
 // The same hash, fed in pieces.
 let d = Digest::new(HashAlgorithm::Sha256);
 d.update("a");
 d.update(b"bc");
-println(f"{hex(d.finish()) == hex(HashAlgorithm::Sha256.digest("abc"))}");
+println(f"{d.finish() == HashAlgorithm::Sha256.digest("abc")}");
 
 let tag = Hmac::mac(HashAlgorithm::Sha256, "secret key", "message");
 println(f"{tag.len()} {Hmac::verify(HashAlgorithm::Sha256, "secret key", "message", tag)}");
@@ -38,14 +33,15 @@ true
 false
 ```
 
-`Hmac::verify` compares in constant time. To compare two secrets yourself, use `crypto::constant_time_eq` rather than `==`, which stops at the first difference and so leaks how much matched. `Hkdf` derives keys from a shared secret, and `sha3` has SHA3-256 / 512 and SHAKE. HMAC and HKDF over SHA-3 are the `_sha3` forms: `Hmac::mac_sha3(Sha3Algorithm::Sha3_256, key, data)`, `verify_sha3`, `Hkdf::extract_sha3` and `expand_sha3`.
+`Hmac::verify` compares in constant time. To compare two secrets yourself, use `crypto::constant_time_eq` rather than `==`, which stops at the first difference and so leaks how much matched. `hkdf::extract` / `expand` derive keys from a shared secret. `HashAlgorithm` has the SHA-3 functions too, `Sha3_256` and `Sha3_512`, so HMAC, HKDF and signatures take them like any other: `Hmac::mac(HashAlgorithm::Sha3_256, key, data)`. `sha3` also has the SHA-3 and SHAKE states as their own types. Later releases may add algorithms, so a `match` on a `HashAlgorithm` needs a `_` arm.
 
 ## Encryption and signatures
 
 `Aead` encrypts and authenticates in one step (AES-128-GCM, AES-256-GCM or ChaCha20-Poly1305). `seal` returns the ciphertext with a 16-byte tag; `open` returns `none` when anything, the ciphertext, the tag or the associated data, was changed. Keys and nonces come from `random`: the algorithms take randomness as an argument and never fetch it themselves.
 
 ```rok
-use rok::core::crypto::{Aead, AeadAlgorithm, Ed25519};
+use rok::core::crypto::{Aead, AeadAlgorithm};
+use rok::core::crypto::ed25519::SigningKey;
 use rok::std::random;
 
 let key = random::secret(32);
@@ -60,10 +56,10 @@ if let plain: List<u8> = try! aead.open(nonce, "v1", sealed) {
 sealed[0] = sealed[0] ^ 1u8;              // tamper with one bit
 println(f"tampered: {(try! aead.open(nonce, "v1", sealed)) is none}");
 
-let seed = random::secret(32);           // the private key
-let public = try! Ed25519::public_key(seed);
-let sig = try! Ed25519::sign(seed, "release 1.0");
-println(f"{Ed25519::verify(public, "release 1.0", sig)} {Ed25519::verify(public, "release 1.1", sig)}");
+let signer = try! SigningKey::from_seed(random::secret(32));   // the private key
+let public = signer.verifying_key();
+let sig = signer.sign("release 1.0");
+println(f"{public.verify("release 1.0", sig)} {public.verify("release 1.1", sig)}");
 ```
 
 ```output
@@ -73,23 +69,24 @@ tampered: true
 true false
 ```
 
-`X25519` and `MlKem768` agree on shared keys (the classic and the post-quantum way), and `Ecdsa` (P-256 / P-384) and `RsaPublicKey` / `RsaPrivateKey` sign and verify for the certificates the web uses.
+`x25519` and `mlkem` (ML-KEM-768) agree on shared keys (the classic and the post-quantum way), and `ecdsa` (P-256 / P-384) and `rsa` sign and verify for the certificates the web uses. A private key is a typed value (`ed25519::SigningKey`, `x25519::PrivateKey`, `ecdsa::SigningKey`, `rsa::PrivateKey`, `mlkem::DecapsulationKey768`) that is checked once when it is made and keeps its bytes in secret storage (below); its public half (`VerifyingKey`, `PublicKey`, `EncapsulationKey768`) is a plain value.
 
 ## Key material: `Secret`
 
-A `Secret` holds bytes in *secret storage*: a buffer the collector never moves or copies and overwrites with zeros before it frees it. `Hkdf::extract` / `expand`, `X25519::shared_secret` and the ML-KEM key functions return one, and `random::secret(n)` draws random bytes straight into one. It prints as `Secret(n bytes)`, never its contents, and has no `==`: compare with `constant_time_eq`. `wipe()` zeroes it now, and a `using` binding wipes it at the end of the block. `Aead` keeps its expanded key in secret storage too, and `Aead::wipe` clears it.
+A `Secret` holds bytes in *secret storage*: a buffer the collector never moves or copies and overwrites with zeros before it frees it. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman` and ML-KEM's `encapsulate` / `decapsulate` return one, and `random::secret(n)` draws random bytes straight into one. It prints as `Secret(n bytes)`, never its contents, and has no `==`: compare with `constant_time_eq`. `wipe()` zeroes it now, and a `using` binding wipes it at the end of the block. `Aead` and the private key types keep their key in secret storage too, and their `wipe` clears it.
 
 ```rok
-use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Hkdf, Secret, X25519, constant_time_eq};
+use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Secret, constant_time_eq};
+use rok::core::crypto::{hkdf, x25519};
 use rok::std::random;
 
-let a = random::secret(32);
-let b = random::secret(32);
-let ab = try! X25519::shared_secret(a, try! X25519::public_key(b)) ?? panic("bad key");
-let ba = try! X25519::shared_secret(b, try! X25519::public_key(a)) ?? panic("bad key");
+let a = try! x25519::PrivateKey::from_bytes(random::secret(32));
+let b = try! x25519::PrivateKey::from_bytes(random::secret(32));
+let ab = a.diffie_hellman(b.public_key()) ?? panic("bad key");
+let ba = b.diffie_hellman(a.public_key()) ?? panic("bad key");
 println(f"{ab:?} {constant_time_eq(ab, ba)}");
 
-let key = try! Hkdf::expand(HashAlgorithm::Sha256, Hkdf::extract(HashAlgorithm::Sha256, "salt", ab), "key", 32);
+let key = try! hkdf::expand(HashAlgorithm::Sha256, hkdf::extract(HashAlgorithm::Sha256, "salt", ab), "key", 32);
 let aead = try! Aead::new(AeadAlgorithm::ChaCha20Poly1305, key);
 key.wipe();                               // zero it now, not at some later collection
 println(f"{key[0]}");
@@ -187,7 +184,7 @@ server read 4 bytes, SNI localhost
 
 ## Summary
 
-- `rok::core::crypto` has SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA and RSA. Byte arguments take `List<u8>`, `Slice<u8>` or `str`.
+- `rok::core::crypto` has SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA and RSA. Byte arguments take any `AsBytes` value; private keys are typed values in secret storage.
 - Randomness comes only from `rok::std::random` (`bytes(n)`, `fill(buf)`, `secret(n)`) and is passed in.
 - Keys come back as `Secret`, which is wiped by `wipe()`, by `using`, or when it is collected.
 - Compare secrets with `constant_time_eq` or `Hmac::verify`, never `==`.

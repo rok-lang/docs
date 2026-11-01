@@ -43,7 +43,7 @@ impl Matrix {
 }
 
 // m[i, j] reads an element ...
-impl Index<(usize, usize)> for Matrix {
+impl index::Index<(usize, usize)> for Matrix {
     type Output = f64;
     fn index(self, idx: (usize, usize)) -> f64 {
         self.data[idx.0 * self.cols + idx.1]
@@ -51,14 +51,14 @@ impl Index<(usize, usize)> for Matrix {
 }
 
 // ... and m[i, j] = v writes one.
-impl IndexSet<(usize, usize)> for Matrix {
+impl index::IndexSet<(usize, usize)> for Matrix {
     type Value = f64;
     fn index_set(ref self, idx: (usize, usize), value: f64) {
         self.data[idx.0 * self.cols + idx.1] = value;
     }
 }
 
-impl Add for Matrix {
+impl ops::Add for Matrix {
     type Output = Matrix;
     fn add(self, rhs: Matrix) -> Matrix {
         let out = Matrix::zeros(self.rows, self.cols);
@@ -67,7 +67,7 @@ impl Add for Matrix {
     }
 }
 
-impl Mul for Matrix {
+impl ops::Mul for Matrix {
     type Output = Matrix;
     fn mul(self, rhs: Matrix) -> Matrix {
         let out = Matrix::zeros(self.rows, rhs.cols);
@@ -83,7 +83,7 @@ impl Mul for Matrix {
 }
 
 // Scalar scaling: Matrix * f64.
-impl Mul<f64> for Matrix {
+impl ops::Mul<f64> for Matrix {
     type Output = Matrix;
     fn mul(self, k: f64) -> Matrix {
         let out = Matrix::zeros(self.rows, self.cols);
@@ -93,7 +93,7 @@ impl Mul<f64> for Matrix {
 }
 
 // Element-wise (Hadamard) product: a .* b.
-impl DotMul for Matrix {
+impl ops::DotMul for Matrix {
     type Output = Matrix;
     fn dot_mul(self, rhs: Matrix) -> Matrix {
         let out = Matrix::zeros(self.rows, self.cols);
@@ -160,8 +160,8 @@ A * I == A: true
 
 ## Walkthrough
 
-- Every operator in Rok is a trait method call. With `impl Add for Matrix`, `a + a` desugars to `Add::add(a, a)` ([3.1 Operator dispatch](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../std/core/ops.html#trait.Add), [`Mul`](../std/core/ops.html#trait.Mul)).
-- The same operator can be implemented several times with different right-hand types. `impl Mul for Matrix` is the matrix product and `impl Mul<f64> for Matrix` is scalar multiplication; the compiler picks the impl from the operand types.
+- Every operator in Rok is a trait method call. With `impl ops::Add for Matrix`, `a + a` desugars to `ops::Add::add(a, a)` ([3.1 Operator dispatch](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../std/core/ops.html#trait.Add), [`Mul`](../std/core/ops.html#trait.Mul)).
+- The same operator can be implemented several times with different right-hand types. `impl ops::Mul for Matrix` is the matrix product and `impl ops::Mul<f64> for Matrix` is scalar multiplication; the compiler picks the impl from the operand types.
 - Dot-prefixed operators such as `.*` desugar to a separate trait family for element-wise operations ([`DotMul`](../std/core/ops.html#trait.DotMul)), so the matrix product `*` and the Hadamard product `.*` can live side by side ([3.3 Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
 - Comma indices are grouped into a tuple, so reading `m[i, j]` goes through [`Index<(usize, usize)>`](../std/core/index.html#trait.Index) and writing `m[i, j] = v` through [`IndexSet`](../std/core/index.html#trait.IndexSet). The write method takes `ref self` to modify the matrix in place ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
 - Thanks to `impl Display for Matrix`, `{a}` in an f-string prints the whole matrix. Each element uses `{x:6.1}` for width and precision ([Structs, enums and traits](../learn/06-structs-enums-traits.html)).

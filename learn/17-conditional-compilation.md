@@ -8,7 +8,7 @@ A condition is a flag, a `key = "value"` pair, or a combination of them with `al
 
 | Condition                       | True when                                              |
 |---------------------------------|--------------------------------------------------------|
-| `target_os = "linux"`           | Building for Linux (`"macos"`, `"windows"`, `"wasi"`, ..) |
+| `target_os = "linux"`           | Building for Linux (`"macos"`, `"windows"`, `"wasi"`, `"unknown"` for the browser, ..) |
 | `target_arch = "aarch64"`       | Building for that CPU (`"x86_64"`, ..)                 |
 | `target_family = "unix"`        | Unix-like targets (`"windows"`, `"wasm"`)              |
 | `target_pointer_width = "64"`   | 64-bit targets                                         |
@@ -97,6 +97,14 @@ println(["usr", "local", "bin"].join(path_sep()));
 On Linux and macOS this prints `usr/local/bin`.
 
 A whole module can be conditional too. `#[cfg(target_os = "linux")] mod linux;` does not even read `linux.rok` in other builds.
+
+The compiler remembers what a condition removed. Calling something that exists only in another build is an error that says where it exists and how to guard the call:
+
+```text
+error[E200]: no method `pidfd` found for type `Child`
+  = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
+  = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
+```
 
 ## `cfg!`: a compile-time `bool`
 

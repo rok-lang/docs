@@ -238,17 +238,31 @@ true
 
 `s is Shape::Circle` tests only the variant, regardless of the payload.
 
-A pattern names a variant with its enum, as in `Shape::Empty`. A bare name such as `Empty` would be a new variable that matches every value, so the compiler rejects it:
+Where the expected type is the enum, the variant can be written bare: the arms of a `match` on a `Shape`, an argument for a `Shape` parameter, a `let` with the type `Shape`, a `return` value, a field in a struct literal, and the right side of `s == ..`. This works for every enum, the standard library's too (`let o: Ordering = Less;`).
 
-```text check=checks/06-bare-variant.rok
-error[E200]: `Empty` here is a new variable that matches every value, not the variant `Shape::Empty`
-   --> main.rok:11:9
-    |
- 11 |         Empty => 0.0,
-    |         ^^^^^
-    |
-    = help: did you mean `Shape::Empty`?
+```rok
+enum Shape {
+    Circle(f64),
+    Rect { w: f64; h: f64; },
+    Empty,
+}
+
+fn sides(s: Shape) -> i32 {
+    match s {
+        Circle(_) => 0,
+        Rect { .. } => 4,
+        Empty => 0,
+    }
+}
+
+println(f"{sides(Rect { w: 1.0, h: 2.0 })} {sides(Empty)}");
 ```
+
+```output
+4 0
+```
+
+With no expected type, as in `let s = Empty;`, write the full path, `Shape::Empty`; the error says so. A name you define yourself always wins over a variant.
 
 How is this different from a sum type? A sum type groups existing types without names, while an `enum` gives each case a meaningful name. If you need to tell a "radius" from a "side length" even though both are `f64`, an `enum` is the right choice.
 
@@ -333,6 +347,31 @@ false
 
 `Ord` compares fields in declaration order, so `sort` orders by version. `Display` cannot be derived: the type's author decides its human-readable format (see the example in the operators section below).
 
+When equality is hand-written, `Hash` must be too, and it must feed the hasher exactly what equality looks at, so that equal values hash alike. A `Hash` impl does not compute a number; it writes its parts to the `Hasher` it is given:
+
+```rok
+struct Tag { name: str; }
+
+impl PartialEq for Tag {
+    fn eq(self, o: Tag) -> bool { self.name.to_lowercase() == o.name.to_lowercase() }
+    fn ne(self, o: Tag) -> bool { !self.eq(o) }
+}
+impl Eq for Tag {}
+impl Hash for Tag {
+    fn hash<H: Hasher>(self, ref h: H) { h.write_str(self.name.to_lowercase()); }
+}
+
+let tags: Set<Tag> = Set::new();
+tags.insert(Tag { name: "Rok" });
+println(f"{tags.contains(Tag { name: "ROK" })}");
+```
+
+```output
+true
+```
+
+The hasher `Dict` and `Set` use is keyed per process, so hash values differ from run to run; never store one.
+
 ## Traits are not types
 
 In Rok, a trait name cannot be used directly in type position. `fn f(a: Animal)` is a compile error. This prevents hidden dynamic dispatch costs.
@@ -379,11 +418,11 @@ MEOW
 If the candidates are a fixed few, use a sum type; if the set is open, use generics (next chapter).
 
 > [!NOTE]
-> Advanced: when one collection must mix several implementations chosen at run time, write `any Trait`, as in `let zoo: List<any Animal> = [Dog, Cat];`. Calls through it use dynamic dispatch, and the `any` in the type makes that cost visible ([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-constrained-any-any-trait)).
+> Advanced: when one collection must mix several implementations chosen at run time, write `any Trait`, as in `let zoo: List<any Animal> = [Dog, Cat];`. Calls through it use dynamic dispatch, and the `any` in the type makes that cost visible. A method with type parameters of its own, such as `fn write<B: AsBytes>(..)`, can be called through it too ([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-constrained-any-any-trait)).
 
 ## Operator traits
 
-Operators such as `+`, `==`, and `<` are all trait method calls. `+` is `Add`, and string interpolation `{x}` is `Display`. So implementing these traits gives your own types operators and printing.
+Operators such as `+`, `==`, and `<` are all trait method calls. `+` is `Add`, and string interpolation `{x}` is `Display`. So implementing these traits gives your own types operators and printing. The operator traits live in the module `ops`, so an impl names `ops::Add`; the operators themselves work everywhere without an import.
 
 ```rok
 struct V2 { x: i32; y: i32; }

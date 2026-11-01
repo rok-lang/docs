@@ -78,6 +78,8 @@ on the diagonal
 somewhere else
 ```
 
+A plain name in a pattern (`x`, `a`) binds whatever value is there. So a pattern cannot compare with a constant by naming it: `LIMIT => ..` would match every value, and it is an error. Write a guard instead, `n if n == LIMIT => ..`.
+
 When the value can be one of several types (`i32 | str | none`), `match` splits on its type with patterns such as `n: i32`. Those patterns, along with `is`, `if let`, and `let else`, come with sum types in the [next chapter](05-sum-types.html).
 
 ## `while` and `for`

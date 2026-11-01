@@ -7,24 +7,19 @@ Rok에는 자체 암호 구현이 들어 있습니다. `rok::core::crypto`에는
 
 ## 해시와 MAC
 
-알고리듬은 `rok::core::crypto`의 항목(`HashAlgorithm`, `Hmac`, `Aead`, `X25519`, `Ed25519` 등)이고, 각각 자기 하위 모듈(`sha2`, `sha3`, `hmac`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`)에도 있습니다. 바이트를 받는 모든 함수는 `AsBytes` 값이면 무엇이든 받습니다. `List<u8>`, `Slice<u8>`, 바이트 배열, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 바이트를 받아 그대로 넘기는 함수를 직접 만들 때도 똑같이 `<B: AsBytes>`로 받으면 되고, 직접 만든 타입도 `AsBytes`를 구현하면 넘길 수 있습니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고).
+자주 쓰는 항목은 `rok::core::crypto`에 있습니다(`HashAlgorithm`, `Digest`, `Hmac`, `Aead`, `Secret` 등). 키와 HKDF는 알고리듬의 모듈을 거쳐 부릅니다. 여러 모듈에 `PublicKey`가 있기 때문입니다. `crypto::ed25519::SigningKey`, `crypto::x25519::PrivateKey`, `crypto::hkdf::extract`처럼 씁니다. 모듈은 `sha2`, `sha3`, `hmac`, `hkdf`, `aead`, `x25519`, `ed25519`, `ecdsa`, `rsa`, `mlkem`입니다. 바이트를 받는 모든 함수는 `AsBytes` 값이면 무엇이든 받습니다. `List<u8>`, `Slice<u8>`, 바이트 배열, `str`(그 UTF-8 바이트), `Secret`을 받으므로 바이트 문자열과 텍스트를 바로 넘길 수 있습니다. 바이트를 받아 그대로 넘기는 함수를 직접 만들 때도 똑같이 `<B: AsBytes>`로 받으면 되고, 직접 만든 타입도 `AsBytes`를 구현하면 넘길 수 있습니다. 결과는 `List<u8>`이고, 키 재료만 `Secret`으로 돌아옵니다(아래 참고). 바이트를 텍스트로 보여 주려면 `encoding::hex::encode`와 `encoding::base64::encode`로 16진수나 base64로 바꿉니다(`base64::encode(x, base64::URL_SAFE_NO_PAD)`처럼 다른 알파벳과 패딩도 고를 수 있습니다). `decode`는 텍스트를 다시 바이트로 바꿉니다.
 
 ```rok
 use rok::core::crypto::{HashAlgorithm, Digest, Hmac};
+use rok::core::encoding::hex;
 
-fn hex(bytes: List<u8>) -> str {
-    let s = StrBuf::new();
-    for b in bytes { s.push_str(f"{b:02x}"); }
-    s.to_str()
-}
-
-println(hex(HashAlgorithm::Sha256.digest("abc")));
+println(hex::encode(HashAlgorithm::Sha256.digest("abc")));
 
 // The same hash, fed in pieces.
 let d = Digest::new(HashAlgorithm::Sha256);
 d.update("a");
 d.update(b"bc");
-println(f"{hex(d.finish()) == hex(HashAlgorithm::Sha256.digest("abc"))}");
+println(f"{d.finish() == HashAlgorithm::Sha256.digest("abc")}");
 
 let tag = Hmac::mac(HashAlgorithm::Sha256, "secret key", "message");
 println(f"{tag.len()} {Hmac::verify(HashAlgorithm::Sha256, "secret key", "message", tag)}");
@@ -38,14 +33,15 @@ true
 false
 ```
 
-`Hmac::verify`는 상수 시간으로 비교합니다. 두 비밀을 직접 비교할 때는 `==` 대신 `crypto::constant_time_eq`를 쓰세요. `==`는 처음 다른 곳에서 멈추므로 얼마나 맞았는지가 새어 나갑니다. `Hkdf`는 공유 비밀에서 키를 유도합니다. `sha3`에는 SHA3-256 / 512와 SHAKE가 있습니다. SHA-3 위의 HMAC과 HKDF는 `_sha3`가 붙은 형태입니다. `Hmac::mac_sha3(Sha3Algorithm::Sha3_256, key, data)`, `verify_sha3`, `Hkdf::extract_sha3`, `expand_sha3`이 있습니다.
+`Hmac::verify`는 상수 시간으로 비교합니다. 두 비밀을 직접 비교할 때는 `==` 대신 `crypto::constant_time_eq`를 쓰세요. `==`는 처음 다른 곳에서 멈추므로 얼마나 맞았는지가 새어 나갑니다. `hkdf::extract` / `expand`는 공유 비밀에서 키를 유도합니다. `HashAlgorithm`에는 SHA-3 함수 `Sha3_256`과 `Sha3_512`도 있으므로, HMAC, HKDF, 서명에도 다른 해시처럼 넘깁니다. `Hmac::mac(HashAlgorithm::Sha3_256, key, data)`처럼 씁니다. `sha3`에는 SHA-3와 SHAKE의 상태 타입도 따로 있습니다. 이후 릴리스에서 알고리듬이 늘어날 수 있으므로 `HashAlgorithm`에 대한 `match`에는 `_` 갈래가 필요합니다.
 
 ## 암호화와 서명
 
 `Aead`는 한 번에 암호화와 인증을 합니다(AES-128-GCM, AES-256-GCM, ChaCha20-Poly1305). `seal`은 16바이트 태그가 붙은 암호문을 돌려줍니다. `open`은 암호문, 태그, 연관 데이터 가운데 무엇이든 바뀌었으면 `none`을 돌려줍니다. 키와 nonce는 `random`에서 얻습니다. 알고리듬은 난수를 인자로 받을 뿐 스스로 가져오지 않습니다.
 
 ```rok
-use rok::core::crypto::{Aead, AeadAlgorithm, Ed25519};
+use rok::core::crypto::{Aead, AeadAlgorithm};
+use rok::core::crypto::ed25519::SigningKey;
 use rok::std::random;
 
 let key = random::secret(32);
@@ -60,10 +56,10 @@ if let plain: List<u8> = try! aead.open(nonce, "v1", sealed) {
 sealed[0] = sealed[0] ^ 1u8;              // tamper with one bit
 println(f"tampered: {(try! aead.open(nonce, "v1", sealed)) is none}");
 
-let seed = random::secret(32);           // the private key
-let public = try! Ed25519::public_key(seed);
-let sig = try! Ed25519::sign(seed, "release 1.0");
-println(f"{Ed25519::verify(public, "release 1.0", sig)} {Ed25519::verify(public, "release 1.1", sig)}");
+let signer = try! SigningKey::from_seed(random::secret(32));   // the private key
+let public = signer.verifying_key();
+let sig = signer.sign("release 1.0");
+println(f"{public.verify("release 1.0", sig)} {public.verify("release 1.1", sig)}");
 ```
 
 ```output
@@ -73,23 +69,24 @@ tampered: true
 true false
 ```
 
-`X25519`와 `MlKem768`은 공유 키를 합의합니다. 앞의 것은 고전적인 방식이고 뒤의 것은 양자 내성 방식입니다. `Ecdsa`(P-256 / P-384)와 `RsaPublicKey` / `RsaPrivateKey`는 웹 인증서에 쓰는 서명을 만들고 검증합니다.
+`x25519`와 `mlkem`(ML-KEM-768)은 공유 키를 합의합니다. 앞의 것은 고전적인 방식이고 뒤의 것은 양자 내성 방식입니다. `ecdsa`(P-256 / P-384)와 `rsa`는 웹 인증서에 쓰는 서명을 만들고 검증합니다. 개인 키는 타입이 있는 값입니다(`ed25519::SigningKey`, `x25519::PrivateKey`, `ecdsa::SigningKey`, `rsa::PrivateKey`, `mlkem::DecapsulationKey768`). 만들 때 한 번 검사하고, 바이트는 비밀 저장소(아래)에 둡니다. 공개 쪽(`VerifyingKey`, `PublicKey`, `EncapsulationKey768`)은 평범한 값입니다.
 
 ## 키 재료: `Secret`
 
-`Secret`은 바이트를 '비밀 저장소'에 둡니다. 비밀 저장소는 수집기가 옮기거나 복사하지 않고, 해제하기 전에 0으로 덮어쓰는 버퍼입니다. `Hkdf::extract` / `expand`, `X25519::shared_secret`, ML-KEM 키 함수가 이 버퍼를 돌려줍니다. `random::secret(n)`은 난수 바이트를 곧바로 이 버퍼에 뽑아 넣습니다. 출력하면 내용이 아니라 `Secret(n bytes)`로 보입니다. `==`가 없으므로 `constant_time_eq`로 비교합니다. `wipe()`는 그 자리에서 0으로 지우고, `using` 바인딩은 블록 끝에서 지웁니다. `Aead`도 확장한 키를 비밀 저장소에 두고, `Aead::wipe`가 그 키를 지웁니다.
+`Secret`은 바이트를 '비밀 저장소'에 둡니다. 비밀 저장소는 수집기가 옮기거나 복사하지 않고, 해제하기 전에 0으로 덮어쓰는 버퍼입니다. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman`, ML-KEM의 `encapsulate` / `decapsulate`가 이 버퍼를 돌려줍니다. `random::secret(n)`은 난수 바이트를 곧바로 이 버퍼에 뽑아 넣습니다. 출력하면 내용이 아니라 `Secret(n bytes)`로 보입니다. `==`가 없으므로 `constant_time_eq`로 비교합니다. `wipe()`는 그 자리에서 0으로 지우고, `using` 바인딩은 블록 끝에서 지웁니다. `Aead`와 개인 키 타입도 키를 비밀 저장소에 두고, 각자의 `wipe`가 그 키를 지웁니다.
 
 ```rok
-use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Hkdf, Secret, X25519, constant_time_eq};
+use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Secret, constant_time_eq};
+use rok::core::crypto::{hkdf, x25519};
 use rok::std::random;
 
-let a = random::secret(32);
-let b = random::secret(32);
-let ab = try! X25519::shared_secret(a, try! X25519::public_key(b)) ?? panic("bad key");
-let ba = try! X25519::shared_secret(b, try! X25519::public_key(a)) ?? panic("bad key");
+let a = try! x25519::PrivateKey::from_bytes(random::secret(32));
+let b = try! x25519::PrivateKey::from_bytes(random::secret(32));
+let ab = a.diffie_hellman(b.public_key()) ?? panic("bad key");
+let ba = b.diffie_hellman(a.public_key()) ?? panic("bad key");
 println(f"{ab:?} {constant_time_eq(ab, ba)}");
 
-let key = try! Hkdf::expand(HashAlgorithm::Sha256, Hkdf::extract(HashAlgorithm::Sha256, "salt", ab), "key", 32);
+let key = try! hkdf::expand(HashAlgorithm::Sha256, hkdf::extract(HashAlgorithm::Sha256, "salt", ab), "key", 32);
 let aead = try! Aead::new(AeadAlgorithm::ChaCha20Poly1305, key);
 key.wipe();                               // zero it now, not at some later collection
 println(f"{key[0]}");
@@ -187,7 +184,7 @@ server read 4 bytes, SNI localhost
 
 ## 요약
 
-- `rok::core::crypto`에는 SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA, RSA가 있습니다. 바이트 인자는 `List<u8>`, `Slice<u8>`, `str` 타입을 받습니다.
+- `rok::core::crypto`에는 SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA, RSA가 있습니다. 바이트 인자는 `AsBytes` 값이면 무엇이든 받고, 개인 키는 비밀 저장소에 있는 타입 있는 값입니다.
 - 난수는 오직 `rok::std::random`(`bytes(n)`, `fill(buf)`, `secret(n)`)에서 얻어 인자로 넘깁니다.
 - 키는 `Secret`으로 돌아오고, `wipe()`나 `using`으로, 또는 수집될 때 지워집니다.
 - 비밀은 `==`가 아니라 `constant_time_eq`나 `Hmac::verify`로 비교합니다.

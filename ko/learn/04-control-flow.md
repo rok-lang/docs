@@ -78,6 +78,8 @@ on the diagonal
 somewhere else
 ```
 
+패턴에 쓴 평범한 이름(`x`, `a`)은 그 자리의 값이 무엇이든 묶습니다. 그래서 상수의 이름을 써서 상수와 비교할 수는 없습니다. `LIMIT => ..`는 모든 값에 맞게 되므로 에러입니다. 대신 가드를 씁니다. `n if n == LIMIT => ..`처럼요.
+
 값이 여러 타입 중 하나일 수 있으면(`i32 | str | none`) `match`에서 `n: i32` 같은 패턴으로 타입에 따라 나눕니다. 이런 패턴과 `is`, `if let`, `let else`는 [다음 장](05-sum-types.html)에서 합 타입과 함께 다룹니다.
 
 ## `while`과 `for`

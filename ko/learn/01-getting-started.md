@@ -144,7 +144,7 @@ cd hello
 두 번째 줄은 다음에 실행할 명령입니다. 파일은 두 개입니다. 매니페스트인 `rok.rokon`에는 패키지 이름, 버전, 패키지를 만든 toolchain의 시리즈, 의존성이 들어 있습니다.
 
 ```rokon
-Package { name: "hello", version: "0.1.0", toolchain: "0.1", deps: {} }
+Package { name: "hello", version: "0.1.0", toolchain: "0.2", deps: {} }
 ```
 
 소스는 `src/`에 있습니다. `src/main.rok`은 인사를 출력하는 한 줄짜리 코드입니다.

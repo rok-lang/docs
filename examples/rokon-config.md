@@ -32,6 +32,7 @@ struct Tls {
 }
 
 #[derive(Rokon, Debug)]
+#[rokon(deny_unknown_fields)]
 struct Config {
     name: str;
     listen: Listen;
@@ -98,11 +99,11 @@ fn main() throws (RokonError) {
     c.workers = 8;
     c.tls = Tls { cert: "/etc/gw/cert.pem", key: "/etc/gw/key.pem" };
     c.routes.push(Route { path: "/health", target: "internal:health", timeout_ms: 100u32 });
-    let out = rokon::to_string(c);
+    let out = try rokon::to_str(c);
     println(out);
 
     let back = try load(out);
-    println(f"round trip: {rokon::to_string(back) == out}");
+    println(f"round trip: {(try rokon::to_str(back)) == out}");
 }
 ```
 
@@ -137,6 +138,6 @@ round trip: true
 
 - A single `#[derive(Rokon)]` makes structs and enums convert to and from ROKON. A nested struct (`Listen`), an enum (`Level`), `List`, `Dict` and `Tls | none` all map directly ([ROKON](../learn/15-rokon.html), [3.9.2 mapping to Rok types](../spec/refs-standard-libraries/300-std/309-rokon.html#392-correspondence-with-rok-types)).
 - Fields missing from the document take the struct's default (`workers: i32 = 4`); a `T | none` field without a default becomes `none`. Nested values written without a type name, like `listen: { port: 9000 }`, are accepted too.
-- `rokon::from_str` throws a `RokonError` for an unknown field or a value of the wrong type, with a `line:col` position in the message. A typo such as `wokers` is not silently ignored ([`rokon::from_str`](../std/std/rokon.html#fn.from_str)).
+- `rokon::from_str` throws a `RokonError` for a value of the wrong type, with a `line:col` position in the message. A field the type does not have is skipped by default; `#[rokon(deny_unknown_fields)]` on `Config` makes it an error, so a typo such as `wokers` is not silently ignored ([`rokon::from_str`](../std/std/rokon.html#fn.from_str)).
 - Rules beyond the format (port must not be 0, worker count in range) are collected by `validate` and reported together. Whether a `T | none` value is empty is checked with `c.tls is none`.
-- `rokon::to_string` writes the canonical form. Fields filled from defaults are written out too, so reading the output gives the same value back. A `Dict` keeps its key order, so the limits come out in the order they were read ([`rokon::to_string`](../std/std/rokon.html#fn.to_string)).
+- `rokon::to_str` writes the canonical form, and throws for a value with no ROKON form (a NaN float). Fields filled from defaults are written out too, so reading the output gives the same value back. A `Dict` keeps its key order, so the limits come out in the order they were read ([`rokon::to_str`](../std/std/rokon.html#fn.to_str)).

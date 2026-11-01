@@ -238,17 +238,31 @@ true
 
 `s is Shape::Circle`은 데이터와 관계없이 변형만 검사합니다.
 
-패턴은 `Shape::Empty`처럼 enum과 함께 변형 이름을 씁니다. `Empty` 같은 맨 이름은 모든 값에 맞는 새 변수가 되므로 컴파일러가 거부합니다.
+기대하는 타입이 그 enum인 자리에서는 변형 이름만 써도 됩니다. `Shape`에 대한 `match`의 갈래, `Shape` 매개변수에 넘기는 인자, 타입이 `Shape`인 `let`, `return` 값, struct 리터럴의 필드, `s == ..`의 오른쪽이 그렇습니다. 표준 라이브러리의 enum을 포함해 모든 enum에 통합니다(`let o: Ordering = Less;`).
 
-```text check=checks/06-bare-variant.rok
-error[E200]: `Empty` here is a new variable that matches every value, not the variant `Shape::Empty`
-   --> main.rok:11:9
-    |
- 11 |         Empty => 0.0,
-    |         ^^^^^
-    |
-    = help: did you mean `Shape::Empty`?
+```rok
+enum Shape {
+    Circle(f64),
+    Rect { w: f64; h: f64; },
+    Empty,
+}
+
+fn sides(s: Shape) -> i32 {
+    match s {
+        Circle(_) => 0,
+        Rect { .. } => 4,
+        Empty => 0,
+    }
+}
+
+println(f"{sides(Rect { w: 1.0, h: 2.0 })} {sides(Empty)}");
 ```
+
+```output
+4 0
+```
+
+`let s = Empty;`처럼 기대하는 타입이 없으면 `Shape::Empty`로 전체 경로를 씁니다. 에러 메시지가 그렇게 알려 줍니다. 직접 정의한 이름은 언제나 변형보다 우선합니다.
 
 합 타입과 다른 점은 이름입니다. 합 타입은 이미 있는 타입을 이름 없이 묶고, `enum`은 각 경우에 의미 있는 이름을 붙입니다. 둘 다 `f64`인 "반지름"과 "변의 길이"를 구별해야 한다면 `enum`이 맞습니다.
 
@@ -333,6 +347,31 @@ false
 
 `Ord`는 필드를 선언 순서대로 비교하므로 `sort`는 버전 순으로 정렬합니다. `Display`는 derive로 구현할 수 없습니다. 사람이 읽는 형식은 타입을 만든 사람이 정합니다(아래 연산자 절의 예 참고).
 
+같음을 직접 구현했다면 `Hash`도 직접 구현해야 합니다. 같은 값은 같은 해시를 내도록, 같음이 보는 것을 그대로 해셔에 넣어야 합니다. `Hash` impl은 숫자를 계산하지 않고, 받은 `Hasher`에 자기 부분을 씁니다.
+
+```rok
+struct Tag { name: str; }
+
+impl PartialEq for Tag {
+    fn eq(self, o: Tag) -> bool { self.name.to_lowercase() == o.name.to_lowercase() }
+    fn ne(self, o: Tag) -> bool { !self.eq(o) }
+}
+impl Eq for Tag {}
+impl Hash for Tag {
+    fn hash<H: Hasher>(self, ref h: H) { h.write_str(self.name.to_lowercase()); }
+}
+
+let tags: Set<Tag> = Set::new();
+tags.insert(Tag { name: "Rok" });
+println(f"{tags.contains(Tag { name: "ROK" })}");
+```
+
+```output
+true
+```
+
+`Dict`와 `Set`이 쓰는 해셔는 프로세스마다 키가 정해지므로 해시 값은 실행할 때마다 달라집니다. 해시 값을 저장하지 마세요.
+
 ## 트레잇은 타입이 아닙니다
 
 Rok에서는 트레잇 이름을 타입 자리에 그대로 쓸 수 없습니다. `fn f(a: Animal)`은 컴파일 에러입니다. 눈에 보이지 않는 동적 디스패치 비용을 막으려는 규칙입니다.
@@ -379,11 +418,11 @@ MEOW
 후보가 정해진 몇 개라면 합 타입을, 후보가 열려 있다면 제네릭(다음 장)을 씁니다.
 
 > [!NOTE]
-> 심화: 런타임에 고른 여러 구현을 한 컬렉션에 섞어야 하면 `let zoo: List<any Animal> = [Dog, Cat];`처럼 `any Trait`을 씁니다. 이렇게 담은 값의 메서드는 동적 디스패치로 호출합니다. 타입에 적힌 `any`가 그 비용을 드러냅니다([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-제약-붙은-any-any-trait)).
+> 심화: 런타임에 고른 여러 구현을 한 컬렉션에 섞어야 하면 `let zoo: List<any Animal> = [Dog, Cat];`처럼 `any Trait`을 씁니다. 이렇게 담은 값의 메서드는 동적 디스패치로 호출합니다. 타입에 적힌 `any`가 그 비용을 드러냅니다. `fn write<B: AsBytes>(..)`처럼 자기 타입 매개변수가 있는 메서드도 이렇게 부를 수 있습니다([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-제약-붙은-any-any-trait)).
 
 ## 연산자 트레잇
 
-`+`, `==`, `<` 같은 연산자는 모두 트레잇 메서드 호출입니다. `+`는 `Add`이고, 문자열 보간 `{x}`는 `Display`입니다. 그래서 이 트레잇을 구현하면 직접 만든 타입에도 연산자를 쓰고 값을 출력할 수 있습니다.
+`+`, `==`, `<` 같은 연산자는 모두 트레잇 메서드 호출입니다. `+`는 `Add`이고, 문자열 보간 `{x}`는 `Display`입니다. 그래서 이 트레잇을 구현하면 직접 만든 타입에도 연산자를 쓰고 값을 출력할 수 있습니다. 연산자 트레잇은 `ops` 모듈에 있으므로 impl에서는 `ops::Add`라고 씁니다. 연산자 자체는 가져오지 않아도 어디서나 동작합니다.
 
 ```rok
 struct V2 { x: i32; y: i32; }

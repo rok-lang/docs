@@ -37,7 +37,7 @@ fn fib_wrong() {
 }
 
 #[bench]
-fn fib_20(b: Bench) { b.iter(|| fib(20)); }
+fn fib_20(b: bench::Bench) { b.iter(|| fib(20)); }
 ```
 
 ## `rok test`: 테스트
@@ -161,13 +161,15 @@ warning[E503]: unused variable `unused`
     Finished in 0.05s
 ```
 
-모든 린트의 기본 수준은 `warn`입니다. 다만 늘 실수인 `nan_comparison`과 `self_assignment`는 `deny`입니다. 수준은 세 곳에서 바꿀 수 있고, 뒤의 것이 우선합니다.
+모든 린트의 기본 수준은 `warn`입니다. 다만 늘 실수인 `nan_comparison`과 `self_assignment`는 `deny`이고, `missing_docs`(`///` 주석이 없는 `pub` 항목)는 직접 켜기 전까지 `allow`입니다. 수준은 세 곳에서 바꿀 수 있고, 뒤의 것이 우선합니다.
 
 1. `rok.rokon`의 `lints` 필드: `lints: { "unused": "deny", "dead_code": "allow" }`
 2. 명령줄의 `-A` / `-W` / `-D` (allow / warn / deny)
 3. 소스의 속성: 항목에 `#[allow(dead_code)]`, 파일 맨 위에 `#![deny(unused)]`
 
 린트 하나(`unused_variables`) 대신 그룹(`unused`, `nonstandard_style`, `warnings`, `all`)을 지정할 수도 있습니다. `deny` 린트가 하나라도 걸리면 종료 코드는 1입니다.
+
+`unused_result`는 `xs.len();`이나 `parse(s);`처럼 값을 버리는 문장에 경고합니다. 대개 실수이기 때문입니다. 정말 버리려는 것이면 `_ = expr;`라고 씁니다. `Dict::insert`, `List::pop`, `Atomic::fetch_add`처럼 호출하는 쪽에서 결과가 필요 없는 경우가 많은 함수에는 `#[discardable]`이 붙어 있어서, 이런 함수를 부르는 문장은 경고하지 않습니다. 직접 만든 함수에도 같은 식으로 붙입니다.
 
 ```text
 $ rok lint -D unused
@@ -184,7 +186,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). rustc와 같이 이 그룹은 이후 릴리스가 추가하는 린트까지 포함해 경고 수준의 린트를 모두 담습니다. 새 릴리스 때문에 CI 결과가 바뀌면 안 된다면 `rok.rokon`에 toolchain을 정확한 버전으로 고정하세요(`toolchain: "=0.1.6"`). `all`은 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
+경고가 있으면 CI를 실패시키려면 `warnings`를 deny하세요(`lints: { "warnings": "deny" }` 또는 `-D warnings`). rustc와 같이 이 그룹은 이후 릴리스가 추가하는 린트까지 포함해 경고 수준의 린트를 모두 담습니다. 새 릴리스 때문에 CI 결과가 바뀌면 안 된다면 `rok.rokon`에 toolchain을 정확한 버전으로 고정하세요(`toolchain: "=0.2.0"`). `all`은 모든 린트입니다. `rok.rokon`에 `"warnings": "deny"`를 적으면 마지막 note가 그 수준이 어디서 왔는지 알려 줍니다.
 
 ```text
 $ rok lint
@@ -228,7 +230,7 @@ error: could not build hello (1 error, 0 warnings)
 
 기계가 읽을 출력이 필요하면 `--message-format=json`을 붙입니다. 진단 하나가 JSON 한 줄(`"schema": 1`)로 출력됩니다. 코드와 메시지, 시작과 끝의 줄·열이 담긴 위치, `help` 줄, 진단이 제안하는 `fixes`, 린트 경고라면 그 `lint` 이름, 규칙의 사양 절이 들어 있습니다.
 
-대괄호 안의 코드는 에러의 종류를 가리킵니다. [에러 코드 목록](../errors/index.html)에 코드마다 예제와 고치는 법을 담은 페이지가 있습니다.
+대괄호 안의 코드는 에러의 종류를 가리킵니다. [에러 코드 목록](../errors/index.html)에 코드마다 예제와 고치는 법을 담은 페이지가 있습니다. rokc 자체가 멈추면(내부 컴파일러 에러) 종료 코드 70으로 끝납니다. panic이 난 프로그램의 101과는 다릅니다. 이런 일이 생기면 알려 주세요.
 
 ## `rok doc`: 문서 주석과 API 문서
 
@@ -384,7 +386,7 @@ $ rok build -v
     Finished in 0.07s
 ```
 
-`--emit`은 중간 산출물을 `target/debug/build/`에 씁니다. 종류는 `source`(메타 전개와 디슈거링을 마친 패키지 전체를 Rok 소스로 쓴 것), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, `expansions`(메타 전개 하나하나의 출력)입니다. 예전 이름인 `ast`와 `expanded`도 아직 동작하지만 경고가 나오고, 0.2.0에서 없어집니다.
+`--emit`은 중간 산출물을 `target/debug/build/`에 씁니다. 종류는 `source`(메타 전개와 디슈거링을 마친 패키지 전체를 Rok 소스로 쓴 것), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, `expansions`(메타 전개 하나하나의 출력)입니다.
 
 ```text
 $ rok emit --emit=llvmir

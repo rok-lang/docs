@@ -37,7 +37,7 @@ fn fib_wrong() {
 }
 
 #[bench]
-fn fib_20(b: Bench) { b.iter(|| fib(20)); }
+fn fib_20(b: bench::Bench) { b.iter(|| fib(20)); }
 ```
 
 ## `rok test`: tests
@@ -161,13 +161,15 @@ warning[E503]: unused variable `unused`
     Finished in 0.05s
 ```
 
-Every lint defaults to `warn`, except `nan_comparison` and `self_assignment`, which are always a mistake and default to `deny`. The level can be changed in three places, and later ones win:
+Every lint defaults to `warn`, except `nan_comparison` and `self_assignment`, which are always a mistake and default to `deny`, and `missing_docs` (a `pub` item without a `///` comment), which is `allow` until you turn it on. The level can be changed in three places, and later ones win:
 
 1. The `lints` field in `rok.rokon`: `lints: { "unused": "deny", "dead_code": "allow" }`
 2. `-A` / `-W` / `-D` (allow / warn / deny) on the command line
 3. Attributes in source: `#[allow(dead_code)]` on an item, `#![deny(unused)]` at the top of a file
 
 Instead of a single lint (`unused_variables`), you can name a group (`unused`, `nonstandard_style`, `warnings`, `all`). If any `deny` lint fires, the exit code is 1.
+
+`unused_result` warns about a statement that throws a value away, such as `xs.len();` or `parse(s);`, since that is usually a mistake. Write `_ = expr;` when dropping it is what you mean. Functions whose result callers often do not need, such as `Dict::insert`, `List::pop` and `Atomic::fetch_add`, are marked `#[discardable]`, and a statement that calls one does not warn; mark your own functions the same way.
 
 ```text
 $ rok lint -D unused
@@ -184,7 +186,7 @@ error[E503]: unused variable `unused`
     Finished in 0.04s
 ```
 
-To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). As in rustc, it covers every warning-level lint, including those a later release adds, so pin an exact toolchain in `rok.rokon` (`toolchain: "=0.1.6"`) when a new release must not change what CI accepts. `all` is every lint. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
+To fail CI on warnings, deny `warnings` (`lints: { "warnings": "deny" }`, or `-D warnings`). As in rustc, it covers every warning-level lint, including those a later release adds, so pin an exact toolchain in `rok.rokon` (`toolchain: "=0.2.0"`) when a new release must not change what CI accepts. `all` is every lint. With `"warnings": "deny"` in `rok.rokon`, the last note names where the level came from:
 
 ```text
 $ rok lint
@@ -228,7 +230,7 @@ error: could not build hello (1 error, 0 warnings)
 
 For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 1`): its code and message, spans with start and end line and column, `help` lines, the `fixes` it suggests, the `lint` name of a lint warning, and the spec section of the rule.
 
-The code in brackets names the kind of error; the [error code index](../errors/index.html) has a page for each one, with an example and its fix.
+The code in brackets names the kind of error; the [error code index](../errors/index.html) has a page for each one, with an example and its fix. If rokc itself crashes (an internal compiler error), it exits with code 70, apart from a panicking program's 101; please report it.
 
 ## `rok doc`: doc comments and API docs
 
@@ -384,7 +386,7 @@ $ rok build -v
     Finished in 0.07s
 ```
 
-`--emit` writes intermediate artifacts to `target/debug/build/`. The kinds are `source` (the whole package after meta expansion and desugaring, written as Rok source), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, and `expansions` (the output of each meta expansion). The old names `ast` and `expanded` still work but warn; they go in 0.2.0.
+`--emit` writes intermediate artifacts to `target/debug/build/`. The kinds are `source` (the whole package after meta expansion and desugaring, written as Rok source), `hir`, `mir`, `mlir`, `llvmir`, `asm`, `obj`, and `expansions` (the output of each meta expansion).
 
 ```text
 $ rok emit --emit=llvmir

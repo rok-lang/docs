@@ -137,7 +137,26 @@ println(try await r.body.text());
 
 ## Publishing a stone
 
-Publishing adds one line to the registry index, pointing at a commit of your git repository; there is no upload of source archives. The package must have a `src/lib.rok` (a library), a `src/main.rok` (a program for `rok install`) or both, and a readme, at the root of a clean git work tree with a remote `origin`, and every normal dependency must itself be a stone (path and git dependencies are rejected; path and git `dev_deps` are dropped). Fill in `description`, `license` and `repository`: they show up in `rok search` and on the website.
+Publishing adds one line to the registry index, pointing at a commit of your git repository; there is no upload of source archives. The package must have a `src/lib.rok` (a library), a `src/main.rok` (a program for `rok install`) or both, and a readme, at the root of a clean git work tree with a remote `origin`, and every normal dependency must itself be a stone (path and git dependencies are rejected; path and git `dev_deps` are dropped). Fill in `description`, `license` and `repository`: they show up in `rok search` and on the website. The other fields a stone page shows are optional, as in Cargo:
+
+```rokon
+Package {
+    name: "textwrap",
+    version: "0.1.0",
+    description: "Word wrapping for terminals",
+    license: "MIT OR Apache-2.0",
+    repository: "https://github.com/you/textwrap",
+    authors: ["You <you@example.com>"],
+    homepage: "https://example.com/textwrap",
+    documentation: "https://example.com/textwrap/docs",
+    keywords: ["text", "terminal"],
+    categories: ["text-processing"],
+    exclude: ["bench/**"],
+    deps: {},
+}
+```
+
+`keywords` and `categories` take at most 5 entries each; `include` / `exclude` choose the files the stone holds; `license_file`, `readme`, `links`, `default_run` and a free-form `metadata` table are there too. A field `rok` does not know is a warning, not an error, and is still sent to the registry.
 
 > [!IMPORTANT]
 > For now only the rokstones.io maintainers can publish. Anyone can sign in and use stones, but `rok login` refuses an account that cannot publish yet.
@@ -152,30 +171,30 @@ a token from https://rokstones.io/me (not shown; Ctrl-C to cancel):
    Logged in as your-name at https://rokstones.io (token in ~/.rok/tokens.rokon)
 ```
 
-Without an argument, the token is read from standard input without echoing. `rok login` asks the registry who the token belongs to and refuses a token it rejects, saving nothing. A good token is kept in `~/.rok/tokens.rokon` (readable only by you), filed under the index it was made for, and is sent only to that index; `rok login --registry <url>` keeps one for another index. For the default index it also goes into `~/.rok/credentials.rokon`, where rok 0.1.5 and older look for it. `rok logout` removes the token from both files and leaves any other fields in them alone, and `rok logout --all` removes every index's token. In CI, set `ROK_REGISTRY_TOKEN` instead.
+Without an argument, the token is read from standard input without echoing. `rok login` asks the registry who the token belongs to and refuses a token it rejects, saving nothing. A good token is kept in `~/.rok/tokens.rokon` (readable only by you), filed under the index it was made for, and is sent only to that index; `rok login --registry <url>` keeps one for another index. `rok logout` removes it, and `rok logout --all` removes every index's token. In CI, set `ROK_REGISTRY_TOKEN` instead; it is sent only to rokstones.io.
 
 ### `rok publish`
 
-`rok publish --dry-run` prints the index entry it would add, and nothing leaves your machine. `rok publish` with neither `--dry-run` nor `--commit` is also a dry run in 0.1.6, but it warns: from 0.2.0 a bare `rok publish` publishes, as `cargo publish` does, so write `--dry-run` to keep previewing.
+`rok publish --dry-run` prints the index entry it would add, and nothing leaves your machine. `rok publish` publishes, as `cargo publish` does.
 
 ```text
 $ rok publish --dry-run
-Stone { name: "textwrap", vers: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), cksum: "823a3592..", yanked: false, description: "Word wrapping for terminals", license: "MIT OR Apache-2.0", repository: "https://github.com/you/textwrap" }
-note: dry run; --commit sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
+Stone { name: "textwrap", version: "0.1.0", deps: [], source: Dep::git("https://github.com/you/textwrap.git", rev: "8e2afb20.."), tree: "823a3592..", yanked: false, toolchain: "0.2" }
+note: dry run; `rok publish` sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
-The entry records the HEAD commit and its tree hash, so push that commit first. `rok publish --commit` sends the entry to the registry with your token (`Published textwrap 0.1.0 to https://rokstones.io`), and the version is live once the index has it. A version cannot be published twice, and a name differing only in case or `-` / `_` from an existing stone is taken.
+The entry holds only what resolving needs: the HEAD commit and its tree hash, the dependencies, and the toolchain series. Push that commit first. The description, license and other metadata travel beside it to the registry, which shows them with who published each version. `rok publish` sends both with your token (`Published textwrap 0.1.0 to https://rokstones.io`), and the version is live once the index has it. A version cannot be published twice, and a name differing only in case or `-` / `_` from an existing stone is taken.
 
 ### `rok yank`
 
 A version with a serious bug can be yanked. New resolutions skip it, but projects whose `rok.lock` already pins it keep building, so yanking never breaks anyone. `--undo` reverses it.
 
 ```bash
-rok yank textwrap@0.1.0
+rok yank textwrap@0.1.0 --message "wraps CJK text wrong; use 0.1.1"
 rok yank textwrap@0.1.0 --undo
 ```
 
-The old form `rok yank --vers 0.1.0` (in the package directory) still works but warns.
+`--message` says why; the registry shows it on the stone's page.
 
 ### Changing a published API
 
@@ -198,6 +217,22 @@ warning[E503]: use of deprecated function `wrap`
    = note: `#[warn(deprecated)]` on by default
 ```
 
+Two attributes keep room to grow. `#[non_exhaustive]` on an enum makes a `match` in other packages end with `_ =>`, so you can add variants later. On a struct, it marks a record you may add fields to: other packages still build it with a literal, leaving out fields that have defaults, but a pattern on it ends in `..`. Give every field you add later a default, so those literals keep compiling.
+
+```rok norun
+#[non_exhaustive]
+pub struct WrapOptions {
+    pub width: i32 = 80;
+    pub break_words: bool = false;
+}
+
+// in another package
+let o = textwrap::WrapOptions { width: 60 };
+let textwrap::WrapOptions { width, .. } = o;
+```
+
+`#[sealed]` on a trait means only your package implements it. Other packages still use it in bounds and call its methods, but an `impl` of it elsewhere is an error, so you may rely on knowing every implementation.
+
 ## Summary
 
 - `features` in `rok.rokon` maps names to entries: other features, `dep:<d>`, `<d>/<f>`, `<d>?/<f>`. `default` is on unless turned off.
@@ -205,7 +240,7 @@ warning[E503]: use of deprecated function `wrap`
 - Choose features with `--features`, `--no-default-features`, `--all-features`, and per dependency with `features:` / `default_features: false`. Features are unified across the build, so they must only add.
 - Code tests them with `#[cfg(feature = "..")]` and `cfg!(feature = "..")`.
 - `json`, `toml`, `http`, `markdown` and `rok-syntax` are the Rok project's stones.
-- Publish with `rok login` (a rokstones.io token), `rok publish --dry-run` and `rok publish --commit`; withdraw with `rok yank name@version`, and retire an API with `#[deprecated]` before removing it. Publishing is open to maintainers only for now.
+- Publish with `rok login` (a rokstones.io token), `rok publish --dry-run` and `rok publish`; withdraw with `rok yank name@version --message <why>`, and retire an API with `#[deprecated]` before removing it. `#[non_exhaustive]` and `#[sealed]` leave room to add variants, fields and impls. Publishing is open to maintainers only for now.
 
 ## Further reading
 

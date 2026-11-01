@@ -8,7 +8,7 @@
 
 | 조건                            | 참일 때                                                |
 |---------------------------------|--------------------------------------------------------|
-| `target_os = "linux"`           | Linux용으로 빌드할 때(`"macos"`, `"windows"`, `"wasi"`, ..) |
+| `target_os = "linux"`           | Linux용으로 빌드할 때(`"macos"`, `"windows"`, `"wasi"`, 브라우저는 `"unknown"`, ..) |
 | `target_arch = "aarch64"`       | 그 CPU용으로 빌드할 때(`"x86_64"`, ..)                 |
 | `target_family = "unix"`        | Unix 계열 타깃(`"windows"`, `"wasm"`)                  |
 | `target_pointer_width = "64"`   | 64비트 타깃                                            |
@@ -97,6 +97,14 @@ println(["usr", "local", "bin"].join(path_sep()));
 Linux와 macOS에서는 `usr/local/bin`을 출력합니다.
 
 모듈 전체도 조건부로 만들 수 있습니다. `#[cfg(target_os = "linux")] mod linux;`는 다른 빌드에서 `linux.rok`을 읽지조차 않습니다.
+
+컴파일러는 조건 때문에 빠진 것을 기억합니다. 다른 빌드에만 있는 것을 부르면, 그것이 어디에 있는지와 호출을 어떻게 감싸면 되는지를 알려 주는 에러가 납니다.
+
+```text
+error[E200]: no method `pidfd` found for type `Child`
+  = note: `pidfd` is only available on linux (`#[cfg(target_os = "linux")]`)
+  = help: put the code that uses it under the same `#[cfg(target_os = "linux")]`
+```
 
 ## `cfg!`: 컴파일 타임 `bool`
 

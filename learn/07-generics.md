@@ -50,10 +50,10 @@ println(f"{largest(none_here):?}");
 none
 ```
 
-With `T: Zero`, you can also call static methods on the type parameter, such as `T::zero()`.
+With `T: num::Zero`, you can also call static methods on the type parameter, such as `T::zero()`.
 
 ```rok
-fn sum<T: Zero + Add<Output = T>>(xs: List<T>) -> T {
+fn sum<T: num::Zero + ops::Add<Output = T>>(xs: List<T>) -> T {
     let acc = T::zero();
     for x in xs { acc = acc + x; }
     acc
@@ -85,7 +85,7 @@ error[E200]: operator `+` on `T` needs a `Add` bound on `T`
 With the bound added, the same body compiles for every type that has `Add`. The operations that need no bound work without one.
 
 ```rok
-fn double<T: Add<T, Output = T>>(x: T) -> T { x + x }
+fn double<T: ops::Add<T, Output = T>>(x: T) -> T { x + x }
 fn keep<T>(x: T, yes: bool) -> T | none { if yes { x } else { none } }
 fn boxed<T>(x: T) -> any { x }
 
@@ -106,10 +106,10 @@ A bound can name the same trait twice with different parameters. Each use in the
 
 ```rok
 struct Meters { v: f64; }
-impl Add<i32> for Meters { type Output = Meters; fn add(self, rhs: i32) -> Meters { Meters { v: self.v + rhs as f64 } } }
-impl Add<f64> for Meters { type Output = Meters; fn add(self, rhs: f64) -> Meters { Meters { v: self.v + rhs } } }
+impl ops::Add<i32> for Meters { type Output = Meters; fn add(self, rhs: i32) -> Meters { Meters { v: self.v + rhs as f64 } } }
+impl ops::Add<f64> for Meters { type Output = Meters; fn add(self, rhs: f64) -> Meters { Meters { v: self.v + rhs } } }
 
-fn nudge<T: Add<i32, Output = T> + Add<f64, Output = T>>(x: T) -> T {
+fn nudge<T: ops::Add<i32, Output = T> + ops::Add<f64, Output = T>>(x: T) -> T {
     (x + 1) + 0.5          // Add<i32>, then Add<f64>
 }
 

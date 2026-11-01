@@ -92,9 +92,17 @@ error[E102]: `square` is both imported from `shapes::square` and defined in this
    = help: import it under another name, `use shapes::square as shapes_square;`, or remove this `use` if the module does not need it
 ```
 
-지금까지 `use` 없이 써 온 `List`, `Dict`, `println` 같은 이름은 모든 파일에 암묵적으로 들어 있는 `use rok::core::**;` 덕분에 쓸 수 있습니다. 이 줄은 `*`에 하위 모듈까지 더한 재귀 glob입니다. 파일, 네트워크, 스레드 같은 `rok::std`의 모듈은 `use rok::std::fs;`처럼 명시적으로 들여옵니다.
+지금까지 `use` 없이 써 온 `List`, `Dict`, `println` 같은 이름은 *프렐류드*(prelude)에서 옵니다. 모든 파일은 암묵적인 `use rok::core::prelude::*;`로 시작합니다. 프렐류드는 정해진 짧은 목록입니다. 자주 쓰는 타입(`List`, `Dict`, `Result`, `Duration`, `Mutex` 등), `impl` 머리와 바운드에 쓰는 트레잇(`Clone`, `Hash`, `Display`, `Iterator`, `From` 등), 출력과 panic 함수, 그리고 `rok::core`의 최상위 모듈(`task`, `par`, `ops`, `num`, `sync`, `iter` 등)이 들어 있습니다. `rok::core`의 나머지는 이 모듈들을 거쳐 부르거나 가져옵니다.
 
-트레잇도 같습니다. 트레잇의 메서드는 그 트레잇이 스코프에 있을 때만 찾으므로, 다른 모듈이나 패키지의 트레잇은 `use`(`use zoo::Animal;`)해야 `x.name()`이 해소됩니다. 표준 라이브러리의 트레잇은 언제나 스코프에 있습니다.
+```rok norun
+task::sleep(Duration::ms(1));          // `task` 모듈은 프렐류드에 있음
+impl ops::Add for V { .. }             // 연산자 트레잇은 `ops`에 있음
+use rok::core::sync::Frozen;           // 또는 이름을 가져옴
+```
+
+직접 정의한 이름은 언제나 프렐류드의 이름보다 우선합니다. enum 변형은 프렐류드에 없습니다. 기대하는 타입이 enum을 정해 주는 자리에서는 변형 이름만 씁니다([6장](06-structs-enums-traits.html)). 스코프에 없는 이름을 쓰면 에러 메시지가 써야 할 경로와 그 이름을 가져오는 `use`를 알려 줍니다. 파일, 네트워크, 스레드 같은 `rok::std`의 모듈은 `use rok::std::fs;`처럼 명시적으로 들여옵니다.
+
+트레잇도 같습니다. 트레잇의 메서드는 그 트레잇이 스코프에 있을 때만 찾으므로, 다른 모듈이나 패키지의 트레잇은 `use`(`use zoo::Animal;`)해야 `x.name()`이 해소됩니다. `rok::core` 트레잇의 메서드는 `use` 없이 어디서나 동작합니다. `io::Reader` 같은 `rok::std`의 트레잇은 다른 트레잇처럼 가져옵니다.
 
 매크로, derive, 메타 속성은 그것을 정의한 패키지에 속합니다. 자기 패키지와 표준 라이브러리의 것은 이름만 씁니다(`log!(..)`, `#[derive(Inspect)]`). 다른 패키지의 것은 패키지 이름을 붙여 `json::log!(..)`, `#[derive(json::Json)]`처럼 쓰거나, `use json::log!;`로 한 번 들여옵니다. 다른 패키지의 매크로를 이름만 쓰면 에러이고, help가 두 형태를 알려 줍니다.
 
@@ -134,7 +142,9 @@ println(f"{a.owner}: {bank::balance(a)}");
 kim: 500
 ```
 
-`balance` 필드와 `check` 함수는 `bank` 밖에서 보이지 않으므로 잔액은 `bank`의 함수로만 바꿀 수 있습니다.
+`balance` 필드와 `check` 함수는 `bank` 밖에서 보이지 않으므로 잔액은 `bank`의 함수로만 바꿀 수 있습니다. 같은 이유로 `bank` 밖의 코드는 `bank::Account { owner: "kim" }`라고 쓸 수 없습니다. struct 리터럴은 기본값이 있는 비공개 필드만 생략할 수 있기 때문입니다. 그래서 계좌는 `bank::open`이 만듭니다.
+
+표준 라이브러리의 `pub` 항목 가운데 몇 개에는 `#[internal]`이 붙어 있습니다. 툴체인의 패키지끼리만 나눠 쓰는 항목이어서, 다른 패키지에서 쓰면 "internal to the Rok toolchain" 에러가 납니다. API 문서와 편집기에도 나오지 않습니다.
 
 ## 파일로 나누기
 
@@ -204,7 +214,7 @@ rok add geom --path ../geom
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
     "geom": Dep::path("../geom"),
 } }
 ```
@@ -225,7 +235,7 @@ $ rok run
 15.70795
 ```
 
-`PI`는 `pub(pkg)`이므로 `geom` 안에서는 어디서나 쓸 수 있지만 `app`에서는 보이지 않습니다. git 저장소는 `rok add parser --git <url> --tag v1.2`처럼 추가합니다. git과 stone 의존성은 정확한 커밋이 `rok.lock`에 고정됩니다. 그러니 `rok.lock`도 버전 관리에 커밋하세요. 고정된 버전을 앞으로 옮기는 것은 `rok update`뿐입니다.
+`PI`는 `pub(pkg)`이므로 `geom` 안에서는 어디서나 쓸 수 있지만 `app`에서는 보이지 않습니다. git 저장소는 `rok add parser --git <url> --tag v1.2`처럼 추가합니다. git과 stone 의존성은 정확한 커밋이 `rok.lock`에 고정됩니다. 그러니 `rok.lock`도 버전 관리에 커밋하세요. 고정된 버전을 앞으로 옮기는 것은 `rok update`뿐입니다. rok 0.1이 쓴 `rok.lock`은 고정한 버전은 그대로 둔 채 한 번만 지금의 lock 형식으로 다시 쓰입니다.
 
 ## stone과 rokstones.io
 
@@ -241,7 +251,7 @@ $ rok add json@^0.1
 ```
 
 ```rokon
-Package { name: "app", version: "0.1.0", toolchain: "0.1", deps: {
+Package { name: "app", version: "0.1.0", toolchain: "0.2", deps: {
     "json": Dep::version("^0.1"),
 } }
 ```
@@ -266,6 +276,21 @@ Package { name: "app", version: "0.1.0", deps: {
 ```
 
 경로는 버전이 아닙니다. `"../geom"`이 아니라 `Dep::path("../geom")`로 씁니다.
+
+의존성에는 키가 두 개 더 있습니다. `package:`는 이름을 바꿉니다. 아래에서는 stone `json5`를 코드에서 `j5`로 부릅니다. `target:`은 맞는 타깃을 빌드할 때만 그 의존성을 씁니다.
+
+```rokon
+Package { name: "app", version: "0.1.0", deps: {
+    "j5": Dep::version("^0.2", package: "json5"),
+    "nix": Dep::version("^0.4", target: "cfg(target_family = \"unix\")"),
+} }
+```
+
+버전 요구만 적은 의존성은 언제나 rokstones.io index를 뜻합니다. 그 index를 미러에서 받으려면 `~/.rok/sources.rokon`에 미러를 적습니다. `rok.lock`에는 그대로 rokstones.io가 적히므로, 미러를 쓰든 안 쓰든 lock은 같습니다.
+
+```rokon
+Sources { replace: { "https://github.com/rok-lang/rokstones.io-index": "https://mirror.example.com/rokstones-index" } }
+```
 
 라이브러리에는 사용자가 켜고 끌 수 있는 **feature**를 둘 수 있습니다. `rok login`과 `rok publish`로 내 라이브러리를 stone으로 공개할 수도 있습니다. 둘 다 Rok 프로젝트가 관리하는 stone(`json`, `toml`, `http`, `markdown`, `rok-syntax`)과 함께 [18장](18-features-and-stones.html)에서 다룹니다.
 
@@ -334,6 +359,7 @@ $ rok install tool@0.2
 ## 정리
 
 - `mod`로 모듈을 만들고, `pkg::` / `sup::` / `rok::` 경로와 `use`로 이름을 가리킵니다.
+- `use` 없이 쓰는 이름은 프렐류드에서 옵니다. 프렐류드는 자주 쓰는 `rok::core`의 이름과 모듈을 담은 정해진 목록이고, 나머지는 모듈을 거쳐 부르거나(`task::sleep`, `ops::Add`) 가져옵니다.
 - 항목은 기본적으로 비공개입니다. `pub(sub)`, `pub(pkg)`, `pub`으로 범위를 넓힙니다.
 - `mod x;`는 `x.rok`(과 `x/`)에 대응합니다. 루트는 `main.rok` 또는 `lib.rok`입니다.
 - `rok new [--lib]`으로 패키지를 만들고 `rok add`로 의존성(경로, git, stone)을 추가합니다. `rok.lock`은 커밋합니다.

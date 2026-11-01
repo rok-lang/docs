@@ -5,7 +5,7 @@ The right way to do several things at once depends on the goal. Threads and `par
 > [!TIP]
 > The output order of concurrently running code can differ from run to run. The examples in this chapter collect results with `join` or sort them before printing, so they always produce the same output.
 
-Which of these need a `use`? Everything in `rok::core` is always in scope: `task`, `par`, `channel`, `Mutex`, `Atomic`, `Duration`. Only the modules of `rok::std`, which talk to the operating system, are imported by hand, so threads start with `use rok::std::thread;` just as files start with `use rok::std::fs;`.
+Which of these need a `use`? The prelude ([chapter 11](11-modules-packages.html)) has what this chapter uses from `rok::core`: `task`, `par`, `channel`, `Mutex`, `Atomic`, `Duration`. Only the modules of `rok::std`, which talk to the operating system, are imported by hand, so threads start with `use rok::std::thread;` just as files start with `use rok::std::fs;`.
 
 ## Threads
 
@@ -72,7 +72,7 @@ println(f"{got:?}");
 ["w0-0", "w0-1", "w1-0", "w1-1", "w2-0", "w2-1"]
 ```
 
-Rok values are managed by the GC, so a `Sender` is not closed automatically when it goes out of scope. The side that has finished sending must call `close()` itself for the receiver to know it is done. To bound the channel's capacity, use `channel_bounded(n)`.
+A `Sender` has one owner: `let tx2 = tx` moves it (using `tx` afterwards is an error), and `clone()` makes another sender with its own owner. The compiler releases a sender where its last owner leaves scope, and a task releases the senders its `async` block captured when it ends; once every sender is closed or released, the receiver's loop ends. Call `close()` yourself when the receiver must see the end sooner: here `main` reads the channel in the same scope that made `tx`, and a thread does not release what its closure captured, so each worker closes its sender when it is done. To bound the channel's capacity, use `channel_bounded(n)`.
 
 ## `Mutex` and `Atomic`
 
@@ -180,7 +180,7 @@ took [1, 2], left 0
 
 This section is about the rule the compiler enforces when a value moves between threads. You can skim it on a first read and come back when the compiler points you here.
 
-`Mutex::new(xs)`, `RwLock::new(xs)` and `tx.send(xs)` *hand `xs` over*: from then on it belongs to the lock or to the receiver. Rok has no move semantics, so the compiler tracks hand-offs instead: using `xs` afterwards is a compile error, because it would race with whoever owns it now. The check follows the value through copies (`let ys = xs`), struct fields, the objects that hold it, the elements of collections, closure captures and function calls.
+`Mutex::new(xs)`, `RwLock::new(xs)` and `tx.send(xs)` *hand `xs` over*: from then on it belongs to the lock or to the receiver. Only `Drop` resources such as a `Sender` or a `File` move in Rok ([chapter 10](10-errors.html)); for other values the compiler tracks hand-offs instead: using `xs` afterwards is a compile error, because it would race with whoever owns it now. The check follows the value through copies (`let ys = xs`), struct fields, the objects that hold it, the elements of collections, closure captures and function calls.
 
 ```rok norun
 let xs = [1, 2, 3];
@@ -390,7 +390,29 @@ println(f"{r}");
 -1
 ```
 
-Channels work in async code too. `for await` waits for values without blocking the task.
+An `async` method may take `ref self`, like a synchronous one: its changes reach the receiver when the future completes. Such a call is awaited where it is made, `await r.next_byte()`; keeping the future to await later is an error, since the receiver could change meanwhile.
+
+```rok
+struct Cursor { pos: usize; data: List<u8>; }
+
+impl Cursor {
+    async fn next_byte(ref self) -> u8 | none {
+        if self.pos >= self.data.len() { return none; }
+        self.pos += 1;
+        self.data[self.pos - 1]
+    }
+}
+
+let c = Cursor { pos: 0, data: [7u8, 8, 9] };
+while await c.next_byte() is u8 {}
+println(f"{c.pos}");
+```
+
+```output
+3
+```
+
+Channels work in async code too. `for await` waits for values without blocking the task. The task below releases `tx` when it ends, and that closes the channel.
 
 ```rok
 let (tx, rx) = channel::<i32>();
@@ -399,7 +421,6 @@ let producer = task::spawn(async {
         try! tx.send(i);
         await task::sleep(Duration::ms(5));
     }
-    tx.close();
     "producer done"
 });
 
@@ -672,8 +693,8 @@ println(f"{compute()}");
 ## Summary
 
 - `thread::spawn` starts an OS thread; get its result with `try h.join()`.
-- Create channels with `channel()`, and `close()` each `Sender` yourself once it is done sending.
-- `rok::core` (`task`, `par`, `channel`, `Mutex`, `Atomic`) is always in scope; `rok::std::thread` needs a `use`.
+- Create channels with `channel()`. A `Sender` is released where its last owner leaves scope; `close()` it yourself in a thread, or when the receiver reads in the same scope.
+- The prelude has `task`, `par`, `channel`, `Mutex` and `Atomic`; `rok::std::thread` needs a `use`.
 - Protect shared values with `Atomic` or `Mutex`. Lock guards must be bound with `using`; anything else is a compile error. `[ref x]` captures can't cross threads, and a `static` must be `Sync`.
 - A value handed to `Mutex::new` or `send` belongs to its new owner: using it afterwards, or using one of its elements, is a compile error (`E202`). Use it through the lock, hand over a `clone()`, or take elements out with `pop` / `remove` before sending them. What `g.get()` returns stays inside the `using` block; keep a `g.get_clone()`.
 - The receiver gets its own copy of the collections in the value; the copy keeps its sharing and costs time in proportion to its size. `any Tr` crosses threads only with `Send + Sync` on the trait, and a `Weak` never does.

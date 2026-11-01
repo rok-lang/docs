@@ -5,7 +5,7 @@
 > [!TIP]
 > 동시에 실행되는 코드의 출력 순서는 실행할 때마다 달라질 수 있습니다. 이 장의 예제는 결과를 `join`으로 모으거나 정렬한 뒤 출력하므로 언제나 같은 출력을 냅니다.
 
-이 가운데 `use`가 필요한 것은 거의 없습니다. `rok::core`의 모든 것은 언제나 스코프에 있습니다. `task`, `par`, `channel`, `Mutex`, `Atomic`, `Duration`이 그렇습니다. 운영체제를 다루는 `rok::std`의 모듈만 직접 들여옵니다. 파일을 `use rok::std::fs;`로 시작하듯 스레드는 `use rok::std::thread;`로 시작합니다.
+이 가운데 `use`가 필요한 것은 거의 없습니다. 이 장에서 쓰는 `rok::core`의 이름은 프렐류드([11장](11-modules-packages.html))에 들어 있습니다. `task`, `par`, `channel`, `Mutex`, `Atomic`, `Duration`이 그렇습니다. 운영체제를 다루는 `rok::std`의 모듈만 직접 들여옵니다. 파일을 `use rok::std::fs;`로 시작하듯 스레드는 `use rok::std::thread;`로 시작합니다.
 
 ## 스레드
 
@@ -72,7 +72,7 @@ println(f"{got:?}");
 ["w0-0", "w0-1", "w1-0", "w1-1", "w2-0", "w2-1"]
 ```
 
-Rok의 값은 GC가 관리하므로 `Sender`는 스코프를 벗어나도 자동으로 닫히지 않습니다. 받는 쪽이 끝났음을 알 수 있도록 보내기를 마친 쪽이 직접 `close()`를 호출해야 합니다. 채널의 용량을 제한하려면 `channel_bounded(n)`을 씁니다.
+`Sender`는 주인이 하나입니다. `let tx2 = tx`는 sender를 옮기고(그 뒤에 `tx`를 쓰면 에러), `clone()`은 따로 주인을 가진 sender를 하나 더 만듭니다. 컴파일러는 마지막 주인이 스코프를 벗어나는 곳에서 sender를 해제하고, task는 끝날 때 `async` 블록이 캡처한 sender를 해제합니다. 모든 sender가 닫히거나 해제되면 받는 쪽 루프가 끝납니다. 받는 쪽이 더 일찍 끝을 알아야 하면 직접 `close()`를 호출합니다. 위에서는 `main`이 `tx`를 만든 바로 그 스코프에서 채널을 읽고, 스레드는 클로저가 캡처한 값을 해제하지 않으므로 각 작업자가 일을 마치고 자기 sender를 닫습니다. 채널의 용량을 제한하려면 `channel_bounded(n)`을 씁니다.
 
 ## `Mutex`와 `Atomic`
 
@@ -180,7 +180,7 @@ took [1, 2], left 0
 
 이 절은 값이 스레드 사이를 옮겨 갈 때 컴파일러가 강제하는 규칙을 다룹니다. 처음 읽을 때는 훑어보고, 컴파일러가 여기를 가리킬 때 다시 돌아와도 됩니다.
 
-`Mutex::new(xs)`, `RwLock::new(xs)`, `tx.send(xs)`는 `xs`를 '넘깁니다'. 그때부터 그 값은 잠금이나 받는 쪽의 것입니다. Rok에는 move 의미론이 없으므로 컴파일러가 대신 넘김을 추적합니다. 넘긴 뒤에 `xs`를 쓰면 지금의 소유자와 경쟁하게 되므로 컴파일 에러입니다. 검사는 복사(`let ys = xs`), struct 필드, 그 값을 담는 객체, 컬렉션의 원소, 클로저 캡처, 함수 호출을 거쳐 값을 따라갑니다.
+`Mutex::new(xs)`, `RwLock::new(xs)`, `tx.send(xs)`는 `xs`를 '넘깁니다'. 그때부터 그 값은 잠금이나 받는 쪽의 것입니다. Rok에서 옮겨지는(move) 값은 `Sender`나 `File` 같은 `Drop` 자원뿐입니다([10장](10-errors.html)). 그 밖의 값은 컴파일러가 대신 넘김을 추적합니다. 넘긴 뒤에 `xs`를 쓰면 지금의 소유자와 경쟁하게 되므로 컴파일 에러입니다. 검사는 복사(`let ys = xs`), struct 필드, 그 값을 담는 객체, 컬렉션의 원소, 클로저 캡처, 함수 호출을 거쳐 값을 따라갑니다.
 
 ```rok norun
 let xs = [1, 2, 3];
@@ -390,7 +390,29 @@ println(f"{r}");
 -1
 ```
 
-채널은 async 코드에서도 동작합니다. `for await`는 task를 막지 않고 값을 기다립니다.
+`async` 메서드도 동기 메서드처럼 `ref self`를 받을 수 있습니다. 메서드가 바꾼 내용은 future가 끝날 때 수신자에 반영됩니다. 이런 호출은 부른 자리에서 기다립니다(`await r.next_byte()`). future를 보관했다가 나중에 기다리면 그 사이에 수신자가 바뀔 수 있으므로 에러입니다.
+
+```rok
+struct Cursor { pos: usize; data: List<u8>; }
+
+impl Cursor {
+    async fn next_byte(ref self) -> u8 | none {
+        if self.pos >= self.data.len() { return none; }
+        self.pos += 1;
+        self.data[self.pos - 1]
+    }
+}
+
+let c = Cursor { pos: 0, data: [7u8, 8, 9] };
+while await c.next_byte() is u8 {}
+println(f"{c.pos}");
+```
+
+```output
+3
+```
+
+채널은 async 코드에서도 동작합니다. `for await`는 task를 막지 않고 값을 기다립니다. 아래 task는 끝날 때 `tx`를 해제하고, 그러면 채널이 닫힙니다.
 
 ```rok
 let (tx, rx) = channel::<i32>();
@@ -399,7 +421,6 @@ let producer = task::spawn(async {
         try! tx.send(i);
         await task::sleep(Duration::ms(5));
     }
-    tx.close();
     "producer done"
 });
 
@@ -672,8 +693,8 @@ println(f"{compute()}");
 ## 정리
 
 - `thread::spawn`은 OS 스레드를 시작합니다. 결과는 `try h.join()`으로 얻습니다.
-- 채널은 `channel()`로 만들고, 각 `Sender`는 보내기를 마치면 직접 `close()`로 닫습니다.
-- `rok::core`(`task`, `par`, `channel`, `Mutex`, `Atomic`)는 언제나 스코프에 있고, `rok::std::thread`에는 `use`가 필요합니다.
+- 채널은 `channel()`로 만듭니다. `Sender`는 마지막 주인이 스코프를 벗어나는 곳에서 해제됩니다. 스레드 안에서나, 같은 스코프에서 받는 쪽이 읽을 때는 직접 `close()`로 닫습니다.
+- `task`, `par`, `channel`, `Mutex`, `Atomic`은 프렐류드에 있고, `rok::std::thread`에는 `use`가 필요합니다.
 - 공유하는 값은 `Atomic`이나 `Mutex`로 보호합니다. 잠금 가드는 `using`으로 바인딩해야 하고, 다른 방법은 컴파일 에러입니다. `[ref x]` 캡처는 스레드를 건널 수 없고, `static`은 `Sync`여야 합니다.
 - `Mutex::new`나 `send`에 넘긴 값은 새 소유자의 것입니다. 그 뒤에 그 값이나 그 원소를 쓰면 컴파일 에러(`E202`)입니다. 잠금을 거쳐 쓰거나, `clone()`을 넘기거나, 보내기 전에 `pop` / `remove`로 원소를 꺼냅니다. `g.get()`이 반환한 것은 `using` 블록 안에 머물며, 남겨 둘 것은 `g.get_clone()`입니다.
 - 받는 쪽은 값에 든 컬렉션을 복사해서 받습니다. 복사본은 공유 관계를 유지하고, 복사에는 크기에 비례해 시간이 듭니다. `any Tr`은 트레잇에 `Send + Sync`가 있을 때에만 스레드를 건너고, `Weak`는 결코 건너지 않습니다.

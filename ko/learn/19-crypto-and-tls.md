@@ -1,6 +1,6 @@
 # 19. 암호와 TLS
 
-Rok에는 자체 암호 구현이 들어 있습니다. `rok::core::crypto`에는 해시, HMAC과 HKDF, 인증 암호화, 키 교환, 서명 알고리듬이 있습니다. `rok::std::crypto::random`은 운영체제의 안전한 난수 원천을 읽습니다. `rok::std::net::tls`는 이 둘 위에 만든 TLS 1.3 클라이언트와 서버입니다. OpenSSL이나 다른 시스템 라이브러리가 끼어들지 않으므로 같은 코드는 모든 타깃에서 같게 동작합니다.
+Rok에는 자체 암호 구현이 들어 있습니다. `rok::core::crypto`에는 해시, HMAC과 HKDF, 인증 암호화, 키 교환, 서명 알고리듬이 있습니다. `rok::std::random`은 운영체제의 안전한 난수 원천을 읽습니다. `rok::std::net::tls`는 이 둘 위에 만든 TLS 1.3 클라이언트와 서버입니다. OpenSSL이나 다른 시스템 라이브러리가 끼어들지 않으므로 같은 코드는 모든 타깃에서 같게 동작합니다.
 
 > [!WARNING]
 >이 코드는 새것이고 감사(audit)를 받지 않았습니다. 공개된 테스트 벡터로 시험했고 비밀 데이터를 다룰 때 상수 시간(constant time)으로 실행되도록 작성했습니다. 하지만 실제 비밀을 맡기기 전에 암호 코드가 거쳐야 하는 독립적인 검토는 받지 않았습니다. 지금은 배우고 실험하는 데 쓰고, 중요한 일에는 감사받은 라이브러리를 쓰세요.
@@ -46,7 +46,7 @@ false
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, Ed25519};
-use rok::std::crypto::random;
+use rok::std::random;
 
 let key = random::secret(32);
 let nonce = random::bytes(12);           // never reuse a nonce with the same key
@@ -81,7 +81,7 @@ true false
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Hkdf, Secret, X25519, constant_time_eq};
-use rok::std::crypto::random;
+use rok::std::random;
 
 let a = random::secret(32);
 let b = random::secret(32);
@@ -188,7 +188,7 @@ server read 4 bytes, SNI localhost
 ## 요약
 
 - `rok::core::crypto`에는 SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA, RSA가 있습니다. 바이트 인자는 `List<u8>`, `Slice<u8>`, `str` 타입을 받습니다.
-- 난수는 오직 `rok::std::crypto::random`(`bytes(n)`, `fill(buf)`, `secret(n)`)에서 얻어 인자로 넘깁니다.
+- 난수는 오직 `rok::std::random`(`bytes(n)`, `fill(buf)`, `secret(n)`)에서 얻어 인자로 넘깁니다.
 - 키는 `Secret`으로 돌아오고, `wipe()`나 `using`으로, 또는 수집될 때 지워집니다.
 - 비밀은 `==`가 아니라 `constant_time_eq`나 `Hmac::verify`로 비교합니다.
 - `tls::Client` / `tls::Server`는 `TcpStream`을 TLS 1.3으로 감싼 뒤 소켓처럼 읽고 씁니다.
@@ -196,7 +196,7 @@ server read 4 bytes, SNI localhost
 
 ## 더 읽을거리
 
-- 표준 라이브러리 사양: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `crypto::random`](../spec/refs-standard-libraries/300-std/310-crypto.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13-nettls)
+- 표준 라이브러리 사양: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `random`](../spec/refs-standard-libraries/300-std/310-random.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13-nettls)
 - API: [rok::core::crypto](../../std/core/crypto.html), [rok::std::net::tls](../../std/std/net/tls.html)
 - [예제](../examples/index.html)
 - 다음 장: [20. 어떻게 하나요](20-cookbook.html)

@@ -10,7 +10,7 @@ Encrypt a message so only its recipient can read it, and sign it so the recipien
 ```rok
 // Send a signed, encrypted message: X25519 key agreement, HKDF, ChaCha20-Poly1305 and Ed25519.
 use rok::core::crypto::{Aead, AeadAlgorithm, Ed25519, Hkdf, HashAlgorithm, Secret, X25519};
-use rok::std::crypto::random;
+use rok::std::random;
 
 struct Sealed {
     sender_key: List<u8>;     // the sender's one-time X25519 public key

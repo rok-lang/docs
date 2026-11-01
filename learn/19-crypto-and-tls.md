@@ -1,6 +1,6 @@
 # 19. Cryptography and TLS
 
-Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, HMAC and HKDF, authenticated encryption, key exchange, signatures), `rok::std::crypto::random` reads the operating system's secure random source, and `rok::std::net::tls` is a TLS 1.3 client and server built on the two. No OpenSSL or other system library is involved, so the same code behaves the same on every target.
+Rok ships its own cryptography. `rok::core::crypto` has the algorithms (hashes, HMAC and HKDF, authenticated encryption, key exchange, signatures), `rok::std::random` reads the operating system's secure random source, and `rok::std::net::tls` is a TLS 1.3 client and server built on the two. No OpenSSL or other system library is involved, so the same code behaves the same on every target.
 
 > [!WARNING]
 > This code is new and has not been audited. It is tested against the published test vectors and written to run in constant time on secret data, but it has not had the independent review that cryptography needs before you trust it with real secrets. Use it to learn and to experiment, and keep an audited library for anything that matters for now.
@@ -46,7 +46,7 @@ false
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, Ed25519};
-use rok::std::crypto::random;
+use rok::std::random;
 
 let key = random::secret(32);
 let nonce = random::bytes(12);           // never reuse a nonce with the same key
@@ -81,7 +81,7 @@ A `Secret` holds bytes in *secret storage*: a buffer the collector never moves o
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Hkdf, Secret, X25519, constant_time_eq};
-use rok::std::crypto::random;
+use rok::std::random;
 
 let a = random::secret(32);
 let b = random::secret(32);
@@ -188,7 +188,7 @@ server read 4 bytes, SNI localhost
 ## Summary
 
 - `rok::core::crypto` has SHA-2 / SHA-3, HMAC, HKDF, AEAD, X25519, ML-KEM, Ed25519, ECDSA and RSA. Byte arguments take `List<u8>`, `Slice<u8>` or `str`.
-- Randomness comes only from `rok::std::crypto::random` (`bytes(n)`, `fill(buf)`, `secret(n)`) and is passed in.
+- Randomness comes only from `rok::std::random` (`bytes(n)`, `fill(buf)`, `secret(n)`) and is passed in.
 - Keys come back as `Secret`, which is wiped by `wipe()`, by `using`, or when it is collected.
 - Compare secrets with `constant_time_eq` or `Hmac::verify`, never `==`.
 - `tls::Client` / `tls::Server` wrap a `TcpStream` in TLS 1.3 and then read and write like it.
@@ -196,7 +196,7 @@ server read 4 bytes, SNI localhost
 
 ## Further reading
 
-- Standard library spec: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `crypto::random`](../spec/refs-standard-libraries/300-std/310-crypto.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13---nettls)
+- Standard library spec: [2.21 `crypto`](../spec/refs-standard-libraries/200-core/221-crypto.html), [3.10 `random`](../spec/refs-standard-libraries/300-std/310-random.html), [3.2.5 TLS 1.3](../spec/refs-standard-libraries/300-std/302-net.html#325-tls-13---nettls)
 - API: [rok::core::crypto](../std/core/crypto.html), [rok::std::net::tls](../std/std/net/tls.html)
 - [Examples](../examples/index.html)
 - Next chapter: [20. How Do I...](20-cookbook.html)

@@ -82,7 +82,7 @@ println(f"hello, {args[1]}");
 
 ## 잠들기, 그리고 걸린 시간 재기
 
-`Instant::now()`는 단조 시계(monotonic clock)를 읽고, `elapsed()`는 `Duration`을 줍니다. `thread::sleep`은 현재 스레드를 막습니다. 비동기 코드에서는 대신 `await task::sleep(..)`을 씁니다([12장](12-concurrency.html#async와-task), [`Duration` API](../../std/core/task/time.html#struct.Duration)).
+`Instant::now()`는 단조 시계(monotonic clock)를 읽고, `elapsed()`는 `Duration`을 줍니다. `thread::sleep`은 현재 스레드를 막습니다. 비동기 코드에서는 대신 `await task::sleep(..)`을 씁니다([12장](12-concurrency.html#async와-task), [`Duration` API](../../std/core/time.html#struct.Duration)).
 
 ```rok
 use rok::std::thread;

@@ -82,7 +82,7 @@ println(f"hello, {args[1]}");
 
 ## Sleep, and measure how long something takes
 
-`Instant::now()` reads a monotonic clock, and `elapsed()` gives a `Duration`. `thread::sleep` blocks the current thread; in async code use `await task::sleep(..)` instead ([chapter 12](12-concurrency.html#async-and-tasks), [`Duration` API](../std/core/task/time.html#struct.Duration)).
+`Instant::now()` reads a monotonic clock, and `elapsed()` gives a `Duration`. `thread::sleep` blocks the current thread; in async code use `await task::sleep(..)` instead ([chapter 12](12-concurrency.html#async-and-tasks), [`Duration` API](../std/core/time.html#struct.Duration)).
 
 ```rok
 use rok::std::thread;

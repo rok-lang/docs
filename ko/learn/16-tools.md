@@ -161,7 +161,7 @@ warning[E503]: unused variable `unused`
     Finished in 0.05s
 ```
 
-모든 린트의 기본 수준은 `warn`입니다. 수준은 세 곳에서 바꿀 수 있고, 뒤의 것이 우선합니다.
+모든 린트의 기본 수준은 `warn`입니다. 다만 늘 실수인 `nan_comparison`과 `self_assignment`는 `deny`입니다. 수준은 세 곳에서 바꿀 수 있고, 뒤의 것이 우선합니다.
 
 1. `rok.rokon`의 `lints` 필드: `lints: { "unused": "deny", "dead_code": "allow" }`
 2. 명령줄의 `-A` / `-W` / `-D` (allow / warn / deny)

@@ -161,7 +161,7 @@ warning[E503]: unused variable `unused`
     Finished in 0.05s
 ```
 
-Every lint defaults to `warn`. The level can be changed in three places, and later ones win:
+Every lint defaults to `warn`, except `nan_comparison` and `self_assignment`, which are always a mistake and default to `deny`. The level can be changed in three places, and later ones win:
 
 1. The `lints` field in `rok.rokon`: `lints: { "unused": "deny", "dead_code": "allow" }`
 2. `-A` / `-W` / `-D` (allow / warn / deny) on the command line

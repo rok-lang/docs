@@ -151,7 +151,7 @@ println(f"{i % len} {i %% len}");
 -1 4
 ```
 
-**오버플로는 빌드에 따라 다릅니다.** `rok run`과 `rok build`는 최적화 없이(`-O0`) 오버플로 검사를 켠 채 컴파일합니다. 그래서 범위를 넘으면 panic이 일어납니다. 최적화 빌드(`-O1` 이상, `rok build --release`는 `-O2`)는 검사를 끕니다. 그래서 같은 덧셈이 조용히 한 바퀴 돌아 작은 값이 됩니다.
+**오버플로가 나면 panic이 일어납니다.** 고정 폭 정수의 범위를 넘으면 debug 빌드든 `--release` 빌드든 panic이 일어납니다. 그래서 잘못된 값이 조용히 지나가지 않습니다.
 
 ```rok build
 let x: i32 = 2147483647;
@@ -159,14 +159,12 @@ println(f"{x + 1}");
 ```
 
 ```text
-$ rok run
+$ rok run --release
 thread 'main' panicked at src/main.rok:2:12:
 attempt to add with overflow
-$ rok run --release
--2147483648
 ```
 
-최적화 빌드에서도 검사를 유지하려면 `-C overflow-checks=yes`를 추가합니다. 오버플로가 날 수 있는 곳에서는 `checked_add`(`none`을 반환), `wrapping_add`, `saturating_add`로 원하는 동작을 밝히세요. 오버플로가 없는 `int`(아래 참고)를 써도 됩니다.
+정수 연산이 몰린 반복문에서는 검사 비용이 몇 퍼센트 듭니다. 그 비용을 되찾아야 하는 프로그램은 `-C overflow-checks=no`로 검사를 끄거나, `rok.rokon`에 `profile: { "release": { overflow_checks: false } }`를 써서 한 프로필에서만 끕니다. 그러면 오버플로는 한 바퀴 돕니다. 오버플로가 날 수 있는 곳에서는 `checked_add`(`none`을 반환), `wrapping_add`, `saturating_add`로 원하는 동작을 밝히세요. 오버플로가 없는 `int`(아래 참고)를 써도 됩니다.
 
 ```rok
 let x: i32 = 2147483647;
@@ -293,7 +291,7 @@ welcome: 58 seats left
 - 접미사 없는 리터럴은 기대 타입을 따르고, 기본은 `i32` / `f64`입니다.
 - 숫자 타입 사이에 자동 변환은 없습니다. `as`, `.into()`, `.try_into::<T>()`를 씁니다.
 - `len()`과 인덱스는 `usize`입니다. `i32`와 섞으려면 `as`로 변환합니다.
-- `/`와 `%`는 0 쪽으로 버리고, `%%`는 내림 나머지입니다. 오버플로가 나면 debug 빌드에서는 panic이 일어나고 최적화 빌드에서는 값이 한 바퀴 돕니다.
+- `/`와 `%`는 0 쪽으로 버리고, `%%`는 내림 나머지입니다. 오버플로 검사를 끄지 않으면 어느 빌드에서든 오버플로가 나면 panic이 일어납니다.
 - `[...]`는 `List`이고, `[T; N]` 타입이면 고정 배열입니다. `List`는 `{:?}`로 출력합니다.
 - `int`는 범위 제한이 없는 정수이고, `const`는 컴파일 타임 상수입니다.
 

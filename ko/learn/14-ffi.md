@@ -42,6 +42,22 @@ error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe 
    |            ^^^^^^^
 ```
 
+`extern` 블록에 선언한 C 전역 변수(`static mut optind: i32;`)도 마찬가지로 검사할 수 없습니다. 그래서 읽거나 쓸 때도 `unsafe`가 필요합니다.
+
+```rok
+extern "C" {
+    static mut optind: i32;
+}
+
+let next = unsafe {
+    optind = 1;
+    optind + 1
+};
+println(f"next: {next}");
+```
+
+`unsafe` 밖에서 쓰면 에러이고, 도움말이 고친 형태(`unsafe { optind = 1; }`)를 보여 줍니다. `extern` 블록의 타입은 C가 담을 수 있는 것이어야 합니다. `List`, `Dict`, 클로저 같은 GC 값은 C가 쥐고 있는 동안 수집기가 옮기거나 해제할 수 있으므로 에러입니다. 대신 포인터와 길이를 넘기세요.
+
 `unsafe` 블록은 "여기서는 내가 안전을 보장한다"는 뜻입니다. 이 블록은 작게 유지하세요. 위험한 호출은 안전한 Rok 함수로 감싸서 밖에서는 안전한 API만 보이게 하는 편이 좋습니다.
 
 ## C 문자와 null이 될 수 있는 포인터

@@ -42,6 +42,22 @@ error[E200]: call to unsafe function `abs` outside an `unsafe` block or `unsafe 
    |            ^^^^^^^
 ```
 
+A C global declared in an `extern` block (`static mut optind: i32;`) is unchecked in the same way, so reading or writing it also needs `unsafe`:
+
+```rok
+extern "C" {
+    static mut optind: i32;
+}
+
+let next = unsafe {
+    optind = 1;
+    optind + 1
+};
+println(f"next: {next}");
+```
+
+Outside `unsafe` it is an error whose help shows the fix (`unsafe { optind = 1; }`). The types in an `extern` block must be ones C can hold: a `List`, `Dict`, closure or other GC value is an error, because the collector may move or free it while C holds it. Pass a pointer and a length instead.
+
 An `unsafe` block says "I guarantee safety here." Good practice is to keep these blocks small and wrap dangerous calls in safe Rok functions, so only a safe API is visible from outside.
 
 ## C characters and nullable pointers

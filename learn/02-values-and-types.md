@@ -151,7 +151,7 @@ println(f"{i % len} {i %% len}");
 -1 4
 ```
 
-**Overflow depends on the build.** `rok run` and `rok build` compile without optimization (`-O0`), with overflow checks on, so going past the range panics. An optimized build (`-O1` and up; `rok build --release` is `-O2`) turns the checks off, and the same addition silently wraps around.
+**Overflow panics.** Going past the range of a fixed-width integer panics in every build, debug or `--release`, so a wrong value never slips through silently.
 
 ```rok build
 let x: i32 = 2147483647;
@@ -159,14 +159,12 @@ println(f"{x + 1}");
 ```
 
 ```text
-$ rok run
+$ rok run --release
 thread 'main' panicked at src/main.rok:2:12:
 attempt to add with overflow
-$ rok run --release
--2147483648
 ```
 
-To keep the checks in an optimized build, add `-C overflow-checks=yes`. When overflow is expected, say what you want with `checked_add` (gives `none`), `wrapping_add`, or `saturating_add`, or use `int` (below), which never overflows.
+The checks cost a few percent in tight integer loops. A program that needs that back turns them off with `-C overflow-checks=no`, or for one profile in `rok.rokon` with `profile: { "release": { overflow_checks: false } }`; then overflow wraps around. When overflow is expected, say what you want with `checked_add` (gives `none`), `wrapping_add`, or `saturating_add`, or use `int` (below), which never overflows.
 
 ```rok
 let x: i32 = 2147483647;
@@ -293,7 +291,7 @@ welcome: 58 seats left
 - Unsuffixed literals follow the expected type, defaulting to `i32` / `f64`.
 - There is no automatic conversion between numeric types. Use `as`, `.into()`, or `.try_into::<T>()`.
 - `len()` and indexes are `usize`; convert with `as` to mix them with `i32`.
-- `/` and `%` truncate toward zero; `%%` is floored modulo. Overflow panics in a debug build and wraps in an optimized one.
+- `/` and `%` truncate toward zero; `%%` is floored modulo. Overflow panics in every build unless overflow checks are turned off.
 - `[...]` is a `List`; with a `[T; N]` type it is a fixed array. Print a `List` with `{:?}`.
 - `int` is an unbounded integer; `const` is a compile-time constant.
 

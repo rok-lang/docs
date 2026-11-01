@@ -230,7 +230,7 @@ ff 0xFF 101 ff
 
 Without an explicit alignment, numbers are right-aligned and everything else is left-aligned. `?` selects the `Debug` format, which shows strings with their quotes and escapes. Specifiers are checked against the hole's type at compile time, so a mistake like `{s:x}` (with `s: str`) is an immediate error.
 
-The `g` type prints like the plain form today: `{x:.3g}` is the same as `{x:.3}`. From Rok 0.2.0 `g` becomes the general format (`1.23e+03`), so `g` with a precision warns; write `{x:.3}` to keep today's output.
+The `g` type is the general format of C and Python: the precision counts significant digits (6 by default), and large or small numbers switch to an exponent. `{1234.5678:.3g}` is `1.23e+03`, `{1e20:g}` is `1e+20`, `{0.5:g}` is `0.5`.
 
 To choose the width or precision at run time, put another hole inside the specifier. Both `{..}` and `${..}` work ([dynamic format specifiers](../spec/refs-lang/001-lexical/107-string-literals.html#dynamic-format-specifiers)).
 
@@ -274,10 +274,10 @@ println(f"{Shape::Circle(1.5):?} {Shape::Rect { w: 2.5, h: 3.0 }:?}");
 ```output
 (1, -2) | Point { x: 1, y: -2 } | [   (1, -2)]
 [Point { x: 1, y: -2 }, Point { x: 3, y: 4 }]
-Circle(1.5) Rect { w: 2.5, h: 3 }
+Circle(1.5) Rect { w: 2.5, h: 3.0 }
 ```
 
-Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once you implement `Display`, you can put the type directly anywhere in an f-string, and with `Debug`, a `List` or `Dict` holding that type also prints with `{:?}`. `3.0` prints as `3` because the default float output is "the shortest representation that reads back as the same value".
+Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once you implement `Display`, you can put the type directly anywhere in an f-string, and with `Debug`, a `List` or `Dict` holding that type also prints with `{:?}`. `{3.0}` prints `3` because the default float output is "the shortest representation that reads back as the same value"; `Debug` adds `.0` to a whole number, so `h: 3.0` still reads as a float. `{p:#?}` prints a struct or collection one field or element a line, indented.
 
 ## Summary
 

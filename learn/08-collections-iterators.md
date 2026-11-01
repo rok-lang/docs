@@ -279,7 +279,7 @@ println(f"{c.xs:?}");
 ```
 
 ```output
-[21, 42, 63]
+[21.0, 42.0, 63.0]
 ```
 
 The spec defines these operators for `List` and fixed-size arrays as standard, along with `f.(xs)`, which applies a function to every element by adding a dot after it.
@@ -294,7 +294,7 @@ println(f"{c:?} {d:?} {r:?}");
 ```
 
 ```output
-[11, 22, 33] [2, 4, 6] [1, 1.4142135623730951, 1.7320508075688772]
+[11.0, 22.0, 33.0] [2.0, 4.0, 6.0] [1.0, 1.4142135623730951, 1.7320508075688772]
 ```
 
 ## Summary

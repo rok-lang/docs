@@ -187,7 +187,7 @@ warning[E503]: `p.x` is set on a copy of the element, so `ps` does not change
    = help: loop over the indexes to change the elements: `for i in 0..ps.len() { ps[i].x *= 10; }`
 ```
 
-원소를 제자리에서 바꾸려면 리스트에 인덱스로 접근하거나 새 리스트를 만듭니다.
+원소를 제자리에서 바꾸려면 리스트에 인덱스로 접근하거나 새 리스트를 만듭니다. 원소(`ps[i].shift(1)`)나 `Dict` 항목에 `ref self` 메서드를 불러도 제자리에서 바뀝니다.
 
 ```rok
 struct Point { x: i32; y: i32; }

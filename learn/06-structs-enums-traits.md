@@ -187,7 +187,7 @@ warning[E503]: `p.x` is set on a copy of the element, so `ps` does not change
    = help: loop over the indexes to change the elements: `for i in 0..ps.len() { ps[i].x *= 10; }`
 ```
 
-To change the elements in place, index the list, or build a new one.
+To change the elements in place, index the list, or build a new one. A `ref self` method called on an element (`ps[i].shift(1)`) or a `Dict` entry changes it in place too.
 
 ```rok
 struct Point { x: i32; y: i32; }

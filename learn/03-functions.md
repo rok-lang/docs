@@ -48,6 +48,20 @@ println(f"{double(4)} {id("hi")}");
 8 hi
 ```
 
+A `pub` or `pub(pkg)` function is different: other modules call it, so it writes its signature out: every parameter has a type, and without `->` it returns `()`. When its body gives a value, the compiler says which `-> T` to write ([E0139](../errors/E0139.html)).
+
+```rok
+pub fn double(x: i32) -> i32 { x * 2 }   // pub: types written out
+pub fn greet(name: str) { println(f"hi {name}"); }   // no `->`: returns ()
+greet("rok");
+println(f"{double(4)}");
+```
+
+```output
+hi rok
+8
+```
+
 A block `{ ... }` is an expression outside function bodies too. It is handy for keeping temporaries inside the block and taking out only the result.
 
 ```rok

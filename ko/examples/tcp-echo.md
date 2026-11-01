@@ -20,8 +20,8 @@ fn serve(conn: TcpStream) throws (IoError) -> i32 {
         lines += 1;
     }
     // Close both handles (the clone shares the socket) so the client sees EOF.
-    r.into_inner().close();
-    conn.close();
+    try r.into_inner().close();
+    try conn.close();
     lines
 }
 
@@ -56,7 +56,7 @@ fn main() throws (IoError) {
         }
         let total = 0;
         for h in handlers { total += try! h.join(); }
-        listener.close();
+        try! listener.close();
         total
     });
 

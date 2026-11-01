@@ -373,7 +373,7 @@ true 43
 
 최상위 문장에 `await`가 있으면 프로그램 전체가 `async fn main`으로 실행되므로 스크립트에서 `await`를 바로 쓸 수 있습니다. 일반 `fn`의 본체에서는 `await`를 쓸 수 없습니다.
 
-시간 제한은 `task::timeout`으로 둡니다. 시간이 다 되면 `TimeoutError`를 던집니다.
+시간 제한은 `task::timeout`으로 둡니다. 시간이 다 되면 `TimeoutError`를 던지고 그 task를 취소합니다. `task::race`는 먼저 끝난 task의 결과를 주고, 나머지 task를 같은 방식으로 취소합니다.
 
 ```rok
 async fn slow() -> i32 {
@@ -513,7 +513,7 @@ primes below 10000: 1229
 [2, 4, 6] 10
 ```
 
-`fold`는 조각마다 따로 접은 뒤 결과를 합칩니다. 그래서 결과가 결정적이려면 결합 법칙을 만족하는 함수(`+`, `max` 등)를 넘겨야 합니다.
+`fold`는 조각마다 따로 접은 뒤 결과를 합칩니다. 그래서 결과가 결정적이려면 결합 법칙을 만족하는 함수(`+`, `max` 등)를 넘겨야 합니다. `par::reduce`는 시작값 없이 같은 일을 하고, 항목이 없으면 `none`을 돌려줍니다: `par::reduce(xs, |a, b| a.max(b))`.
 
 작업이 정확히 두 개면 `par::join`을, 개수가 실행 시점에 정해지면 `par::scope`를 씁니다. scope 안에서 `spawn`으로 띄운 모든 작업은 scope가 끝나기 전에 끝납니다.
 

@@ -39,7 +39,6 @@ async fn fetch_with_deadline(url: str) -> Status {
         Status::Done(try await fetch(url) catch e { return Status::Failed(e); })
     });
     try await task::timeout(Duration::ms(DEADLINE_MS), t) catch _ {
-        t.cancel();
         Status::Failed(FetchError::Timeout)
     }
 }
@@ -109,5 +108,5 @@ style.css          29696 B
 - A channel has many senders and many receivers (MPMC). A copy of a `Receiver` shares its queue, so every worker takes a copy of the one job receiver, and each URL goes to whichever idle worker takes it first ([2.17.4 multiple producers and consumers](../spec/refs-standard-libraries/200-core/217-channel.html#2174-multiple-producers-and-consumers), [`channel`](../std/core/channel.html#fn.channel)).
 - Each worker gets its own sender via `clone()` and `close()`s it when done. `for await r in done_rx` ends only once every sender is closed, so `main` closes its original `done_tx` early ([Concurrency](../learn/12-concurrency.html)).
 - `await jobs.recv_async()` suspends the task, not the thread, until a value arrives. Once `main` closes `job_tx` and the queue is empty it yields `none`, and the `break` in the `let-else` leaves the worker loop.
-- `task::timeout` throws `TimeoutError` if the task does not finish in time. A timeout does not stop the task, so it is cancelled explicitly with `t.cancel()` ([`task::timeout`](../std/core/task.html#fn.timeout), [2.18.1 core API](../spec/refs-standard-libraries/200-core/218-task.html#2181-core-api)).
+- `task::timeout` throws `TimeoutError` if the task does not finish in time, and cancels the task, so a slow fetch stops at its next `await` (`task::race` cancels the tasks that lose the same way) ([`task::timeout`](../std/core/task.html#fn.timeout), [2.18.1 core API](../spec/refs-standard-libraries/200-core/218-task.html#2181-core-api)).
 - Results may arrive in a different order on every run, so they are sorted by URL before printing and the report is always the same.

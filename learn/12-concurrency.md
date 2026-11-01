@@ -373,7 +373,7 @@ As the last line shows, `try await f()` reads left to right: await the future, t
 
 If the top-level statements contain an `await`, the whole program runs as an `async fn main`, so you can use `await` directly in a script. You cannot use `await` in the body of an ordinary `fn`.
 
-Set a time limit with `task::timeout`. When the time runs out, it throws `TimeoutError`.
+Set a time limit with `task::timeout`. When the time runs out, it throws `TimeoutError` and cancels the task. `task::race` gives the result of whichever task finishes first and cancels the others the same way.
 
 ```rok
 async fn slow() -> i32 {
@@ -513,7 +513,7 @@ primes below 10000: 1229
 [2, 4, 6] 10
 ```
 
-`fold` folds each chunk separately and then combines the results, so you must pass an associative function (`+`, `max`, and so on) for the result to be deterministic.
+`fold` folds each chunk separately and then combines the results, so you must pass an associative function (`+`, `max`, and so on) for the result to be deterministic. `par::reduce` does the same with no starting value and gives `none` when there are no items: `par::reduce(xs, |a, b| a.max(b))`.
 
 For exactly two jobs, use `par::join`; when the number is decided at run time, use `par::scope`. Every job `spawn`ed inside a scope finishes before the scope ends.
 

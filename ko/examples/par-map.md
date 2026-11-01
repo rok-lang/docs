@@ -98,7 +98,7 @@ sequential: 148933, parallel: 148933, match: true
 ## 설명
 
 - `par::map`은 항목을 여러 덩어리로 나눠 스레드 풀에서 동시에 처리하지만, 결과 리스트는 입력 순서를 유지합니다. 그래서 `counts[i]`는 `starts[i]`에서 시작하는 구간의 답입니다([2.19.1 핵심 API](../spec/refs-standard-libraries/200-core/219-par.html#2191-핵심-api), [`par::map`](../../std/core/par.html#fn.map)).
-- `par::fold`는 먼저 덩어리마다 접고, 그다음 덩어리별 결과를 접습니다. 묶는 방식을 바꿔도 같은 답이 나오도록 함수는 결합 법칙을 만족해야 합니다. 덧셈은 만족하고 뺄셈은 만족하지 않습니다([`par::fold`](../../std/core/par.html#fn.fold)).
+- `par::fold`는 먼저 덩어리마다 접고, 그다음 덩어리별 결과를 접습니다. 묶는 방식을 바꿔도 같은 답이 나오도록 함수는 결합 법칙을 만족해야 합니다. 덧셈은 만족하고 뺄셈은 만족하지 않습니다([`par::fold`](../../std/core/par.html#fn.fold)). `par::reduce(counts, |a, b| a + b)`는 `0` 없이 같은 일을 하고, 빈 리스트에는 `none`을 돌려줍니다([`par::reduce`](../../std/core/par.html#fn.reduce)).
 - `par::filter`도 순서를 유지하므로 백만 근처의 소수가 오름차순으로 나옵니다.
 - `par::join`은 서로 관계없는 두 계산을 동시에 실행하고 두 결과를 튜플로 돌려줍니다([동시성](../learn/12-concurrency.html)).
 - 병렬로 구한 답과 순차로 구한 답을 비교하는 것이 병렬화한 코드를 확인하는 가장 간단한 방법입니다. 걸린 시간은 기계마다 다르므로 출력에 넣지 않습니다.

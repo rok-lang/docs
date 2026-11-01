@@ -98,7 +98,7 @@ sequential: 148933, parallel: 148933, match: true
 ## Walkthrough
 
 - `par::map` splits the items into chunks processed at the same time on the thread pool, but the result list keeps the input order, so `counts[i]` is the answer for the block starting at `starts[i]` ([2.19.1 core API](../spec/refs-standard-libraries/200-core/219-par.html#2191-core-api), [`par::map`](../std/core/par.html#fn.map)).
-- `par::fold` folds each chunk first and then folds the chunk results. The function must be associative so that regrouping gives the same answer: addition is, subtraction is not ([`par::fold`](../std/core/par.html#fn.fold)).
+- `par::fold` folds each chunk first and then folds the chunk results. The function must be associative so that regrouping gives the same answer: addition is, subtraction is not ([`par::fold`](../std/core/par.html#fn.fold)). `par::reduce(counts, |a, b| a + b)` is the same without the `0`, and gives `none` for an empty list ([`par::reduce`](../std/core/par.html#fn.reduce)).
 - `par::filter` keeps the order as well, so the primes around one million come out ascending.
 - `par::join` runs two unrelated computations at once and returns both results as a tuple ([Concurrency](../learn/12-concurrency.html)).
 - Comparing the parallel and sequential answers is the simplest way to check parallelized code. Timings vary from machine to machine, so they are not part of the output.

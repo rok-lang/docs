@@ -39,7 +39,6 @@ async fn fetch_with_deadline(url: str) -> Status {
         Status::Done(try await fetch(url) catch e { return Status::Failed(e); })
     });
     try await task::timeout(Duration::ms(DEADLINE_MS), t) catch _ {
-        t.cancel();
         Status::Failed(FetchError::Timeout)
     }
 }
@@ -109,5 +108,5 @@ style.css          29696 B
 - 채널은 송신자도 수신자도 여럿일 수 있습니다(MPMC). `Receiver`를 복사하면 같은 큐를 함께 쓰므로, 워커마다 작업 수신자 하나의 복사본을 받고, URL은 쉬고 있다가 먼저 가져가는 워커에게 갑니다([2.17.4 다중 생산자와 다중 소비자](../spec/refs-standard-libraries/200-core/217-channel.html#2174-다중-생산자와-다중-소비자), [`channel`](../../std/core/channel.html#fn.channel)).
 - 워커마다 `clone()`으로 자기 송신자를 받고 일이 끝나면 `close()`로 닫습니다. `for await r in done_rx`는 모든 송신자가 닫혀야 끝나므로 `main`은 원래의 `done_tx`를 일찍 닫습니다([동시성](../learn/12-concurrency.html)).
 - `await jobs.recv_async()`는 값이 올 때까지 스레드가 아니라 task를 멈춥니다. `main`이 `job_tx`를 닫고 큐가 비면 `none`을 내고, `let-else` 안의 `break`가 워커 루프를 빠져나갑니다.
-- `task::timeout`은 task가 제때 끝나지 않으면 `TimeoutError`를 던집니다. 타임아웃이 task를 멈추지는 않으므로 `t.cancel()`로 명시적으로 취소합니다([`task::timeout`](../../std/core/task.html#fn.timeout), [2.18.1 핵심 API](../spec/refs-standard-libraries/200-core/218-task.html#2181-핵심-api)).
+- `task::timeout`은 task가 제때 끝나지 않으면 `TimeoutError`를 던지고 그 task를 취소합니다. 그래서 느린 fetch는 다음 `await`에서 멈춥니다. `task::race`도 진 task를 같은 방식으로 취소합니다([`task::timeout`](../../std/core/task.html#fn.timeout), [2.18.1 핵심 API](../spec/refs-standard-libraries/200-core/218-task.html#2181-핵심-api)).
 - 결과가 도착하는 순서는 실행할 때마다 다를 수 있습니다. 그래서 출력하기 전에 URL로 정렬합니다. 보고서는 언제나 같습니다.

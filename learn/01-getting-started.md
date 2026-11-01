@@ -28,7 +28,7 @@ On Windows, run this in PowerShell. It installs into `%USERPROFILE%\.rok` and ad
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release: a version (`0.2.0`) or a series (`0.2`, its newest release).
+`install.sh --version <v>` and `install.ps1 -Version <v>` pick a release by its exact version (`0.2.0`); without them you get the newest release.
 
 You can change the install location with the `ROK_HOME` environment variable (default `~/.rok`). When the script finishes, you get the following layout.
 
@@ -96,11 +96,11 @@ Three executables are installed.
 rok toolchain list                     # installed toolchains
 rok toolchain default 0.1.4            # change the default
 rok toolchain install 0.1.4            # download 0.1.4 beside the default
-rok toolchain update                   # download the latest release and make it the default
-rok toolchain update 0.1               # the newest 0.1.x instead
+rok toolchain update                   # download the newest release and make it the default
+rok toolchain update 0.1.6             # exactly 0.1.6 instead
 ```
 
-`rok toolchain update 0.2.0` installs that version instead, and `rok toolchain install` downloads one without changing the default (`--from <archive>` installs a file you already have). The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. When an update moves to a new series, say from 0.1.6 to 0.2.0, it adds a note: projects that must stay on 0.1 pin it with `toolchain: "0.1"`, which `rok new` writes for you, or run `rok +0.1 ..`. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
+`rok toolchain update` takes an exact version, not a series. `rok toolchain install` downloads one without changing the default (`--from <archive>` installs a file you already have). The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. When an update moves to a new series, say from 0.1.6 to 0.2.0, it adds a note: projects that must stay on 0.1 pin it with `toolchain: "0.1"`, which `rok new` writes for you, or run `rok +0.1 ..`. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
 
 If another `rok` (from a package manager, say) comes before `~/.rok/bin` on your `PATH`, the new default would not take, so `rok toolchain update` and `rok toolchain default` warn:
 

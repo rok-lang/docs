@@ -28,7 +28,7 @@ Windows에서는 PowerShell에서 다음을 실행합니다. `%USERPROFILE%\.rok
 powershell -ExecutionPolicy Bypass -c "irm https://rok-lang.org/install.ps1 | iex"
 ```
 
-`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 고릅니다. 버전(`0.2.0`)이나 시리즈(`0.2`, 그 시리즈의 최신 릴리스)를 적습니다.
+`install.sh --version <v>`와 `install.ps1 -Version <v>`로 릴리스를 정확한 버전(`0.2.0`)으로 고릅니다. 적지 않으면 최신 릴리스를 설치합니다.
 
 설치 위치는 `ROK_HOME` 환경 변수로 바꿀 수 있습니다(기본값 `~/.rok`). 스크립트가 끝나면 다음 구조가 생깁니다.
 
@@ -96,11 +96,11 @@ host:      aarch64-apple-darwin
 rok toolchain list                     # installed toolchains
 rok toolchain default 0.1.4            # change the default
 rok toolchain install 0.1.4            # download 0.1.4 beside the default
-rok toolchain update                   # download the latest release and make it the default
-rok toolchain update 0.1               # the newest 0.1.x instead
+rok toolchain update                   # download the newest release and make it the default
+rok toolchain update 0.1.6             # exactly 0.1.6 instead
 ```
 
-`rok toolchain update 0.2.0`은 최신 릴리스 대신 그 버전을 설치합니다. `rok toolchain install`은 기본값을 바꾸지 않고 내려받기만 합니다(이미 가진 아카이브는 `--from <archive>`로 설치합니다). 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 0.1.6에서 0.2.0으로 가는 것처럼 업데이트가 시리즈를 넘으면 안내가 붙습니다. 0.1에 머물러야 하는 프로젝트는 `toolchain: "0.1"`로 고정하거나(`rok new`가 적어 줍니다) `rok +0.1 ..`로 실행하면 됩니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
+`rok toolchain update`에는 시리즈가 아니라 정확한 버전을 적습니다. `rok toolchain install`은 기본값을 바꾸지 않고 내려받기만 합니다(이미 가진 아카이브는 `--from <archive>`로 설치합니다). 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 0.1.6에서 0.2.0으로 가는 것처럼 업데이트가 시리즈를 넘으면 안내가 붙습니다. 0.1에 머물러야 하는 프로젝트는 `toolchain: "0.1"`로 고정하거나(`rok new`가 적어 줍니다) `rok +0.1 ..`로 실행하면 됩니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
 
 패키지 관리자로 설치한 것처럼 다른 `rok`이 `PATH`에서 `~/.rok/bin`보다 앞에 있으면 새 기본값이 적용되지 않습니다. 그래서 `rok toolchain update`와 `rok toolchain default`가 경고합니다.
 

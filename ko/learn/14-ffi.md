@@ -134,7 +134,8 @@ C에 버퍼를 넘기려면 원시 포인터가 필요합니다. `rok::bare` 계
 기본 연산은 포인터로 하는 `read()` / `write()`, `add(n)`(원소 n개만큼 전진), `cast::<U>()`입니다. 메모리는 `rok::bare::alloc`으로 C 힙에서 받고 직접 돌려줍니다. 이 메모리는 GC가 관리하지 않으므로 `dealloc`을 잊으면 새어 나갑니다.
 
 ```rok
-use rok::bare::ptr::{Ptr, ConstPtr, size_of};
+use rok::bare::mem::size_of;
+use rok::bare::ptr::{Ptr, ConstPtr};
 use rok::bare::alloc;
 
 let xs: List<i32> = [10, 20, 30];
@@ -172,7 +173,8 @@ println(f"17 / 5 = {r.quot} rem {r.rem}");
 `qsort`처럼 함수 포인터를 받는 C 함수에는 Rok 함수를 C ABI로 컴파일해 넘깁니다. 함수 정의 앞에 `extern "C"`만 붙이면 됩니다. 이런 함수는 클로저가 아니므로 주변 변수를 캡처할 수 없습니다. 매개변수와 반환 타입은 정수, 부동소수, 포인터, `#[repr(C)]` struct 같은 FFI 호환 타입이어야 합니다.
 
 ```rok
-use rok::bare::ptr::{Ptr, ConstPtr, size_of};
+use rok::bare::mem::size_of;
+use rok::bare::ptr::{Ptr, ConstPtr};
 use rok::bare::alloc;
 
 extern "C" {

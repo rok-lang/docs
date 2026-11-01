@@ -134,7 +134,8 @@ Passing a buffer to C requires raw pointers. The `rok::bare` layer provides thes
 The basic operations are `read()` / `write()` through the pointer, `add(n)` (advance by n elements), and `cast::<U>()`. Memory comes from the C heap via `rok::bare::alloc` and you return it yourself. The GC does not manage this memory, so forgetting `dealloc` leaks it.
 
 ```rok
-use rok::bare::ptr::{Ptr, ConstPtr, size_of};
+use rok::bare::mem::size_of;
+use rok::bare::ptr::{Ptr, ConstPtr};
 use rok::bare::alloc;
 
 let xs: List<i32> = [10, 20, 30];
@@ -172,7 +173,8 @@ println(f"17 / 5 = {r.quot} rem {r.rem}");
 For C functions that take a function pointer, such as `qsort`, compile a Rok function with the C ABI and pass it. Just put `extern "C"` before the function definition. Such a function is not a closure, so it cannot capture surrounding variables, and its parameters and return type must be FFI-compatible (integers, floats, pointers, `#[repr(C)]` structs).
 
 ```rok
-use rok::bare::ptr::{Ptr, ConstPtr, size_of};
+use rok::bare::mem::size_of;
+use rok::bare::ptr::{Ptr, ConstPtr};
 use rok::bare::alloc;
 
 extern "C" {

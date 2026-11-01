@@ -4,14 +4,14 @@
 
 ## `throws`, `throw`, `try`
 
-`throws`는 매개변수 목록 뒤, `->` 앞에 씁니다. 본체에서는 `throw`로 에러 값을 던집니다. 대부분의 코드는 표준 라이브러리의 `ValueError { msg }`로 충분하므로 에러 타입을 따로 정의할 필요가 없습니다.
+`throws`는 매개변수 목록 뒤, `->` 앞에 씁니다. 본체에서는 `throw`로 에러 값을 던집니다. 대부분의 코드는 표준 라이브러리의 `ValueError::new(msg)`로 충분하므로 에러 타입을 따로 정의할 필요가 없습니다.
 
 에러를 던지는 함수를 호출할 때는 언제나 `try`를 붙여야 합니다. 호출이 실패하면 에러는 가장 가까운 `catch`로 갑니다. `catch`가 없으면 에러는 감싸는 함수 밖으로 전파됩니다. 이때 그 함수도 `throws`여야 합니다.
 
 ```rok
 fn parse_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError { msg: f"age {n} is negative" }; }
+    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
     n
 }
 
@@ -85,7 +85,7 @@ println(f"{parse_port("3000")} {parse_port("abc")}");
 
 ```rok
 fn save(n: i32) throws {
-    if n < 0 { throw ValueError { msg: "negative" }; }
+    if n < 0 { throw ValueError::new("negative"); }
     println(f"saved {n}");
 }
 
@@ -107,13 +107,13 @@ saved 1
 ```rok
 fn read_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError { msg: f"age {n} is negative" }; }
+    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
     n
 }
 
 for s in ["30", "x", "-1"] {
     let age = try read_age(s)
-    catch e: ValueError { println(f"  {e.msg}"); -1 }
+    catch e: ValueError { println(f"  {e.message()}"); -1 }
     catch e { println(f"  {e}"); -1 };
     println(f"{s} -> {age}");
 }
@@ -133,7 +133,7 @@ x -> -1
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -246,7 +246,7 @@ fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
 }
 
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -284,7 +284,7 @@ fn open(name: str) -> Conn {
 fn work() throws -> i32 {
     using a = open("db"), b = open("cache") {
         println("working");
-        throw ValueError { msg: "query failed" };
+        throw ValueError::new("query failed");
     }
 }
 
@@ -321,7 +321,7 @@ index 7 out of bounds for length 3
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -338,7 +338,7 @@ for n in [4, 5] {
 
 ## 정리
 
-- 에러를 던질 수 있는 함수는 `->` 앞에 `throws`를 선언하고 `throw`로 던집니다. 대부분은 `ValueError { msg }`로 충분합니다.
+- 에러를 던질 수 있는 함수는 `->` 앞에 `throws`를 선언하고 `throw`로 던집니다. 대부분은 `ValueError::new(msg)`로 충분합니다.
 - 호출은 `try`로 표시합니다. 잡지 않은 에러는 감싸는 함수로 전파되고, 스크립트 최상위에서는 종료 코드 1로 프로그램을 끝냅니다.
 - `(try? e) ?? default`는 대체 값을 주고(괄호가 없으면 rokc가 경고하거나 거부합니다), `let _ = try? f();`는 에러를 무시하며, `try!`는 에러를 panic으로 바꿉니다.
 - `catch`는 패턴으로 고르는 식이고, `finally`는 항상 실행됩니다.

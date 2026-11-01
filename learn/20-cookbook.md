@@ -153,7 +153,7 @@ Write `throws` on a function that can fail and `try` on each call. `catch` handl
 ```rok
 fn parse_port(s: str) throws -> u16 {
     let n: u16 = try s.parse();
-    if n < 1024 { throw ValueError { msg: f"port {n} is reserved" }; }
+    if n < 1024 { throw ValueError::new(f"port {n} is reserved"); }
     n
 }
 

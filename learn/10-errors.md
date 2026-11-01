@@ -4,14 +4,14 @@ Things that can fail, like a missing file or bad input, are everywhere. Rok has 
 
 ## `throws`, `throw`, and `try`
 
-Write `throws` after the parameter list, before `->`. In the body, `throw` throws an error value. For most code the standard library's `ValueError { msg }` is all you need; you don't have to define an error type.
+Write `throws` after the parameter list, before `->`. In the body, `throw` throws an error value. For most code the standard library's `ValueError::new(msg)` is all you need; you don't have to define an error type.
 
 You must put `try` on every call to a function that throws. If the call fails, the error goes to the nearest `catch`; if there is none, it propagates out of the enclosing function, which must then be `throws` too.
 
 ```rok
 fn parse_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError { msg: f"age {n} is negative" }; }
+    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
     n
 }
 
@@ -85,7 +85,7 @@ To ignore an error on purpose, write `let _ = try? f();`. `try! e` turns an erro
 
 ```rok
 fn save(n: i32) throws {
-    if n < 0 { throw ValueError { msg: "negative" }; }
+    if n < 0 { throw ValueError::new("negative"); }
     println(f"saved {n}");
 }
 
@@ -107,13 +107,13 @@ saved 1
 ```rok
 fn read_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError { msg: f"age {n} is negative" }; }
+    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
     n
 }
 
 for s in ["30", "x", "-1"] {
     let age = try read_age(s)
-    catch e: ValueError { println(f"  {e.msg}"); -1 }
+    catch e: ValueError { println(f"  {e.message()}"); -1 }
     catch e { println(f"  {e}"); -1 };
     println(f"{s} -> {age}");
 }
@@ -133,7 +133,7 @@ To wrap several steps at once, use the `try { .. } catch .. { .. }` form. A `fin
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -246,7 +246,7 @@ fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
 }
 
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -284,7 +284,7 @@ fn open(name: str) -> Conn {
 fn work() throws -> i32 {
     using a = open("db"), b = open("cache") {
         println("working");
-        throw ValueError { msg: "query failed" };
+        throw ValueError::new("query failed");
     }
 }
 
@@ -321,7 +321,7 @@ Use `Result<T, E>` only when you need to hold an error as a value (to collect se
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError { msg: f"{n} is odd" }; }
+    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
     n / 2
 }
 
@@ -338,7 +338,7 @@ for n in [4, 5] {
 
 ## Summary
 
-- A function that can throw declares `throws` (before `->`) and throws with `throw`; `ValueError { msg }` covers most needs.
+- A function that can throw declares `throws` (before `->`) and throws with `throw`; `ValueError::new(msg)` covers most needs.
 - Calls are marked with `try`. An uncaught error propagates to the enclosing function; at the top of a script it ends the program with exit code 1.
 - `(try? e) ?? default` gives a fallback (without the parentheses, rokc warns or rejects it); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
 - `catch` is an expression that selects by pattern, and `finally` always runs.

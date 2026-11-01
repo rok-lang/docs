@@ -43,7 +43,7 @@ fn client(id: i32, addr: SocketAddr, msgs: List<str>) throws (IoError) {
 
 fn main() throws (IoError) {
     // Port 0: the OS picks a free port; local_addr tells us which.
-    let listener = try TcpListener::bind(try! "127.0.0.1:0".parse::<SocketAddr>());
+    let listener = try TcpListener::bind("127.0.0.1:0");
     let addr = try listener.local_addr();
     let clients = 3;
 
@@ -84,8 +84,9 @@ server echoed 6 lines and stopped
 
 ## Walkthrough
 
-- Binding `TcpListener` to port 0 lets the OS choose a free port, and `local_addr()` reports the actual address, so there is no clash with other programs ([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../std/std/net.html#struct.TcpListener)).
+- Binding `TcpListener` to port 0 lets the OS choose a free port, and `local_addr()` reports the actual address, so there is no clash with other programs. `bind` and `connect` take text, a `SocketAddr` or anything else that implements `ToSocketAddrs` ([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../std/std/net.html#struct.TcpListener)).
 - The server thread starts one handler thread per connection, then `join`s them all and adds up the lines served. The closures capture `listener` and `conn` and carry them to the other threads ([Concurrency](../learn/12-concurrency.html), [`thread::spawn`](../std/std/thread.html#fn.spawn)).
 - To read line by line, the socket is `try_clone()`d and wrapped in a `BufReader`: reads go through the clone, writes through the original ([`BufReader`](../std/core/io.html#struct.BufReader)).
+- Every socket is closed by its owner: the server handler with `try conn.close()`, the client by leaving its `using` block, the listener once all clients are served. Leaving one open is a compile error, since its close can fail.
 - Shutdown order matters. After sending everything, the client calls `shutdown(Shutdown::Write)` to say "nothing more", and the server's `lines()` ends its loop on that signal. Once the server closes both handles, the client's `read_line` reads 0 bytes.
 - The same server can be written with `accept_async` / `read_async` and tasks instead of the blocking API ([3.2.0 common rules](../spec/refs-standard-libraries/300-std/302-net.html#320-common-rules)).

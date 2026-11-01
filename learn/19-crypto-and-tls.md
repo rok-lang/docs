@@ -115,13 +115,13 @@ use rok::std::net::{tcp_connect, tls};
 let conn = try tls::Client::new(try tcp_connect("example.com:443"), "example.com");
 try conn.write_all(b"GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
 let resp = try conn.read_to_end();
-try conn.close_notify();
+try conn.close();                                           // close_notify, then the socket
 println((try str::from_utf8(resp)).lines().next() ?? "");   // HTTP/1.1 200 OK
 ```
 
 For real HTTP, use the [`http` stone](18-features-and-stones.html#the-rok-stones), which does this for you, with redirects, pooling and HTTP/2.
 
-A server needs a certificate chain and its private key, usually read from PEM files. The program below runs both sides on the loopback interface: a server task with a self-signed certificate, and a client that trusts exactly that certificate through `ClientConfig.root_certs`. Every call has an `_async` form for tasks ([chapter 12](12-concurrency.html)).
+A server needs a certificate chain and its private key, usually read from PEM files. The program below runs both sides on the loopback interface: a server task with a self-signed certificate, and a client that trusts exactly that certificate through `ClientConfig.root_certs`. `ClientConfig` and `ServerConfig` are records whose fields have defaults, so a literal names only what differs: `ClientConfig { root_certs: chain }`, or `ClientConfig { alpn_protocols: [b"h2"], ..try tls::ClientConfig::new() }` to start from the OS trust store. Every call has an `_async` form for tasks ([chapter 12](12-concurrency.html)).
 
 ```rok
 use rok::std::net;
@@ -153,6 +153,7 @@ let l = try! net::tcp_listen("127.0.0.1:0");
 let addr = try! l.local_addr();
 let server = task::spawn_local(async {
     let (conn, _) = try! await l.accept_async();
+    try! l.close();
     let s = try! await tls::Server::new_async(conn, scfg);
     let buf = List::filled(64, 0u8);
     let n = try! await s.read_async(buf);
@@ -163,8 +164,7 @@ let server = task::spawn_local(async {
     f"server read {n} bytes, SNI {sni}"
 });
 
-let ccfg = try! tls::ClientConfig::new();
-ccfg.root_certs = chain;               // trust only our certificate
+let ccfg = tls::ClientConfig { root_certs: chain };   // trust only our certificate
 let tcp = try! await TcpStream::connect_async(addr);
 let c = try! await tls::Client::with_config_async(tcp, "localhost", ccfg);
 try! await c.write_all_async(b"ping");
@@ -187,7 +187,8 @@ server read 4 bytes, SNI localhost
 - Randomness comes only from `rok::std::random` (`bytes(n)`, `fill(buf)`, `secret(n)`) and is passed in.
 - Keys come back as `Secret`, which is wiped by `wipe()`, by `using`, or when it is collected.
 - Compare secrets with `constant_time_eq` or `Hmac::verify`, never `==`.
-- `tls::Client` / `tls::Server` wrap a `TcpStream` in TLS 1.3 and then read and write like it.
+- `tls::Client` / `tls::Server` wrap a `TcpStream` in TLS 1.3 and then read and write like it; `close()` sends close_notify and closes the socket.
+- `ClientConfig` / `ServerConfig` literals name only the fields that differ from the defaults.
 - The implementation is new and unaudited.
 
 ## Further reading

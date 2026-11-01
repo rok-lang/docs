@@ -115,13 +115,13 @@ use rok::std::net::{tcp_connect, tls};
 let conn = try tls::Client::new(try tcp_connect("example.com:443"), "example.com");
 try conn.write_all(b"GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
 let resp = try conn.read_to_end();
-try conn.close_notify();
+try conn.close();                                           // close_notify 뒤 소켓을 닫음
 println((try str::from_utf8(resp)).lines().next() ?? "");   // HTTP/1.1 200 OK
 ```
 
 실제 HTTP에는 이 일을 대신해 주는 [`http` stone](18-features-and-stones.html#rok-프로젝트의-stone)을 쓰세요. 리다이렉트, 풀링, HTTP/2까지 처리합니다.
 
-서버에는 인증서 체인과 그 개인 키가 필요하고, 보통 PEM 파일에서 읽습니다. 아래 프로그램은 루프백 인터페이스에서 양쪽을 모두 실행합니다. 한쪽은 자체 서명 인증서를 쓰는 서버 task이고, 다른 쪽은 `ClientConfig.root_certs`로 정확히 그 인증서만 신뢰하는 클라이언트입니다. 모든 호출에는 task용 `_async` 형태가 있습니다([12장](12-concurrency.html)).
+서버에는 인증서 체인과 그 개인 키가 필요하고, 보통 PEM 파일에서 읽습니다. 아래 프로그램은 루프백 인터페이스에서 양쪽을 모두 실행합니다. 한쪽은 자체 서명 인증서를 쓰는 서버 task이고, 다른 쪽은 `ClientConfig.root_certs`로 정확히 그 인증서만 신뢰하는 클라이언트입니다. `ClientConfig`와 `ServerConfig`는 필드에 기본값이 있는 레코드라서, 리터럴에는 기본값과 다른 것만 적습니다. `ClientConfig { root_certs: chain }`처럼 쓰거나, OS 신뢰 저장소에서 시작하려면 `ClientConfig { alpn_protocols: [b"h2"], ..try tls::ClientConfig::new() }`처럼 씁니다. 모든 호출에는 task용 `_async` 형태가 있습니다([12장](12-concurrency.html)).
 
 ```rok
 use rok::std::net;
@@ -153,6 +153,7 @@ let l = try! net::tcp_listen("127.0.0.1:0");
 let addr = try! l.local_addr();
 let server = task::spawn_local(async {
     let (conn, _) = try! await l.accept_async();
+    try! l.close();
     let s = try! await tls::Server::new_async(conn, scfg);
     let buf = List::filled(64, 0u8);
     let n = try! await s.read_async(buf);
@@ -163,8 +164,7 @@ let server = task::spawn_local(async {
     f"server read {n} bytes, SNI {sni}"
 });
 
-let ccfg = try! tls::ClientConfig::new();
-ccfg.root_certs = chain;               // trust only our certificate
+let ccfg = tls::ClientConfig { root_certs: chain };   // trust only our certificate
 let tcp = try! await TcpStream::connect_async(addr);
 let c = try! await tls::Client::with_config_async(tcp, "localhost", ccfg);
 try! await c.write_all_async(b"ping");
@@ -187,7 +187,8 @@ server read 4 bytes, SNI localhost
 - 난수는 오직 `rok::std::random`(`bytes(n)`, `fill(buf)`, `secret(n)`)에서 얻어 인자로 넘깁니다.
 - 키는 `Secret`으로 돌아오고, `wipe()`나 `using`으로, 또는 수집될 때 지워집니다.
 - 비밀은 `==`가 아니라 `constant_time_eq`나 `Hmac::verify`로 비교합니다.
-- `tls::Client` / `tls::Server`는 `TcpStream`을 TLS 1.3으로 감싼 뒤 소켓처럼 읽고 씁니다.
+- `tls::Client` / `tls::Server`는 `TcpStream`을 TLS 1.3으로 감싼 뒤 소켓처럼 읽고 씁니다. `close()`는 close_notify를 보낸 뒤 소켓을 닫습니다.
+- `ClientConfig` / `ServerConfig` 리터럴에는 기본값과 다른 필드만 적습니다.
 - 구현은 새것이고 감사를 받지 않았습니다.
 
 ## 더 읽을거리

@@ -28,7 +28,7 @@ fn derive(shared: Secret) -> Secret {
 
 fn signed_part(s: Sealed) -> List<u8> {
     let all: List<u8> = [];
-    all.extend(s.sender_key.to_bytes());
+    all.extend(s.sender_key.to_bytes().iter());
     for part in [s.nonce, s.body] { all.extend(part); }
     all
 }

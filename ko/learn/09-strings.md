@@ -46,12 +46,16 @@ string offsets count bytes; to work by character, use `chars()` or `char_indices
 let c = 'A';
 println(f"{c} {c.is_ascii_uppercase()} {c.to_ascii_lowercase()}");
 println(f"{'7'.is_ascii_digit()} {'세'.len_utf8()} {'\u{1F600}'}");
+println(f"{'ß'.to_uppercase()} {'ß'.to_simple_uppercase()} {'7'.to_digit(10) ?? 0} {'x'.to_digit(10) is none}");
 ```
 
 ```output
 A true a
 true 3 😀
+SS ß 7 true
 ```
+
+대소문자를 바꾸면 한 문자가 여러 문자가 될 수 있습니다. 그래서 `to_uppercase`, `to_lowercase`, `to_titlecase`는 `str`을 돌려줍니다(`'ß'`는 `"SS"`가 됩니다). `char` 하나가 꼭 필요하면 `to_simple_uppercase` 같은 `to_simple_*` 형태를 씁니다. 한 문자로 바뀌는 매핑이 없는 문자는 그대로 둡니다. `to_digit`은 그 진법의 숫자가 아닌 문자에 `none`을 돌려줍니다.
 
 ## 자주 쓰는 메서드
 

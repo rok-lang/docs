@@ -46,12 +46,16 @@ A single character is a `char`, written in single quotes. It holds one Unicode s
 let c = 'A';
 println(f"{c} {c.is_ascii_uppercase()} {c.to_ascii_lowercase()}");
 println(f"{'7'.is_ascii_digit()} {'세'.len_utf8()} {'\u{1F600}'}");
+println(f"{'ß'.to_uppercase()} {'ß'.to_simple_uppercase()} {'7'.to_digit(10) ?? 0} {'x'.to_digit(10) is none}");
 ```
 
 ```output
 A true a
 true 3 😀
+SS ß 7 true
 ```
+
+Case mapping can turn one character into several, so `to_uppercase`, `to_lowercase` and `to_titlecase` return a `str` (`'ß'` becomes `"SS"`). When you need exactly one `char` back, use `to_simple_uppercase` and the other `to_simple_*` forms, which leave a character without a one-character mapping as it is. `to_digit` returns `none` for a character that is not a digit of the radix.
 
 ## Common methods
 

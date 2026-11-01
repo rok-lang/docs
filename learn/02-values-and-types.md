@@ -263,6 +263,8 @@ println(f"2^100 = {big}");
 2^100 = 1267650600228229401496703205376
 ```
 
+An `int` becomes an `f64` with `big.to_f64()`, which rounds to the nearest value. Rounding is not lossless, so `into()` and `as f64` do not compile for it; `try f64::try_from(big)` throws instead of giving `inf` when the value is past `f64::MAX`.
+
 > [!NOTE]
 > Advanced: `int` also has number-theory helpers such as `isqrt`, `modpow`, `gcd`, and `lcm`. They are listed in the [`int` API](../std/core/num/bigint.html).
 

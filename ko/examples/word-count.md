@@ -33,7 +33,7 @@ fn normalize(token: str) -> str {
     let sb = StrBuf::new();
     for c in token.chars() {
         if c.is_alphanumeric() || c == '\'' {
-            sb.push(c.to_lowercase());
+            sb.push_str(c.to_lowercase());
         }
     }
     sb.to_str()

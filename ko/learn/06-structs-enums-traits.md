@@ -309,7 +309,7 @@ mod zoo {
     impl Animal for Dog { fn name(self) -> str { "dog" } }
 }
 
-use zoo::Animal;              // 이 줄이 없으면 `zoo::Dog.name()`은 에러
+use zoo::Animal;              // without this, `zoo::Dog.name()` is an error
 
 println(zoo::Dog.name());
 ```

@@ -173,7 +173,7 @@ yield fn numbers(words: List<str>) throws (ParseError) -> i32 {
 
 fn total(words: List<str>) throws -> i32 {
     let sum = 0;
-    try for n in numbers(words) {   // 실패한 단계는 전파됨
+    try for n in numbers(words) {   // a failed step propagates
         sum += n;
     }
     sum
@@ -340,9 +340,9 @@ impl Drop for Conn {
 
 fn short_job() {
     let c = Conn { name: "tmp" };
-    let d = c;               // 옮김: `c`는 이제 없음
+    let d = c;               // moves: `c` is gone
     println("working");
-}                            // 컴파일러가 여기서 `d`를 해제함
+}                            // the compiler releases `d` here
 
 short_job();
 ```

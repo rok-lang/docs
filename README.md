@@ -1,6 +1,6 @@
 # Rok docs
 
-The guide, examples and cookbook for [Rok](https://rok-lang.org), in English. (The language spec, in English and Korean, is in [rok-lang/spec](https://github.com/rok-lang/spec).) The site at docs.rok-lang.org renders these files; this repository holds only content.
+The guide, examples and cookbook for [Rok](https://rok-lang.org), in English and Korean (`ko/`). (The language spec, in English and Korean, is in [rok-lang/spec](https://github.com/rok-lang/spec).) The site at docs.rok-lang.org renders these files; this repository holds only content.
 
 ## Branches
 
@@ -15,5 +15,7 @@ A release is a `vX.Y.Z` branch here and in rok-lang/spec; the site finds them on
 - `examples/`: complete programs
 - `errors/`: one page per rokc error code
 - `index.md`: the docs home
+- `ko/`: the Korean pages, the same layout as the English ones at the root
+- `checks/`: the sources whose `rokc check` output the pages' ` ```text check=` blocks must match
 
 Every ` ```rok ` block is compiled and run with the matching toolchain before a change goes live.

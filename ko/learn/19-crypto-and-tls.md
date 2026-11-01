@@ -115,7 +115,7 @@ use rok::std::net::{tcp_connect, tls};
 let conn = try tls::Client::new(try tcp_connect("example.com:443"), "example.com");
 try conn.write_all(b"GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
 let resp = try conn.read_to_end();
-try conn.close();                                           // close_notify 뒤 소켓을 닫음
+try conn.close();                                           // close_notify, then the socket
 println((try str::from_utf8(resp)).lines().next() ?? "");   // HTTP/1.1 200 OK
 ```
 

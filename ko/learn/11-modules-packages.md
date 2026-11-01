@@ -95,9 +95,9 @@ error[E0032]: `square` is both imported from `shapes::square` and defined in thi
 지금까지 `use` 없이 써 온 `List`, `Dict`, `println` 같은 이름은 *프렐류드*(prelude)에서 옵니다. 모든 파일은 암묵적인 `use rok::core::prelude::*;`로 시작합니다. 프렐류드는 정해진 짧은 목록입니다. 자주 쓰는 타입(`List`, `Dict`, `Result`, `Duration`, `Mutex` 등), `impl` 머리와 바운드에 쓰는 트레잇(`Clone`, `Hash`, `Display`, `Iterator`, `From` 등), 출력과 panic 함수, 그리고 `rok::core`의 최상위 모듈(`task`, `par`, `ops`, `num`, `sync`, `iter` 등)이 들어 있습니다. `rok::core`의 나머지는 이 모듈들을 거쳐 부르거나 가져옵니다.
 
 ```rok norun
-task::sleep(Duration::ms(1));          // `task` 모듈은 프렐류드에 있음
-impl ops::Add for V { .. }             // 연산자 트레잇은 `ops`에 있음
-use rok::core::sync::Frozen;           // 또는 이름을 가져옴
+task::sleep(Duration::ms(1));          // the module `task` is in the prelude
+impl ops::Add for V { .. }             // operator traits live in `ops`
+use rok::core::sync::Frozen;           // or import the name
 ```
 
 직접 정의한 이름은 언제나 프렐류드의 이름보다 우선합니다. enum 변형은 프렐류드에 없습니다. 기대하는 타입이 enum을 정해 주는 자리에서는 변형 이름만 씁니다([6장](06-structs-enums-traits.html)). 스코프에 없는 이름을 쓰면 에러 메시지가 써야 할 경로와 그 이름을 가져오는 `use`를 알려 줍니다. 파일, 네트워크, 스레드 같은 `rok::std`의 모듈은 `use rok::std::fs;`처럼 명시적으로 들여옵니다.

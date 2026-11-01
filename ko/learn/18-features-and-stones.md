@@ -226,7 +226,7 @@ pub struct WrapOptions {
     pub break_words: bool = false;
 }
 
-// 다른 패키지에서
+// in another package
 let o = textwrap::WrapOptions { width: 60 };
 let textwrap::WrapOptions { width, .. } = o;
 ```

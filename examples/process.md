@@ -5,7 +5,6 @@ Run external programs such as `echo`, a shell pipeline and `tr` with `rok::std::
 ## Code
 
 ```rok
-use rok::core::marker::replace;
 use rok::std::process::{Command, Stdio, Output};
 use rok::core::io::IoError;
 
@@ -49,10 +48,10 @@ fn main() throws (IoError) {
         .stdin(Stdio::Piped)
         .stdout(Stdio::Piped)
         .spawn();
-    let input = replace(ref child.stdin, none) ?? panic("stdin not piped");
+    let input = child.take_stdin() ?? panic("stdin not piped");
     try input.write_all("shout this\n");
     try input.close();   // EOF lets `tr` finish
-    let output = replace(ref child.stdout, none) ?? panic("stdout not piped");
+    let output = child.take_stdout() ?? panic("stdout not piped");
     let shouted = try output.read_to_str();
     try output.close();
     println(f"tr: [{shouted.trim()}] ({try child.wait()})");
@@ -103,7 +102,7 @@ ok=false
 - `output()` waits for the child to finish and collects both stdout and stderr into an [`Output`](../std/std/process.html#struct.Output). It drains both pipes together, so the child never stalls on a full pipe. `str::from_utf8` turns the bytes into a string.
 - The pipe (`|`) is handled by `sh -c`, not by rok. It is the simplest option when you need shell syntax.
 - `env` adds a variable for the child only, and `env_clear` empties the inherited environment. The parent's environment does not change.
-- `spawn()` returns a [`Child`](../std/std/process.html#struct.Child) without waiting. The `Child` owns the pipes opened with `Stdio::Piped`, and a pipe has one owner, so `replace(ref child.stdin, none)` takes it out and leaves `none` behind. Write to `stdin`, send EOF with `close()`, then read `stdout`, close it too, and `wait()`. A pipe's close can fail, so the compiler asks for it rather than closing it for you.
+- `spawn()` returns a [`Child`](../std/std/process.html#struct.Child) without waiting. The `Child` holds the pipes opened with `Stdio::Piped` until you take them: `child.take_stdin()` hands over the stdin pipe and leaves `none` behind, so the pipe has one owner, you. Pipes you never take close when the `Child` is released. Write to `stdin`, send EOF with `close()`, then read `stdout`, close it too, and `wait()`. A pipe's close can fail, so the compiler asks for it rather than closing it for you.
 - Copies of a `Command` are independent: a builder method returns a changed copy, so `base.arg("hi")` leaves `base` as it was, and one base command can start several variants. A builder call whose result is dropped warns, since it changes nothing.
 - `signal()` comes from `ExitStatusExt` in `rok::std::os::unix::process`. On Linux and macOS it is in the prelude, so it needs no `use`; on Windows it does not exist ([3.11 `os::`](../spec/refs-standard-libraries/300-std/311-os.html)).
 - A missing executable throws an `IoError`. `try ... catch e { ... }` catches it on the spot and substitutes a default ([3.14 Error control flow](../spec/refs-lang/003-expressions/314-error-control-flow.html), [Errors](../learn/10-errors.html)).

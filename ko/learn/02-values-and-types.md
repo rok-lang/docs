@@ -202,12 +202,14 @@ none -2147483648 2147483647
 
 ## bool, char, str
 
-`bool`은 `true` / `false`이고 `&&`, `||`, `!`로 조합합니다. `char`는 Unicode 문자 하나이고 작은따옴표로 씁니다. `str`은 UTF-8 문자열이고 큰따옴표로 씁니다.
+`bool`은 `true` / `false`이고 `&&`, `||`, `!`로 조합합니다. 같은 방향의 비교는 이어 쓸 수 있습니다. `0 <= x < 10`은 `0 <= x && x < 10`이고 `x`는 한 번만 평가됩니다(`a < b > c`는 에러). `x in xs`와 `x !in xs`는 리스트, 집합, 사전(키), 문자열, 범위에 들어 있는지 검사합니다. `char`는 Unicode 문자 하나이고 작은따옴표로 씁니다. `b'A'`는 그 ASCII 문자의 바이트로 `u8`입니다. `str`은 UTF-8 문자열이고 큰따옴표로 씁니다.
 
 ```rok
 let ok = 3 < 5 && !false;
+let x = 7;
+println(f"{ok} {0 <= x < 10} {x in [1, 7]} {x !in 0..5}");
 let ch = '가';
-println(f"{ok} {ch} {ch as u32} {65u8 as char}");
+println(f"{ch} {ch as u32} {65u8 as char} {b'A'}");
 
 let s = "héllo";
 println(f"{s.len()} bytes, {s.char_count()} chars");
@@ -218,7 +220,8 @@ println(r"raw: C:\path\n");
 ```
 
 ```output
-true 가 44032 A
+true true true true
+가 44032 A 65
 6 bytes, 5 chars
 héllo, rok HÉLLO, ROK true
 tab:	end

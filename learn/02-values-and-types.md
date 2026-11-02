@@ -202,12 +202,14 @@ none -2147483648 2147483647
 
 ## bool, char, str
 
-`bool` is `true` / `false`, combined with `&&`, `||`, and `!`. `char` is a single Unicode character, written in single quotes. `str` is a UTF-8 string, written in double quotes.
+`bool` is `true` / `false`, combined with `&&`, `||`, and `!`. Comparisons in one direction chain: `0 <= x < 10` is `0 <= x && x < 10`, with `x` evaluated once (`a < b > c` is an error). `x in xs` and `x !in xs` test membership in a list, set, dictionary (its keys), string or range. `char` is a single Unicode character, written in single quotes; `b'A'` is that ASCII character's byte, a `u8`. `str` is a UTF-8 string, written in double quotes.
 
 ```rok
 let ok = 3 < 5 && !false;
+let x = 7;
+println(f"{ok} {0 <= x < 10} {x in [1, 7]} {x !in 0..5}");
 let ch = '가';
-println(f"{ok} {ch} {ch as u32} {65u8 as char}");
+println(f"{ch} {ch as u32} {65u8 as char} {b'A'}");
 
 let s = "héllo";
 println(f"{s.len()} bytes, {s.char_count()} chars");
@@ -218,7 +220,8 @@ println(r"raw: C:\path\n");
 ```
 
 ```output
-true 가 44032 A
+true true true true
+가 44032 A 65
 6 bytes, 5 chars
 héllo, rok HÉLLO, ROK true
 tab:	end

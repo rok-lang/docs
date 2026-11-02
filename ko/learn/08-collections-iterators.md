@@ -85,13 +85,13 @@ println(f"{ys:?}");
 
 ## Dict와 Set
 
-`{"key": value}`는 해시 맵 `Dict<K, V>`이고, `{1, 2}`는 해시 집합 `Set<T>`입니다. 빈 `{}`는 블록이므로 빈 컬렉션은 `Dict::new()` / `Set::new()`로 만듭니다. `d[k]`는 키가 없으면 panic을 일으키고, `d.get(k)`는 `V | none`을 반환합니다.
+`{"key": value}`는 해시 맵 `Dict<K, V>`이고, `{1, 2}`는 해시 집합 `Set<T>`입니다. 빈 `{}`는 블록이므로 빈 컬렉션은 `Dict::new()` / `Set::new()`로 만듭니다. `d[k]`는 키가 없으면 panic을 일으키고, `d.get(k)`는 `V | none`을 반환합니다. `k in d`는 키가 있는지, `x in s`는 집합에 드는지 검사합니다(반대는 `!in`).
 
 ```rok
 let ages: Dict<str, i32> = {"kim": 30, "lee": 25};
 ages["park"] = 41;
 ages.remove("lee");
-println(f"{ages["kim"]} {ages.get("choi") ?? -1} {ages.contains_key("park")} {ages.len()}");
+println(f"{ages["kim"]} {ages.get("choi") ?? -1} {"park" in ages} {ages.len()}");
 
 let counts: Dict<str, i32> = Dict::new();
 for w in ["a", "b", "a", "a"] {
@@ -101,7 +101,7 @@ println(f"a={counts["a"]} b={counts["b"]}");
 
 let s: Set<i32> = {1, 2, 3};
 let t: Set<i32> = {2, 3, 4};
-println(f"{s.contains(2)} {s.intersection(t).len()} {s.union(t).len()}");
+println(f"{2 in s} {s.intersection(t).len()} {s.union(t).len()}");
 ```
 
 ```output
@@ -167,7 +167,7 @@ println(f"{xs.iter().find(|x| x > 3):?} {xs.iter().position(|x| x == 3):?} {xs.i
 for (i, x) in xs.iter().enumerate().skip(4) { println(f"{i}: {x}"); }
 
 let names = ["a", "b", "c"];
-let pairs: List<str> = names.iter().zip(xs.iter()).map(|p| f"{p.0}{p.1}").collect();
+let pairs: List<str> = names.iter().zip(xs.iter()).map(|(n, x)| f"{n}{x}").collect();
 println(f"{pairs:?}");
 
 let back: List<i32> = xs.iter().rev().take(2).collect();
@@ -253,9 +253,8 @@ impl Drop for Conn {
 }
 
 yield fn rows() -> i32 {
-    using c = (Conn { name: "db" }) {
-        for i in 1..=5 { yield i; }
-    }
+    using c = Conn { name: "db" };
+    for i in 1..=5 { yield i; }
 }
 
 for r in rows() {
@@ -282,7 +281,7 @@ struct Vector { xs: List<f64>; }
 impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
-        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
+        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|(a, b)| a + b).collect() }
     }
 }
 

@@ -145,18 +145,18 @@ println(f"{hits.load()} {all:?}");
 
 ## 에러 처리하기
 
-실패할 수 있는 함수에는 `throws`를, 각 호출에는 `try`를 씁니다. `catch`는 에러가 난 자리에서 처리하고, `(try? ..) ?? default`는 에러를 기본값으로 바꿉니다. 괄호는 꼭 써야 하며, 괄호 없는 `try? f() ?? d`는 에러입니다([10장](10-errors.html)).
+실패할 수 있는 함수에는 `throws`를, 각 호출에는 `try`를 씁니다. `throw "msg"`는 그 메시지의 `ValueError`를 던집니다. `catch`는 에러가 난 자리에서 처리하고, `try? f() ?? default`는 에러를 기본값으로 바꿉니다([10장](10-errors.html)).
 
 ```rok
 fn parse_port(s: str) throws -> u16 {
     let n: u16 = try s.parse();
-    if n < 1024 { throw ValueError::new(f"port {n} is reserved"); }
+    if n < 1024 { throw f"port {n} is reserved"; }
     n
 }
 
 let a = try parse_port("8080");
 let b = try parse_port("80") catch e { println(f"error: {e}"); 8000 };
-let c = (try? parse_port("abc")) ?? 3000;
+let c = try? parse_port("abc") ?? 3000;
 println(f"{a} {b} {c}");
 ```
 

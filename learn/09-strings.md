@@ -166,6 +166,17 @@ true
 
 A non-ASCII character written directly in a byte string, or an escape above `\xFF`, is a compile error; line continuation is not supported.
 
+A single byte is written `b'0'`: a `u8` with the same rules (`b'\n'`, `b'\xFF'`), handy where a parser compares bytes.
+
+```rok
+let digits = "a1b22".as_bytes().iter().filter(|c| b'0' <= c <= b'9').count();
+println(f"{b'0'} {digits}");
+```
+
+```output
+48 3
+```
+
 ## Embedding files: `include_str!` / `include_bytes!`
 
 To ship a template, a test fixture or an icon inside the executable, embed the file at compile time. `include_str!("path")` is the file's contents as a `str`, and `include_bytes!("path")` its bytes as a `[u8; N]`, like a byte string. The path is relative to the source file that contains the call, and the result is a constant, so it can initialize a `const` or `static`.

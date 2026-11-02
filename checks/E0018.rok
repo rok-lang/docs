@@ -1,2 +1,2 @@
-let args = 1;
-if args > 0 { return; }
+let code = 2;
+if code > 0 { return code; }

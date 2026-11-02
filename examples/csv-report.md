@@ -49,10 +49,9 @@ fn parse_row(line: str) throws (RowError) -> Sale {
 }
 
 fn write_csv(path: str) throws (IoError) {
-    using w = BufWriter::new(try File::create(path)) {
-        for line in ROWS.lines() {
-            try w.write_all(f"{line}\n");
-        }
+    using w = BufWriter::new(try File::create(path));
+    for line in ROWS.lines() {
+        try w.write_all(f"{line}\n");
     }
 }
 
@@ -121,7 +120,7 @@ total   |      7|    70|   267.46|
 ## Walkthrough
 
 - The file is created under `env::temp_dir()` and removed in the `finally` of `main`, so no temporary file is left behind even if summarizing fails ([Files and I/O](../learn/13-io.html), [`env::temp_dir`](../std/std/env.html#fn.temp_dir)).
-- Writing goes through a `BufWriter` and reading through a `BufReader`, each bound with `using` ([`using`](../learn/10-errors.html)): leaving the block closes the file, and the writer writes out what it still holds first, so a failed write is never lost. `r.lines()` is a fallible iterator, so `try for` takes each line and passes a read error on ([`BufReader`](../std/core/io.html#struct.BufReader), [`fs`](../std/std/fs.html)).
+- Writing goes through a `BufWriter` and reading through a `BufReader`, each bound with `using` ([`using`](../learn/10-errors.html)): the statement `using w = ..;` in `write_csv` closes the file when the function's block ends, the block form in `summarize` when its block ends, and the writer writes out what it still holds first, so a failed write is never lost. `r.lines()` is a fallible iterator, so `try for` takes each line and passes a read error on ([`BufReader`](../std/core/io.html#struct.BufReader), [`fs`](../std/std/fs.html)).
 - `parse_row` throws a `RowError` for a malformed row; the caller prints a warning in its `catch` block and moves on with `continue`. One bad line does not sink the whole report ([Errors](../learn/10-errors.html)).
 - The totals are a `Dict<str, Group>`. `groups.get(region) ?? Group {}` fetches an entry or starts a new one, and `groups[region] = g` stores the updated value back. Every field of `Group` has a default, so `Group {}` alone starts at zero ([Collections and iterators](../learn/08-collections-iterators.html)).
 - Format specs line up the table: `{name:<8}` left-aligns, `{g.revenue:>9.2}` uses width 9 and two decimals, and `{"":-<8}` fills an empty string with `-` to draw the rule ([2.10.8 align and width](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

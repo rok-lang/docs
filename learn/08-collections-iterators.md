@@ -85,13 +85,13 @@ A view does not survive a resize of its list (`push`, `insert`, `clear`, ...): u
 
 ## Dict and Set
 
-`{"key": value}` is a hash map, `Dict<K, V>`, and `{1, 2}` is a hash set, `Set<T>`. An empty `{}` is a block, so create empty collections with `Dict::new()` / `Set::new()`. `d[k]` panics if the key is missing; `d.get(k)` returns `V | none`.
+`{"key": value}` is a hash map, `Dict<K, V>`, and `{1, 2}` is a hash set, `Set<T>`. An empty `{}` is a block, so create empty collections with `Dict::new()` / `Set::new()`. `d[k]` panics if the key is missing; `d.get(k)` returns `V | none`. `k in d` tests for a key, `x in s` for a set member (`!in` for the opposite).
 
 ```rok
 let ages: Dict<str, i32> = {"kim": 30, "lee": 25};
 ages["park"] = 41;
 ages.remove("lee");
-println(f"{ages["kim"]} {ages.get("choi") ?? -1} {ages.contains_key("park")} {ages.len()}");
+println(f"{ages["kim"]} {ages.get("choi") ?? -1} {"park" in ages} {ages.len()}");
 
 let counts: Dict<str, i32> = Dict::new();
 for w in ["a", "b", "a", "a"] {
@@ -101,7 +101,7 @@ println(f"a={counts["a"]} b={counts["b"]}");
 
 let s: Set<i32> = {1, 2, 3};
 let t: Set<i32> = {2, 3, 4};
-println(f"{s.contains(2)} {s.intersection(t).len()} {s.union(t).len()}");
+println(f"{2 in s} {s.intersection(t).len()} {s.union(t).len()}");
 ```
 
 ```output
@@ -167,7 +167,7 @@ println(f"{xs.iter().find(|x| x > 3):?} {xs.iter().position(|x| x == 3):?} {xs.i
 for (i, x) in xs.iter().enumerate().skip(4) { println(f"{i}: {x}"); }
 
 let names = ["a", "b", "c"];
-let pairs: List<str> = names.iter().zip(xs.iter()).map(|p| f"{p.0}{p.1}").collect();
+let pairs: List<str> = names.iter().zip(xs.iter()).map(|(n, x)| f"{n}{x}").collect();
 println(f"{pairs:?}");
 
 let back: List<i32> = xs.iter().rev().take(2).collect();
@@ -253,9 +253,8 @@ impl Drop for Conn {
 }
 
 yield fn rows() -> i32 {
-    using c = (Conn { name: "db" }) {
-        for i in 1..=5 { yield i; }
-    }
+    using c = Conn { name: "db" };
+    for i in 1..=5 { yield i; }
 }
 
 for r in rows() {
@@ -282,7 +281,7 @@ struct Vector { xs: List<f64>; }
 impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
-        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|p| p.0 + p.1).collect() }
+        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|(a, b)| a + b).collect() }
     }
 }
 

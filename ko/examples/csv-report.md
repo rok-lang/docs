@@ -49,10 +49,9 @@ fn parse_row(line: str) throws (RowError) -> Sale {
 }
 
 fn write_csv(path: str) throws (IoError) {
-    using w = BufWriter::new(try File::create(path)) {
-        for line in ROWS.lines() {
-            try w.write_all(f"{line}\n");
-        }
+    using w = BufWriter::new(try File::create(path));
+    for line in ROWS.lines() {
+        try w.write_all(f"{line}\n");
     }
 }
 
@@ -121,7 +120,7 @@ total   |      7|    70|   267.46|
 ## 설명
 
 - 파일은 `env::temp_dir()` 아래에 만들고 `main`의 `finally`에서 지웁니다. 그래서 요약 도중 실패해도 임시 파일이 남지 않습니다([파일과 I/O](../learn/13-io.html), [`env::temp_dir`](../../std/std/env.html#fn.temp_dir)).
-- 쓰기는 `BufWriter`를, 읽기는 `BufReader`를 거치고, 둘 다 `using`으로 묶습니다([`using`](../learn/10-errors.html)). 블록을 벗어나면 파일이 닫히고, writer는 그 전에 남은 내용을 쓰므로 실패한 쓰기를 잃지 않습니다. `r.lines()`는 실패할 수 있는 반복자라서 `try for`가 줄을 하나씩 꺼내고 읽기 에러는 전파합니다([`BufReader`](../../std/core/io.html#struct.BufReader), [`fs`](../../std/std/fs.html)).
+- 쓰기는 `BufWriter`를, 읽기는 `BufReader`를 거치고, 둘 다 `using`으로 묶습니다([`using`](../learn/10-errors.html)). `write_csv`의 문장 `using w = ..;`는 함수 블록이 끝날 때, `summarize`의 블록 형태는 그 블록이 끝날 때 파일을 닫고, writer는 그 전에 남은 내용을 쓰므로 실패한 쓰기를 잃지 않습니다. `r.lines()`는 실패할 수 있는 반복자라서 `try for`가 줄을 하나씩 꺼내고 읽기 에러는 전파합니다([`BufReader`](../../std/core/io.html#struct.BufReader), [`fs`](../../std/std/fs.html)).
 - `parse_row`는 형식이 잘못된 행에서 `RowError`를 던집니다. 호출한 쪽은 `catch` 블록에서 경고를 출력하고 `continue`로 넘어갑니다. 잘못된 줄 하나 때문에 보고서 전체가 실패하지 않습니다([에러 처리](../learn/10-errors.html)).
 - 합계는 `Dict<str, Group>`입니다. `groups.get(region) ?? Group {}`는 항목을 가져오거나 새로 시작하고, `groups[region] = g`는 갱신한 값을 다시 저장합니다. `Group`의 모든 필드에 기본값이 있으므로 `Group {}`만으로 0에서 시작합니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
 - 포맷 지정자로 표를 정렬합니다. `{name:<8}`은 왼쪽 정렬, `{g.revenue:>9.2}`는 폭 9와 소수 둘째 자리, `{"":-<8}`은 빈 문자열을 `-`로 채워 구분선을 그립니다([2.10.8 정렬과 폭](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

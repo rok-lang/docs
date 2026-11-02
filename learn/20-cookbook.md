@@ -145,18 +145,18 @@ println(f"{hits.load()} {all:?}");
 
 ## Handle errors
 
-Write `throws` on a function that can fail and `try` on each call. `catch` handles an error where it happens; `(try? ..) ?? default` swaps it for a default; the parentheses are required, and `try? f() ?? d` without them is an error ([chapter 10](10-errors.html)).
+Write `throws` on a function that can fail and `try` on each call. `throw "msg"` throws a `ValueError` with that message. `catch` handles an error where it happens; `try? f() ?? default` swaps it for a default ([chapter 10](10-errors.html)).
 
 ```rok
 fn parse_port(s: str) throws -> u16 {
     let n: u16 = try s.parse();
-    if n < 1024 { throw ValueError::new(f"port {n} is reserved"); }
+    if n < 1024 { throw f"port {n} is reserved"; }
     n
 }
 
 let a = try parse_port("8080");
 let b = try parse_port("80") catch e { println(f"error: {e}"); 8000 };
-let c = (try? parse_port("abc")) ?? 3000;
+let c = try? parse_port("abc") ?? 3000;
 println(f"{a} {b} {c}");
 ```
 

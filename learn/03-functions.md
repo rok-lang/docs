@@ -117,7 +117,7 @@ println(f"{sum()} {sum(1, 2, 3)}");
 
 ## Closures
 
-A closure is an anonymous function value, written `|params| expr` or `|params| { block }`. Parameter types are inferred from context; without context, write them out.
+A closure is an anonymous function value, written `|params| expr` or `|params| { block }`. Parameter types are inferred from context; without context, write them out. A parameter, of a closure or a function, may be a pattern that always matches, as in `let`: `|(a, b)| a + b` takes one tuple, `|a, b|` takes two values, and `fn dist((x, y): (f64, f64))` destructures its argument.
 
 ```rok
 let double = |x: i32| x * 2;
@@ -127,11 +127,15 @@ let describe = |x: i32| -> str {
 };
 println(f"{double(21)}");
 println(describe(10));
+
+let sum = |(a, b): (i32, i32)| a + b;
+println(sum((3, 4)));
 ```
 
 ```output
 42
 10 is 5 * 2
+7
 ```
 
 Closures capture surrounding variables **by copying their values**. If an outer variable changes after the closure is created, the closure still remembers the value from creation time. To modify the outer variable itself, request a by-reference capture with a `[ref name]` capture list.

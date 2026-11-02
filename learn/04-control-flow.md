@@ -84,7 +84,7 @@ When the value can be one of several types (`i32 | str | none`), `match` splits 
 
 ## `while` and `for`
 
-`while` repeats as long as the condition is true. `for` takes elements one at a time from a range, list, or iterator. `a..b` excludes `b`; `a..=b` includes it. `continue` moves to the next iteration, and `break` leaves the loop.
+`while` repeats as long as the condition is true. `for` takes elements one at a time from a range, list, or iterator. `a..b` excludes `b`; `a..=b` includes it. A range also answers `in`: `if i in 0..n { .. }` needs no parentheses. `continue` moves to the next iteration, and `break` leaves the loop.
 
 ```rok
 let i = 0;
@@ -196,12 +196,33 @@ for (x, y) in points {
 (3, 4) -> 7
 ```
 
+```rok
+let a = 0;
+let b = 1;
+for _ in 0..10 {
+    (a, b) = (b, a + b);
+}
+println(f"{a} {b}");
+
+let xs = [1, 2, 3];
+(xs[0], xs[2]) = (xs[2], xs[0]);
+println(f"{xs:?}");
+```
+
+```output
+55 89
+[3, 2, 1]
+```
+
+Without `let`, a tuple of existing places on the left of `=` assigns each of them: variables, fields, elements, nested tuples and `_`. The right side is evaluated in full first, so `(a, b) = (b, a + b)` needs no temporary, and `(xs[i], xs[j]) = (xs[j], xs[i])` swaps two elements. Closure and function parameters take the same patterns: `|(k, v)| ..`, `fn f((x, y): (i32, i32))` ([chapter 3](03-functions.html)).
+
 ## Summary
 
 - `if`, `match`, `loop`, and blocks are expressions that produce values. Branches must have the same type.
 - `match` supports literals, `|`, ranges, `@` bindings, and guards, and checks exhaustiveness.
 - `while let` repeats while the pattern matches.
-- `for x in a..b` / `a..=b` iterates over ranges; `.iter().enumerate()` iterates with indices.
+- `for x in a..b` / `a..=b` iterates over ranges; `.iter().enumerate()` iterates with indices; `x in a..b` tests a range.
+- `(a, b) = (b, a + b)` assigns several places at once, after evaluating the right side.
 - `break value` and `'label:` let you exit nested loops and return a result.
 
 ## Further reading

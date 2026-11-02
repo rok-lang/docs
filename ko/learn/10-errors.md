@@ -4,14 +4,14 @@
 
 ## `throws`, `throw`, `try`
 
-`throws`는 매개변수 목록 뒤, `->` 앞에 씁니다. 본체에서는 `throw`로 에러 값을 던집니다. 대부분의 코드는 표준 라이브러리의 `ValueError::new(msg)`로 충분하므로 에러 타입을 따로 정의할 필요가 없습니다.
+`throws`는 매개변수 목록 뒤, `->` 앞에 씁니다. 본체에서는 `throw`로 에러 값을 던집니다. 대부분의 코드는 메시지면 충분합니다. `throw "msg"`(f-문자열을 포함한 모든 `str`)는 표준 라이브러리의 `ValueError::new("msg")`를 던지므로(`throws` 목록이나 `catch e: str`가 `str`을 그대로 받는 경우는 제외) 에러 타입을 따로 정의할 필요가 없습니다.
 
 에러를 던지는 함수를 호출할 때는 언제나 `try`를 붙여야 합니다. 호출이 실패하면 에러는 가장 가까운 `catch`로 갑니다. `catch`가 없으면 에러는 감싸는 함수 밖으로 전파됩니다. 이때 그 함수도 `throws`여야 합니다.
 
 ```rok
 fn parse_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
+    if n < 0 { throw f"age {n} is negative"; }
     n
 }
 
@@ -55,15 +55,42 @@ $ echo $?
 1
 ```
 
-직접 쓴 `fn main()`이 `throws`가 아니면 모든 에러를 그 안에서 처리해야 합니다. 에러를 밖으로 내보내려면 `fn main() throws { .. }`로 씁니다.
+반환 타입이 없는 `fn main()`도 `throws`를 쓰지 않고 똑같이 에러를 던질 수 있습니다.
+
+```rok build
+fn main() {
+    let n: i32 = try "42".parse();
+    if n > 40 { throw f"{n} is too big"; }
+    println("unreached");
+}
+```
+
+```text
+error: `main` returned an uncaught error: 42 is too big
+```
+
+최상위 문장의 `return;`은 스크립트를 종료 코드 0으로 끝냅니다. `let .. else`와 함께 쓰면 입력이 없을 때 스크립트를 멈출 수 있습니다.
+
+```rok
+let first: str = ["a", "b"].first() else {
+    return;
+};
+println(first);
+```
+
+```output
+a
+```
+
+최상위에서 `return v;`는 에러(E0018)입니다. 다른 종료 코드는 `process::exit(v)`로 줍니다.
 
 ## `try?`와 `??`: 에러 대신 기본값
 
-대체 값만 있으면 되는 경우가 많습니다. `try? e`는 에러를 버리고 `none`을 내놓습니다. `??`는 `none`을 기본값으로 바꿉니다. `??` 앞에서는 `try?` 식을 괄호로 감쌉니다. 괄호가 없으면 `try? f() ?? d`는 `try? (f() ?? d)`로 읽혀 에러가 날 때 `none`이 되므로 에러입니다.
+대체 값만 있으면 되는 경우가 많습니다. `try? e`는 에러를 버리고 `none`을 내놓습니다. `??`는 `none`을 기본값으로 바꿉니다. `??`는 `try?`(와 `try!`)의 피연산자를 끝내므로 `try? f() ?? d`는 `(try? f()) ?? d`이고, 에러가 나면 `d`가 됩니다. `try`는 여전히 `??`까지 오른쪽 전체를 덮습니다.
 
 ```rok
 fn parse_port(s: str) -> i32 {
-    (try? s.parse::<i32>()) ?? 8080
+    try? s.parse::<i32>() ?? 8080
 }
 
 println(f"{parse_port("3000")} {parse_port("abc")}");
@@ -73,7 +100,7 @@ println(f"{parse_port("3000")} {parse_port("abc")}");
 3000 8080
 ```
 
-`f()`가 이미 `T | none`을 반환하면 `try? f()`는 두 층짜리 `(T | none)?`입니다. 바깥 `none`은 에러가 났다는 뜻이고 안쪽 `none`은 `f`가 반환한 `none`이며, `??`는 바깥 층만 벗깁니다. 둘을 같은 뜻으로 다루려면 `(try? f()) ?? none`으로 씁니다.
+`f()`가 이미 `T | none`을 반환하면 `try? f()`는 두 층짜리 `(T | none)?`입니다. 바깥 `none`은 에러가 났다는 뜻이고 안쪽 `none`은 `f`가 반환한 `none`이며, `??`는 바깥 층만 벗깁니다. 둘을 같은 뜻으로 다루려면 `try? f() ?? none`으로 씁니다.
 
 에러를 일부러 무시하려면 `let _ = try? f();`로 씁니다. `try! e`는 에러를 panic으로 바꿉니다. 그 자리에서 실패하는 것이 곧 버그일 때만 쓰세요.
 
@@ -85,7 +112,7 @@ println(f"{parse_port("3000")} {parse_port("abc")}");
 
 ```rok
 fn save(n: i32) throws {
-    if n < 0 { throw ValueError::new("negative"); }
+    if n < 0 { throw "negative"; }
     println(f"saved {n}");
 }
 
@@ -107,7 +134,7 @@ saved 1
 ```rok
 fn read_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
+    if n < 0 { throw f"age {n} is negative"; }
     n
 }
 
@@ -133,7 +160,7 @@ x -> -1
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -179,7 +206,7 @@ fn total(words: List<str>) throws -> i32 {
     sum
 }
 
-println(f"{try! total(["1", "2", "3"])} {(try? total(["1", "x"])) ?? -1}");
+println(f"{try! total(["1", "2", "3"])} {try? total(["1", "x"]) ?? -1}");
 ```
 
 ```output
@@ -274,7 +301,7 @@ fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
 }
 
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -312,7 +339,7 @@ fn open(name: str) -> Conn {
 fn work() throws -> i32 {
     using a = open("db"), b = open("cache") {
         println("working");
-        throw ValueError::new("query failed");
+        throw "query failed";
     }
 }
 
@@ -328,7 +355,32 @@ close db
 work failed: query failed
 ```
 
-`using`은 식이므로 `let text = using f = try fs::open(path) { try f.read_to_end() };`처럼 값을 내놓을 수도 있습니다. 
+`using`은 식이므로 `let text = using f = try fs::open(path) { try f.read_to_end() };`처럼 값을 내놓을 수도 있습니다.
+
+자원이 감싸는 블록의 끝까지 살아야 하면 문장 형태 `using x = e;`로 블록 하나를 줄입니다. 뒤따르는 문장들을 본체로 하는 블록 형태와 같아서, 블록이 끝날 때 역순으로, 어떤 길로 나가든 해제됩니다.
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+fn report() {
+    using a = Conn { name: "db" };
+    using b = Conn { name: "cache" };
+    println(f"using {a.name} and {b.name}");
+}
+
+report();
+```
+
+```output
+using db and cache
+close cache
+close db
+```
+
 타입이 `Drop`을 구현한 값은 주인이 하나입니다. `let b = a`는 값을 옮기고, 그 뒤에 `a`를 쓰면 에러입니다. `a.clone()`은 따로 주인을 가진 두 번째 값을 만듭니다. `using`이 없으면 컴파일러가 주인이 스코프를 벗어나는 곳에서, 어떤 길로 나가든 값을 해제합니다.
 
 ```rok
@@ -373,7 +425,7 @@ index 7 out of bounds for length 3
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -390,13 +442,13 @@ for n in [4, 5] {
 
 ## 정리
 
-- 에러를 던질 수 있는 함수는 `->` 앞에 `throws`를 선언하고 `throw`로 던집니다. 대부분은 `ValueError::new(msg)`로 충분합니다.
+- 에러를 던질 수 있는 함수는 `->` 앞에 `throws`를 선언하고 `throw`로 던집니다. `throw "msg"`는 `ValueError`를 던지며 대부분은 이것으로 충분합니다. `fn main()`은 선언 없이 던집니다.
 - 호출은 `try`로 표시합니다. 잡지 않은 에러는 감싸는 함수로 전파되고, 스크립트 최상위에서는 종료 코드 1로 프로그램을 끝냅니다.
-- `(try? e) ?? default`는 대체 값을 주고(괄호는 꼭 써야 합니다), `let _ = try? f();`는 에러를 무시하며, `try!`는 에러를 panic으로 바꿉니다.
+- `try? e ?? default`는 대체 값을 주고, `let _ = try? f();`는 에러를 무시하며, `try!`는 에러를 panic으로 바꿉니다. `return;`은 스크립트를 끝냅니다.
 - `catch`는 패턴으로 고르는 식이고, `finally`는 항상 실행됩니다.
 - 호출자가 실패를 구별해야 하면 에러 타입(`Display` + `Error`)을 직접 정의하고 `throws (A | B)`로 나열합니다.
 - `rethrows`는 받은 함수가 던질 때에만 던집니다.
-- `using`으로 바인딩한 자원은 블록을 어떻게 빠져나가든 정리됩니다. 다른 `Drop` 값은 주인이 스코프를 벗어나는 곳에서 해제됩니다. `File`은 직접 닫거나 `using`으로 묶어야 합니다.
+- `using`으로 바인딩한 자원은 블록을 어떻게 빠져나가든 정리됩니다. `using x = e;`는 블록의 나머지를 덮습니다. 다른 `Drop` 값은 주인이 스코프를 벗어나는 곳에서 해제됩니다. `File`은 직접 닫거나 `using`으로 묶어야 합니다.
 - `try for`는 단계마다 실패할 수 있는 반복자를 돕니다. 본문의 호출에는 따로 `try`를 붙입니다.
 - panic은 잡을 수 없는 버그 신호입니다. 에러를 값으로 담아 두어야 할 때에만 `Result`를 씁니다.
 

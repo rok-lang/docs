@@ -45,16 +45,16 @@ impl Matrix {
 // m[i, j] reads an element ...
 impl index::Index<(usize, usize)> for Matrix {
     type Output = f64;
-    fn index(self, idx: (usize, usize)) -> f64 {
-        self.data[idx.0 * self.cols + idx.1]
+    fn index(self, (i, j): (usize, usize)) -> f64 {
+        self.data[i * self.cols + j]
     }
 }
 
 // ... and m[i, j] = v writes one.
 impl index::IndexSet<(usize, usize)> for Matrix {
     type Value = f64;
-    fn index_set(ref self, idx: (usize, usize), value: f64) {
-        self.data[idx.0 * self.cols + idx.1] = value;
+    fn index_set(ref self, (i, j): (usize, usize), value: f64) {
+        self.data[i * self.cols + j] = value;
     }
 }
 

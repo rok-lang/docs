@@ -4,14 +4,14 @@ Things that can fail, like a missing file or bad input, are everywhere. Rok has 
 
 ## `throws`, `throw`, and `try`
 
-Write `throws` after the parameter list, before `->`. In the body, `throw` throws an error value. For most code the standard library's `ValueError::new(msg)` is all you need; you don't have to define an error type.
+Write `throws` after the parameter list, before `->`. In the body, `throw` throws an error value. For most code a message is all you need: `throw "msg"` (any `str`, f-strings too) throws the standard library's `ValueError::new("msg")` (unless the `throws` list or a `catch e: str` takes a `str` as it is), so you don't have to define an error type.
 
 You must put `try` on every call to a function that throws. If the call fails, the error goes to the nearest `catch`; if there is none, it propagates out of the enclosing function, which must then be `throws` too.
 
 ```rok
 fn parse_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
+    if n < 0 { throw f"age {n} is negative"; }
     n
 }
 
@@ -55,15 +55,42 @@ $ echo $?
 1
 ```
 
-An explicit `fn main()` that is not `throws` must handle every error itself; write `fn main() throws { .. }` to let them out.
+An explicit `fn main()` with no return type throws the same way, without writing `throws`:
+
+```rok build
+fn main() {
+    let n: i32 = try "42".parse();
+    if n > 40 { throw f"{n} is too big"; }
+    println("unreached");
+}
+```
+
+```text
+error: `main` returned an uncaught error: 42 is too big
+```
+
+A bare `return;` in the top-level statements ends the script with exit code 0. With `let .. else` it stops a script whose input is missing:
+
+```rok
+let first: str = ["a", "b"].first() else {
+    return;
+};
+println(first);
+```
+
+```output
+a
+```
+
+`return v;` there is an error (E0018): use `process::exit(v)` for another exit code.
 
 ## `try?` and `??`: a default instead of an error
 
-Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. Close the `try?` with parentheses before `??`: without them, `try? f() ?? d` is an error, since it would read as `try? (f() ?? d)` and give `none` on an error.
+Often you just want a fallback value. `try? e` discards the error and yields `none`, and `??` replaces `none` with a default. `??` ends the operand of `try?` (and of `try!`), so `try? f() ?? d` is `(try? f()) ?? d`: `d` on an error. `try` still covers everything to its right, `??` included.
 
 ```rok
 fn parse_port(s: str) -> i32 {
-    (try? s.parse::<i32>()) ?? 8080
+    try? s.parse::<i32>() ?? 8080
 }
 
 println(f"{parse_port("3000")} {parse_port("abc")}");
@@ -73,7 +100,7 @@ println(f"{parse_port("3000")} {parse_port("abc")}");
 3000 8080
 ```
 
-If `f()` itself returns `T | none`, `try? f()` is the two-level `(T | none)?`: the outer `none` means an error was thrown, the inner one is `f`'s own `none`, and `??` strips only the outer level. Write `(try? f()) ?? none` when both should mean the same thing.
+If `f()` itself returns `T | none`, `try? f()` is the two-level `(T | none)?`: the outer `none` means an error was thrown, the inner one is `f`'s own `none`, and `??` strips only the outer level. Write `try? f() ?? none` when both should mean the same thing.
 
 To ignore an error on purpose, write `let _ = try? f();`. `try! e` turns an error into a panic; use it only when failing there would be a bug.
 
@@ -85,7 +112,7 @@ To ignore an error on purpose, write `let _ = try? f();`. `try! e` turns an erro
 
 ```rok
 fn save(n: i32) throws {
-    if n < 0 { throw ValueError::new("negative"); }
+    if n < 0 { throw "negative"; }
     println(f"saved {n}");
 }
 
@@ -107,7 +134,7 @@ saved 1
 ```rok
 fn read_age(s: str) throws -> i32 {
     let n: i32 = try s.parse();
-    if n < 0 { throw ValueError::new(f"age {n} is negative"); }
+    if n < 0 { throw f"age {n} is negative"; }
     n
 }
 
@@ -133,7 +160,7 @@ To wrap several steps at once, use the `try { .. } catch .. { .. }` form. A `fin
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -179,7 +206,7 @@ fn total(words: List<str>) throws -> i32 {
     sum
 }
 
-println(f"{try! total(["1", "2", "3"])} {(try? total(["1", "x"])) ?? -1}");
+println(f"{try! total(["1", "2", "3"])} {try? total(["1", "x"]) ?? -1}");
 ```
 
 ```output
@@ -274,7 +301,7 @@ fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
 }
 
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -312,7 +339,7 @@ fn open(name: str) -> Conn {
 fn work() throws -> i32 {
     using a = open("db"), b = open("cache") {
         println("working");
-        throw ValueError::new("query failed");
+        throw "query failed";
     }
 }
 
@@ -328,7 +355,32 @@ close db
 work failed: query failed
 ```
 
-`using` is an expression, so it can also produce a value, as in `let text = using f = try fs::open(path) { try f.read_to_end() };`. 
+`using` is an expression, so it can also produce a value, as in `let text = using f = try fs::open(path) { try f.read_to_end() };`.
+
+When the resource should live to the end of the enclosing block, the statement form `using x = e;` saves the extra block. It is the block form over the statements after it, so release happens at the block's end, in reverse order, on every way out:
+
+```rok
+struct Conn { name: str; }
+
+impl Drop for Conn {
+    fn drop(ref self) { println(f"close {self.name}"); }
+}
+
+fn report() {
+    using a = Conn { name: "db" };
+    using b = Conn { name: "cache" };
+    println(f"using {a.name} and {b.name}");
+}
+
+report();
+```
+
+```output
+using db and cache
+close cache
+close db
+```
+
 A value whose type implements `Drop` has one owner. `let b = a` moves it, and using `a` afterwards is an error; `a.clone()` makes a second value with its own owner. Without `using`, the compiler releases the value where its owner leaves scope, on every way out:
 
 ```rok
@@ -373,7 +425,7 @@ Use `Result<T, E>` only when you need to hold an error as a value (to collect se
 
 ```rok
 fn half(n: i32) throws -> i32 {
-    if n % 2 != 0 { throw ValueError::new(f"{n} is odd"); }
+    if n % 2 != 0 { throw f"{n} is odd"; }
     n / 2
 }
 
@@ -390,13 +442,13 @@ for n in [4, 5] {
 
 ## Summary
 
-- A function that can throw declares `throws` (before `->`) and throws with `throw`; `ValueError::new(msg)` covers most needs.
+- A function that can throw declares `throws` (before `->`) and throws with `throw`; `throw "msg"` throws a `ValueError`, which covers most needs. `fn main()` throws without declaring it.
 - Calls are marked with `try`. An uncaught error propagates to the enclosing function; at the top of a script it ends the program with exit code 1.
-- `(try? e) ?? default` gives a fallback (the parentheses are required); `let _ = try? f();` ignores an error; `try!` turns it into a panic.
+- `try? e ?? default` gives a fallback; `let _ = try? f();` ignores an error; `try!` turns it into a panic. A bare `return;` ends a script.
 - `catch` is an expression that selects by pattern, and `finally` always runs.
 - Define your own error types (`Display` + `Error`) when callers must tell failures apart, and list them with `throws (A | B)`.
 - `rethrows` throws only when the function it received throws.
-- Resources bound with `using` are cleaned up however the block is exited. Other `Drop` values are released where their owner leaves scope; a `File` must be closed or bound with `using`.
+- Resources bound with `using` are cleaned up however the block is exited; `using x = e;` covers the rest of its block. Other `Drop` values are released where their owner leaves scope; a `File` must be closed or bound with `using`.
 - `try for` loops over an iterator whose steps can fail; the body marks its own `try`.
 - A panic is an uncatchable bug signal. Use `Result` only when you need to hold an error as a value.
 

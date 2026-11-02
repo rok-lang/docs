@@ -55,8 +55,8 @@ fn top(counts: Dict<str, i32>, n: usize) -> List<(str, i32)> {
         pairs.push((w, c));
     }
     // Most frequent first; ties broken alphabetically so output is stable.
-    pairs.sort_by(|a: (str, i32), b: (str, i32)| {
-        if a.1 != b.1 { b.1.cmp(a.1) } else { a.0.cmp(b.0) }
+    pairs.sort_by(|(aw, ac): (str, i32), (bw, bc): (str, i32)| {
+        if ac != bc { bc.cmp(ac) } else { aw.cmp(bw) }
     });
     let out: List<(str, i32)> = [];
     for p in pairs.iter().take(n) { out.push(p); }

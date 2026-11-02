@@ -243,6 +243,27 @@ println(f"smallest items add up to {try worker.join()}, jobs left: {jobs.len()}"
 smallest items add up to 12, jobs left: 0
 ```
 
+### 값을 스레드로 옮기기: `[move x]`
+
+`thread::spawn`이나 `task::spawn_blocking`에 넘기는 클로저는 캡처를 자기를 만든 코드와 공유합니다. 그래서 캡처는 `Sync`여야 하는데, 리스트는 그렇지 않습니다. 새 스레드만 그 리스트를 쓴다면 `[move rows]`로 클로저에 옮기세요. 클로저는 자기 복사본을 받고, 띄운 코드는 `rows`를 더 쓸 수 없습니다.
+
+```rok
+use rok::std::thread;
+
+let rows = [3, 1, 2];
+let h = thread::spawn([move rows] || {
+    rows.sort();
+    rows[0]
+});
+println(f"smallest: {try! h.join()}");
+```
+
+```output
+smallest: 1
+```
+
+spawn 뒤에 `rows`를 쓰면 send 뒤와 마찬가지로 에러입니다. 리스트를 `move` 없이 캡처하면 help가 `[move x]`를 알려 줍니다. `task::spawn_blocking`에는 값을 인자로 넘길 수도 있습니다: `task::spawn_blocking_with(rows, |rows: List<i32>| rows.len())`.
+
 잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체의 뷰이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다. 그 값을 돌려주거나, 에러에 담아 던지거나, 보내면 에러입니다.
 
 ```text check=checks/12-lock-value.rok
@@ -327,7 +348,7 @@ println(f"{try h.join()}");
 
 - **`Weak`는 자기 스레드에 머뭅니다.** 넘김은 `Weak`(`rok::bare::gc`)가 가리키는 것을 복사할 수 없으므로 `Weak<T>`는 `Send`가 아닙니다. 대신 `GcPtr`를 보내세요.
 
-`unsafe` 안에서는 컴파일러가 넘김 검사를 멈춥니다. 보낸 뒤에 값을 쓰지 않도록 지키는 것은 작성자의 책임입니다. 실행 중 복사는 여전히 일어납니다. `Handoff::new`와 `Mutex::new_unshared`는 값을 복사 '없이' 넘기는 두 가지 `unsafe` 방법입니다. 방금 만들어 다른 어떤 것도 닿지 않는 값에 씁니다. 가드에서 꺼내 `using` 블록 너머까지 쥐고 있는 핸들과 한 리스트를 공유하는 `par` 항목은 런타임이 대신 복사해 주지 않습니다. 그곳에서는 컴파일러의 검사가 유일한 보호이므로 `unsafe`로 검사를 끄지 마세요.
+`unsafe` 안에서는 컴파일러가 넘김 검사를 멈춥니다. 보낸 뒤에 값을 쓰지 않도록 지키는 것은 작성자의 책임입니다. 실행 중 복사는 여전히 일어납니다. `Mutex::new_unshared`는 값을 복사 '없이' 넘기는 `unsafe` 방법입니다. 방금 만들어 다른 어떤 것도 닿지 않는 값에 씁니다. 가드에서 꺼내 `using` 블록 너머까지 쥐고 있는 핸들과 한 리스트를 공유하는 `par` 항목은 런타임이 대신 복사해 주지 않습니다. 그곳에서는 컴파일러의 검사가 유일한 보호이므로 `unsafe`로 검사를 끄지 마세요.
 
 ## `async`와 task
 
@@ -701,7 +722,7 @@ println(f"{compute()}");
 - `thread::local`은 스레드마다 자기 값을 줍니다. `with(|v| ..)` 안에서 쓰거나 `set` / `replace` / `take`로 넣고 꺼냅니다.
 - 읽기만 하는 데이터는 `Frozen<T>`로 공유합니다. `get()`은 매번 읽는 쪽에 따로 복사본을 주므로 큰 읽기 전용 부분은 자기 `Frozen` 필드에 둡니다.
 - `await`는 뒤따르는 호출에 붙는 전위 연산자입니다(`await f() == x`는 결과를 비교합니다). 기다림이 많은 작업을 동시에 실행하려면 `async fn` / `await`와 `task::spawn` / `task::join`을 씁니다.
-- `task::spawn`은 send처럼 future를 넘깁니다. task는 future가 캡처한 것의 자기 복사본으로 작업하므로 변경 결과는 `await`로 돌려받습니다.
+- `task::spawn`은 send처럼 future를 넘깁니다. task는 future가 캡처한 것의 자기 복사본으로 작업하므로 변경 결과는 `await`로 돌려받습니다. 클로저는 `[move xs]`로 리스트를 스레드에 넘깁니다.
 - 스레드는 join으로, future는 await로 기다립니다. 기다리지 않은 스레드는 `main`과 함께 죽고, future는 기다릴 때에만 실행됩니다. 두 경우 모두 린트가 경고합니다. 버린 `task::spawn` task는 그래도 실행됩니다. `task::spawn`에는 async `main`(또는 `task::block_on`)이 필요합니다.
 - 데이터 병렬 계산에는 `par::map`, `par::for_each`, `par::join`, `par::scope`가 간단합니다. 컬렉션을 공유하는 항목은 경고와 함께 하나씩 실행됩니다.
 - 스트림은 `async yield fn`으로 만들고 `for await`로 소비합니다.

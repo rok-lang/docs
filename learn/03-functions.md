@@ -155,6 +155,20 @@ count: 12
 
 If you try to assign to a variable captured by value, or to a field of a struct captured by value, it is an error that tells you to add `[ref count]`. Heap objects such as `List` are different: the variable is a reference to the object, so even a by-value capture can mutate the object itself, for example with `push`.
 
+The opposite of `[ref name]` is `[move name]`: it gives the value to the closure. The closure gets its own copy of the lists inside, and the code that made it can no longer use the name. This is how a list goes to another thread ([chapter 12](12-concurrency.html)):
+
+```rok
+use rok::std::thread;
+
+let rows = ["a", "b", "c"];
+let h = thread::spawn([move rows] || rows.len());
+println(f"rows: {try! h.join()}");
+```
+
+```output
+rows: 3
+```
+
 ## Function types
 
 Functions and closures are values of type `fn(ParamTypes) -> ReturnType`. You can store them in variables, pass them as arguments, return them, and put them in lists.
@@ -298,7 +312,7 @@ println(f"{shifted(1)} {scale(base, 3)}");
 
 - The last expression of a function body is its return value. Use `return` to exit early.
 - Parameters can have default values, and calls can name arguments with `name: value`. `...T` takes variadic arguments.
-- A closure `|x| expr` captures by copying values by default; `[ref x]` requests a by-reference capture.
+- A closure `|x| expr` captures by copying values by default; `[ref x]` requests a by-reference capture, and `[move x]` gives `x` to the closure.
 - A function value has type `fn(A) -> R`. A closure in the last argument position can be written in trailing form; inside it, `return@name` ends that call.
 - A top-level `let` is a local of the implicit `main`, so other functions cannot see it.
 

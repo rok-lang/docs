@@ -243,6 +243,27 @@ println(f"smallest items add up to {try worker.join()}, jobs left: {jobs.len()}"
 smallest items add up to 12, jobs left: 0
 ```
 
+### Moving a value into a thread: `[move x]`
+
+A closure passed to `thread::spawn` or `task::spawn_blocking` shares its captures with the code that made it, so they must be `Sync`: a list is not. When only the new thread needs the list, move it into the closure with `[move rows]`. The closure gets its own copy, and the spawning code can no longer use `rows`:
+
+```rok
+use rok::std::thread;
+
+let rows = [3, 1, 2];
+let h = thread::spawn([move rows] || {
+    rows.sort();
+    rows[0]
+});
+println(f"smallest: {try! h.join()}");
+```
+
+```output
+smallest: 1
+```
+
+Using `rows` after the spawn is an error, as after a send; the help also names `[move x]` when you capture a list without it. For `task::spawn_blocking` you can pass the value as the argument instead: `task::spawn_blocking_with(rows, |rows: List<i32>| rows.len())`.
+
 A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error.
 
 ```text check=checks/12-lock-value.rok
@@ -327,7 +348,7 @@ println(f"{try h.join()}");
 
 - **A `Weak` stays on its thread.** A hand-off can't copy what a `Weak` (`rok::bare::gc`) names, so `Weak<T>` is not `Send`; send the `GcPtr` instead.
 
-Inside `unsafe` the compiler stops checking hand-offs, so using a value after sending it is your responsibility; the run-time copy still happens. `Handoff::new` and `Mutex::new_unshared` are the two `unsafe` ways to hand a value over *without* the copy, for a value you just made and nothing else can reach. A handle you keep from a guard past its `using` block, and `par` items that share one list, are never copied for you: there the compiler's check is the only guard, so don't switch it off with `unsafe` there.
+Inside `unsafe` the compiler stops checking hand-offs, so using a value after sending it is your responsibility; the run-time copy still happens. `Mutex::new_unshared` is the `unsafe` way to hand a value over *without* the copy, for a value you just made and nothing else can reach. A handle you keep from a guard past its `using` block, and `par` items that share one list, are never copied for you: there the compiler's check is the only guard, so don't switch it off with `unsafe` there.
 
 ## `async` and tasks
 
@@ -701,7 +722,7 @@ println(f"{compute()}");
 - `thread::local` gives each thread its own value: use it inside `with(|v| ..)`, or move it in and out with `set` / `replace` / `take`.
 - Share data that is only read through `Frozen<T>`: every `get()` is the reader's own copy, so keep big read-only parts in a `Frozen` field of their own.
 - `await` is a prefix operator on the call after it (`await f() == x` compares the result). Use `async fn` / `await` and `task::spawn` / `task::join` to run wait-heavy work concurrently.
-- `task::spawn` hands its future over like a send: the task works on its own copy of what the future captured, so return its changes with `await`.
+- `task::spawn` hands its future over like a send: the task works on its own copy of what the future captured, so return its changes with `await`. A closure gives a list to a thread with `[move xs]`.
 - Join your threads and await your futures: un-joined threads die with `main`, and a future runs only when awaited; the lints warn about both. A dropped `task::spawn` task still runs. `task::spawn` needs an async `main` (or `task::block_on`).
 - For data-parallel computation, `par::map`, `par::for_each`, `par::join`, and `par::scope` keep things simple. Items that share a collection run one at a time, with a warning.
 - Create and consume streams with `async yield fn` and `for await`.

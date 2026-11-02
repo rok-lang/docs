@@ -262,7 +262,7 @@ println(f"smallest: {try! h.join()}");
 smallest: 1
 ```
 
-spawn 뒤에 `rows`를 쓰면 send 뒤와 마찬가지로 에러입니다. 리스트를 `move` 없이 캡처하면 help가 `[move x]`를 알려 줍니다. `task::spawn_blocking`에는 값을 인자로 넘길 수도 있습니다: `task::spawn_blocking_with(rows, |rows: List<i32>| rows.len())`.
+spawn 뒤에 `rows`를 쓰면 send 뒤와 마찬가지로 에러입니다. 리스트를 `move` 없이 캡처하면 help가 `[move x]`를 알려 줍니다. `task::spawn_blocking`에는 값을 인자로 넘길 수도 있습니다: `task::spawn_blocking_with_arg(rows, |rows: List<i32>| rows.len())`.
 
 `fn` 값도 똑같이 캡처됩니다. `f: fn() + Send` 매개변수는 `Send`이지만 `Sync`는 아니므로, 그것을 부르는 클로저를 spawn하려면 `[move f]`로 옮겨 넣어야 합니다. 여러 클로저에서 spawn해 부르려면 `fn() + Send + Sync`로 받으세요.
 

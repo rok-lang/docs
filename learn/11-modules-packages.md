@@ -102,7 +102,7 @@ use rok::core::sync::Frozen;           // or import the name
 
 Your own names always win over the prelude's. Enum variants are not in the prelude; they are written bare where the expected type picks the enum ([chapter 6](06-structs-enums-traits.html)). When a name is not in scope, the error gives the path to write and the `use` that imports it. Modules in `rok::std` such as files, networking, and threads are imported explicitly, as in `use rok::std::fs;`.
 
-A trait works the same way: its methods are found only where the trait is in scope, so a trait from another module or package needs a `use` (`use zoo::Animal;`) before `x.name()` resolves. The methods of `rok::core`'s traits work everywhere, without a `use`; a `rok::std` trait such as `io::Reader` is imported like any other.
+A trait works the same way: its methods are found only where the trait is in scope, so a trait from another module or package needs a `use` (`use zoo::Animal;`) before `x.name()` resolves. The methods of the standard library's traits (`rok::core`, `rok::std`) work everywhere, without a `use`.
 
 Macros, derives, and meta attributes belong to the package that defines them. Your own package and the standard library write them bare (`log!(..)`, `#[derive(Inspect)]`); another package's are written with its name, `json::log!(..)`, `#[derive(json::Json)]`, or imported once with `use json::log!;`. A bare name of another package's macro is an error whose help gives both forms.
 

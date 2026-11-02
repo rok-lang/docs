@@ -29,16 +29,14 @@ fn std_dev(xs: List<f64>) -> f64 {
 }
 
 fn median(xs: List<f64>) -> f64 {
-    let sorted: List<f64> = [];
-    for x in xs { sorted.push(x); }
-    sorted.sort_by(|a, b| a.partial_cmp(b) ?? Ordering::Equal);
+    let sorted = xs.sorted_by(f64::total_cmp);
     let n = sorted.len();
     if n % 2 == 1 { sorted[n / 2] } else { (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0 }
 }
 
 // Summary statistics.
-let lo = temps.iter().fold(f64::INFINITY, |a, x| if x < a { x } else { a });
-let hi = temps.iter().fold(f64::NEG_INFINITY, |a, x| if x > a { x } else { a });
+let lo = temps.min() ?? f64::NAN;
+let hi = temps.max() ?? f64::NAN;
 println(f"n      = {temps.len()}");
 println(f"mean   = {mean(temps):.2}");
 println(f"median = {median(temps):.2}");
@@ -92,8 +90,8 @@ histogram:
 ## 설명
 
 - 노트북 셀의 최상위 `let`과 `fn`은 세션 내내 유지됩니다. 소스 파일과 같이 셀에서도 같은 이름을 `let`으로 다시 선언할 수 있습니다. 그래서 다른 데이터로 셀을 다시 실행할 수 있습니다([5.1.4 같은 스코프 안의 재선언](../spec/refs-lang/005-modules/501-variable-declaration.html#514-같은-스코프-안의-재선언)).
-- `f64`는 전순서가 아니므로 `sort_by`에 `partial_cmp`를 넘기고, 비교할 수 없는 NaN은 `?? Ordering::Equal`로 처리합니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
-- `fold` 하나로 최솟값과 최댓값을 함께 찾습니다. `f64::INFINITY` / `f64::NEG_INFINITY`에서 시작하므로 리스트가 비어 있지 않은 한 첫 원소가 그 값을 대체합니다([`Iterator`](../../std/core/iter.html#trait.Iterator)).
+- `f64`에는 `Ord`가 없으므로(NaN은 순서가 없음) 중앙값은 IEEE 전순서 `sorted_by(f64::total_cmp)`로 정렬합니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
+- `temps.min()` / `temps.max()`는 부동소수점에도 됩니다(NumPy처럼 NaN이 있으면 NaN). `?? f64::NAN`은 빈 리스트를 처리합니다([`Iterator`](../../std/core/iter.html#trait.Iterator)).
 - `temps[week * 7:(week + 1) * 7]`은 리스트의 한 구간을 슬라이스로 가져옵니다([3.6 인덱싱과 슬라이싱](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
 - 히스토그램 막대는 `"#".repeat(c)`로 만들고, 구간 라벨은 `{from:4.1}` 같은 포맷 지정자로 정렬합니다. `{}`로 출력한 `f64`는 다시 읽었을 때 같은 값이 되는 가장 짧은 자릿수를 쓰므로 `26.0`은 `26`으로 출력됩니다. 자릿수를 고정하려면 `{hi:.1}`처럼 정밀도를 적습니다([문자열](../learn/09-strings.html)).
 

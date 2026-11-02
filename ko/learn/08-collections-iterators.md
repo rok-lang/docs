@@ -95,7 +95,7 @@ println(f"{ages["kim"]} {ages.get("choi") ?? -1} {"park" in ages} {ages.len()}")
 
 let counts: Dict<str, i32> = Dict::new();
 for w in ["a", "b", "a", "a"] {
-    counts.entry(w).and_modify(|c| c + 1).or_insert(1);
+    counts[w, default: 0] += 1;
 }
 println(f"a={counts["a"]} b={counts["b"]}");
 
@@ -158,21 +158,21 @@ apple=2
 ```rok
 let xs = [1, 2, 3, 4, 5, 6];
 
-let evens: List<i32> = xs.iter().filter(|x| x % 2 == 0).map(|x| x * 10).collect();
-println(f"{evens:?}");
-println(f"{xs.iter().sum()} {xs.iter().count()} {xs.iter().any(|x| x > 5)}");
-println(f"{xs.iter().fold(0, |acc, x| acc + x * x)}");
-println(f"{xs.iter().find(|x| x > 3):?} {xs.iter().position(|x| x == 3):?} {xs.iter().max():?}");
+let evens = xs.filter(|x| x % 2 == 0).map(|x| x * 10).to_list();
+println(evens);
+println(xs.sum(), xs.count(), xs.any(|x| x > 5));
+println(xs.fold(0, |acc, x| acc + x * x));
+println(f"{xs.iter().find(|x| x > 3):?} {xs.position(|x| x == 3):?} {xs.max():?}");
 
-for (i, x) in xs.iter().enumerate().skip(4) { println(f"{i}: {x}"); }
+for (i, x) in xs.enumerate().skip(4) { println(f"{i}: {x}"); }
 
 let names = ["a", "b", "c"];
-let pairs: List<str> = names.iter().zip(xs.iter()).map(|(n, x)| f"{n}{x}").collect();
-println(f"{pairs:?}");
+let pairs = names.zip(xs.iter()).map(|(n, x)| f"{n}{x}").to_list();
+println(pairs);
 
-let back: List<i32> = xs.iter().rev().take(2).collect();
+let back = xs.rev().take(2).to_list();
 let uniq: Set<i32> = [1, 1, 2].iter().collect();
-println(f"{back:?} {uniq.len()}");
+println(back, uniq.len());
 ```
 
 ```output
@@ -186,7 +186,20 @@ println(f"{back:?} {uniq.len()}");
 [6, 5] 2
 ```
 
-`collect`는 받는 쪽의 타입(`List<i32>`, `Set<i32>` 등)으로 결과를 만듭니다. 그래서 `let`에 타입을 적었습니다.
+```rok
+let words = ["kiwi", "fig", "apple", "fig"];
+println(words.sorted(), words.sorted_by_key(|w| w.len(), reverse: true));
+println(words.counts().most_common(1), words.group_by(|w| w.len()));
+println(words.enumerate(start: 1).map(|p| f"{p.0}.{p.1}").to_list().join(" "));
+```
+
+```output
+["apple", "fig", "fig", "kiwi"] ["apple", "kiwi", "fig", "fig"]
+[("fig", 2)] {4: ["kiwi"], 3: ["fig", "fig"], 5: ["apple"]}
+1.kiwi 2.fig 3.apple 4.fig
+```
+
+컬렉션은 반복자 메서드에 직접 답합니다. `xs.sum()`은 `xs.iter().sum()`이고 전과 같이 미리 계산하지 않습니다(`contains`, `windows` 같은 `List` 자신의 메서드가 먼저입니다). `to_list()`는 항목을 새 `List`에 모읍니다. `collect`는 받는 쪽의 타입(위의 `Set<i32>`)으로 만들고, 정하는 것이 없으면 `List`로 만듭니다. `sorted`, `sorted_by_key`, `counts`(Python의 `Counter`, 순위는 `most_common`), `group_by`, `enumerate(start:)`는 새 컬렉션을 돌려주거나 원하는 수부터 셉니다. `d[k, default: 0] += 1`은 `k`가 없으면 먼저 `0`을 넣습니다.
 
 ## 반복자 직접 만들기: `Iterator`와 `yield`
 

@@ -29,16 +29,14 @@ fn std_dev(xs: List<f64>) -> f64 {
 }
 
 fn median(xs: List<f64>) -> f64 {
-    let sorted: List<f64> = [];
-    for x in xs { sorted.push(x); }
-    sorted.sort_by(|a, b| a.partial_cmp(b) ?? Ordering::Equal);
+    let sorted = xs.sorted_by(f64::total_cmp);
     let n = sorted.len();
     if n % 2 == 1 { sorted[n / 2] } else { (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0 }
 }
 
 // Summary statistics.
-let lo = temps.iter().fold(f64::INFINITY, |a, x| if x < a { x } else { a });
-let hi = temps.iter().fold(f64::NEG_INFINITY, |a, x| if x > a { x } else { a });
+let lo = temps.min() ?? f64::NAN;
+let hi = temps.max() ?? f64::NAN;
 println(f"n      = {temps.len()}");
 println(f"mean   = {mean(temps):.2}");
 println(f"median = {median(temps):.2}");
@@ -92,8 +90,8 @@ histogram:
 ## Walkthrough
 
 - Top-level `let`s and `fn`s in a notebook cell persist for the whole session. A cell may `let` the same name again, as a source file may, so you can re-run a cell with different data ([5.1.4 Redeclaration in the same scope](../spec/refs-lang/005-modules/501-variable-declaration.html#514-redeclaration-in-the-same-scope)).
-- `f64` is not totally ordered, so `sort_by` gets `partial_cmp`, and an incomparable NaN is handled with `?? Ordering::Equal` ([Collections and iterators](../learn/08-collections-iterators.html)).
-- A single `fold` finds both the minimum and the maximum. Starting from `f64::INFINITY` / `f64::NEG_INFINITY` means the first element replaces them, as long as the list is not empty ([`Iterator`](../std/core/iter.html#trait.Iterator)).
+- `f64` has no `Ord` (NaN is unordered), so the median sorts by the IEEE total order, `sorted_by(f64::total_cmp)` ([Collections and iterators](../learn/08-collections-iterators.html)).
+- `temps.min()` / `temps.max()` work on floats (a NaN would win, as in NumPy); `?? f64::NAN` covers an empty list ([`Iterator`](../std/core/iter.html#trait.Iterator)).
 - `temps[week * 7:(week + 1) * 7]` takes one range of the list as a slice ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
 - Histogram bars come from `"#".repeat(c)` and the bucket labels are aligned with format specs such as `{from:4.1}`. An `f64` printed with `{}` uses the shortest digits that read back as the same value, so `26.0` prints as `26`; write a precision such as `{hi:.1}` when you want fixed digits ([Strings](../learn/09-strings.html)).
 

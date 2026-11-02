@@ -217,22 +217,16 @@ A `TryIterator` held in a variable is stepped in place: a loop that leaves early
 
 ## Your own error types
 
-When callers need to tell failures apart, define an error type: a struct or enum with `Debug` and `Display` that implements the `Error` trait (the `Display` shape is the one from [chapter 6](06-structs-enums-traits.html#operator-traits)). A signature can then list exactly what it throws, `throws (E)`, or several kinds as a sum, `throws (A | B)`. The compiler checks that every listed type is handled or passed on.
+When callers need to tell failures apart, define an error type: a struct or enum with `Debug` and `Display` that implements the `Error` trait. `#[derive(Debug, Error)]` gives two of them, and `#[display("..")]` writes `Display` from an f-string over the fields; a hand-written `impl Display` has the shape from [chapter 6](06-structs-enums-traits.html#operator-traits). A signature can then list exactly what it throws, `throws (E)`, or several kinds as a sum, `throws (A | B)`. The compiler checks that every listed type is handled or passed on.
 
 ```rok
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("no key {self.key}")]
 struct NotFound { key: str; }
-impl Display for NotFound {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(f"no key {self.key}"); }
-}
-impl Error for NotFound {}
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("{self.reason}")]
 struct Invalid { reason: str; }
-impl Display for Invalid {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(self.reason); }
-}
-impl Error for Invalid {}
 
 fn lookup(key: str) throws (NotFound | Invalid) -> i32 {
     if key == "" { throw Invalid { reason: "empty key" }; }
@@ -264,12 +258,9 @@ The error kinds of `lookup` are closed as `NotFound | Invalid`, so `describe`, w
 Any pattern can follow `catch`, so a struct pattern can pull out fields directly.
 
 ```rok
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("no key {self.key}")]
 struct NotFound { key: str; }
-impl Display for NotFound {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(f"no key {self.key}"); }
-}
-impl Error for NotFound {}
 
 fn lookup(key: str) throws (NotFound) -> i32 {
     if key != "a" { throw NotFound { key: key }; }

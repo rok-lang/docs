@@ -88,14 +88,12 @@ let hs: List<thread::JoinHandle<()>> = [];
 for i in 1..=5 {
     hs.push(thread::spawn(|| {
         counter.fetch_add(i);
-        using g = log.lock() {
-            g.get().push(i * 10);
-        }
+        log.with(|v| v.push(i * 10));
     }));
 }
 for h in hs { try h.join(); }
 
-let items = using g = log.lock() { g.get_clone() };   // a copy: the list itself stays behind the lock
+let items = log.with(|v| v.clone());   // a copy: the list itself stays behind the lock
 items.sort();
 println(f"sum = {counter.load()}, items = {items:?}");
 ```

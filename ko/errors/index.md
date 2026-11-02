@@ -59,6 +59,7 @@ rokc의 모든 진단은 `error[E0040]: mismatched types: ...`처럼 코드로 �
 | [E0039](E0039.html) | `resolve` | 바깥 지역 변수를 쓰는 중첩 항목 |
 | [E0129](E0129.html) | `module` | 잘못된 WIT |
 | [E0136](E0136.html) | `resolve` | 메서드의 트레이트가 스코프에 없음 |
+| [E0142](E0142.html) | `resolve` | impl의 것과 이름이 같은 메서드 제네릭 매개변수 |
 
 ## 타입
 

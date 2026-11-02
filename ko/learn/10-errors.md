@@ -217,22 +217,16 @@ println(f"{try! total(["1", "2", "3"])} {try? total(["1", "x"]) ?? -1}");
 
 ## 직접 만드는 에러 타입
 
-호출자가 실패를 구별해야 한다면 에러 타입을 정의합니다. 에러 타입은 `Debug`와 `Display`를 갖추고 `Error` 트레잇을 구현한 struct나 enum입니다. `Display`의 모양은 [6장](06-structs-enums-traits.html#연산자-트레잇)에서 본 것과 같습니다. 에러 타입을 정의하면 던지는 에러를 시그니처에 정확히 적을 수 있습니다. 한 종류라면 `throws (E)`, 여러 종류라면 합 타입으로 `throws (A | B)`라고 씁니다. 컴파일러는 나열한 타입을 모두 처리하거나 넘기는지 검사합니다.
+호출자가 실패를 구별해야 한다면 에러 타입을 정의합니다. 에러 타입은 `Debug`와 `Display`를 갖추고 `Error` 트레잇을 구현한 struct나 enum입니다. `#[derive(Debug, Error)]`가 그중 둘을 주고, `#[display("..")]`는 필드를 쓰는 f-string으로 `Display`를 만듭니다. 직접 쓰는 `impl Display`의 모양은 [6장](06-structs-enums-traits.html#연산자-트레잇)에서 본 것과 같습니다. 에러 타입을 정의하면 던지는 에러를 시그니처에 정확히 적을 수 있습니다. 한 종류라면 `throws (E)`, 여러 종류라면 합 타입으로 `throws (A | B)`라고 씁니다. 컴파일러는 나열한 타입을 모두 처리하거나 넘기는지 검사합니다.
 
 ```rok
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("no key {self.key}")]
 struct NotFound { key: str; }
-impl Display for NotFound {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(f"no key {self.key}"); }
-}
-impl Error for NotFound {}
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("{self.reason}")]
 struct Invalid { reason: str; }
-impl Display for Invalid {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(self.reason); }
-}
-impl Error for Invalid {}
 
 fn lookup(key: str) throws (NotFound | Invalid) -> i32 {
     if key == "" { throw Invalid { reason: "empty key" }; }
@@ -264,12 +258,9 @@ invalid: empty key
 `catch` 뒤에는 어떤 패턴이든 올 수 있으므로 struct 패턴으로 필드를 바로 꺼낼 수 있습니다.
 
 ```rok
-#[derive(Debug)]
+#[derive(Debug, Error)]
+#[display("no key {self.key}")]
 struct NotFound { key: str; }
-impl Display for NotFound {
-    fn fmt(self, ref f: Formatter) throws (FmtError) { try f.write_str(f"no key {self.key}"); }
-}
-impl Error for NotFound {}
 
 fn lookup(key: str) throws (NotFound) -> i32 {
     if key != "a" { throw NotFound { key: key }; }

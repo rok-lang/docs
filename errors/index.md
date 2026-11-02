@@ -59,6 +59,7 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0039](E0039.html) | `resolve` | nested item uses an outer local |
 | [E0129](E0129.html) | `module` | invalid WIT |
 | [E0136](E0136.html) | `resolve` | trait of the method not in scope |
+| [E0142](E0142.html) | `resolve` | method generic parameter named like its impl's |
 
 ## Types
 

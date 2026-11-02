@@ -1,0 +1,5 @@
+struct Wrap<K> { k: K; }
+
+impl<K> Wrap<K> {
+    fn pick<K>(self, x: K) -> K { x }
+}

@@ -44,23 +44,14 @@ fn frequencies(text: str) -> Dict<str, i32> {
     for token in text.split_whitespace() {
         let w = normalize(token);
         if w.is_empty() { continue; }
-        counts[w] = (counts.get(w) ?? 0) + 1;
+        counts[w, default: 0] += 1;
     }
     counts
 }
 
 fn top(counts: Dict<str, i32>, n: usize) -> List<(str, i32)> {
-    let pairs: List<(str, i32)> = [];
-    for (w, c) in counts.iter() {
-        pairs.push((w, c));
-    }
     // Most frequent first; ties broken alphabetically so output is stable.
-    pairs.sort_by(|(aw, ac): (str, i32), (bw, bc): (str, i32)| {
-        if ac != bc { bc.cmp(ac) } else { aw.cmp(bw) }
-    });
-    let out: List<(str, i32)> = [];
-    for p in pairs.iter().take(n) { out.push(p); }
-    out
+    counts.sorted_by_key(|(w, c)| (-c, w)).take(n).to_list()
 }
 
 fn main() {

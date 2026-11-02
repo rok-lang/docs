@@ -95,7 +95,7 @@ println(f"{ages["kim"]} {ages.get("choi") ?? -1} {"park" in ages} {ages.len()}")
 
 let counts: Dict<str, i32> = Dict::new();
 for w in ["a", "b", "a", "a"] {
-    counts.entry(w).and_modify(|c| c + 1).or_insert(1);
+    counts[w, default: 0] += 1;
 }
 println(f"a={counts["a"]} b={counts["b"]}");
 
@@ -158,21 +158,21 @@ apple=2
 ```rok
 let xs = [1, 2, 3, 4, 5, 6];
 
-let evens: List<i32> = xs.iter().filter(|x| x % 2 == 0).map(|x| x * 10).collect();
-println(f"{evens:?}");
-println(f"{xs.iter().sum()} {xs.iter().count()} {xs.iter().any(|x| x > 5)}");
-println(f"{xs.iter().fold(0, |acc, x| acc + x * x)}");
-println(f"{xs.iter().find(|x| x > 3):?} {xs.iter().position(|x| x == 3):?} {xs.iter().max():?}");
+let evens = xs.filter(|x| x % 2 == 0).map(|x| x * 10).to_list();
+println(evens);
+println(xs.sum(), xs.count(), xs.any(|x| x > 5));
+println(xs.fold(0, |acc, x| acc + x * x));
+println(f"{xs.iter().find(|x| x > 3):?} {xs.position(|x| x == 3):?} {xs.max():?}");
 
-for (i, x) in xs.iter().enumerate().skip(4) { println(f"{i}: {x}"); }
+for (i, x) in xs.enumerate().skip(4) { println(f"{i}: {x}"); }
 
 let names = ["a", "b", "c"];
-let pairs: List<str> = names.iter().zip(xs.iter()).map(|(n, x)| f"{n}{x}").collect();
-println(f"{pairs:?}");
+let pairs = names.zip(xs.iter()).map(|(n, x)| f"{n}{x}").to_list();
+println(pairs);
 
-let back: List<i32> = xs.iter().rev().take(2).collect();
+let back = xs.rev().take(2).to_list();
 let uniq: Set<i32> = [1, 1, 2].iter().collect();
-println(f"{back:?} {uniq.len()}");
+println(back, uniq.len());
 ```
 
 ```output
@@ -186,7 +186,20 @@ println(f"{back:?} {uniq.len()}");
 [6, 5] 2
 ```
 
-`collect` builds whatever the receiving type is (`List<i32>`, `Set<i32>`, ...), which is why the `let` carries a type annotation.
+```rok
+let words = ["kiwi", "fig", "apple", "fig"];
+println(words.sorted(), words.sorted_by_key(|w| w.len(), reverse: true));
+println(words.counts().most_common(1), words.group_by(|w| w.len()));
+println(words.enumerate(start: 1).map(|p| f"{p.0}.{p.1}").to_list().join(" "));
+```
+
+```output
+["apple", "fig", "fig", "kiwi"] ["apple", "kiwi", "fig", "fig"]
+[("fig", 2)] {4: ["kiwi"], 3: ["fig", "fig"], 5: ["apple"]}
+1.kiwi 2.fig 3.apple 4.fig
+```
+
+A collection answers the iterator methods itself: `xs.sum()` is `xs.iter().sum()`, lazy as before (a `List`'s own methods such as `contains` and `windows` come first). `to_list()` gathers the items into a new `List`; `collect` builds whatever the receiving type is (`Set<i32>` above) and a `List` when nothing says. `sorted`, `sorted_by_key`, `counts` (Python's `Counter`, ranked with `most_common`), `group_by` and `enumerate(start:)` return new collections or count from where you say. `d[k, default: 0] += 1` stores `0` first when `k` is missing.
 
 ## Writing your own iterators: `Iterator` and `yield`
 

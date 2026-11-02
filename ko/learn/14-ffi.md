@@ -35,11 +35,13 @@ C 타입은 같은 크기의 원시 타입으로 씁니다. `int`는 `i32`, `siz
 컴파일러는 C 함수가 시그니처대로 동작하는지 검사할 방법이 없습니다. 잘못된 포인터를 넘기거나 선언을 틀리면 메모리가 망가질 수 있습니다. 그래서 `extern "C"` 블록의 모든 함수는 암묵적으로 `unsafe`이고, `unsafe { ... }` 안에서만 호출할 수 있습니다.
 
 ```text check=checks/14-unsafe-call.rok
-error[E0061]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn` (C functions are implicitly unsafe)
+error[E0061]: call to unsafe function `abs` outside an `unsafe` block or `unsafe fn`
   --> main.rok:4:12
    |
  4 | println(f"{abs(-1)}");
    |            ^^^^^^^
+   |
+   = help: wrap the call in `unsafe { .. }`; every `extern` function, `extern "rok"` included, is unsafe to call
 ```
 
 `extern` 블록에 선언한 C 전역 변수(`static mut optind: i32;`)도 마찬가지로 검사할 수 없습니다. 그래서 읽거나 쓸 때도 `unsafe`가 필요합니다.

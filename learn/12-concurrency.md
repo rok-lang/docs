@@ -264,6 +264,8 @@ smallest: 1
 
 Using `rows` after the spawn is an error, as after a send; the help also names `[move x]` when you capture a list without it. For `task::spawn_blocking` you can pass the value as the argument instead: `task::spawn_blocking_with(rows, |rows: List<i32>| rows.len())`.
 
+A `fn` value is captured the same way. A parameter `f: fn() + Send` is `Send` but not `Sync`, so a spawned closure that calls it must move it in, `[move f]`. To call it from several spawned closures, take `fn() + Send + Sync` instead.
+
 A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error.
 
 ```text check=checks/12-lock-value.rok

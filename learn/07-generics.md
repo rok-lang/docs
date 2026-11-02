@@ -75,7 +75,7 @@ fn double<T>(x: T) -> T { x + x }
 ```
 
 ```text check=checks/07-missing-bound.rok
-error[E0054]: operator `+` on `T` needs a `Add` bound on `T`
+error[E0054]: operator `+` on `T` needs the bound `T: Add`
   --> main.rok:1:27
    |
  1 | fn double<T>(x: T) -> T { x + x }

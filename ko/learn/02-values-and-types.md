@@ -27,7 +27,7 @@ error[E0057]: `coutn` is not declared; a variable is created only by `let`
  2 | coutn = count + 1;
    | ^^^^^
    |
-   = help: write `let coutn = count + 1;`
+   = help: did you mean `count`? To declare a new variable, write `let coutn = count + 1;`
 ```
 
 규칙이 몇 가지 더 있습니다.

@@ -384,10 +384,10 @@ Rok에서는 트레잇 이름을 타입 자리에 그대로 쓸 수 없습니다
 
 ```text check=checks/06-trait-as-type.rok
 error[E0071]: trait `Animal` cannot be used as a type directly
-  --> main.rok:2:1
+  --> main.rok:2:9
    |
  2 | fn f(a: Animal) {}
-   | ^^
+   |         ^^^^^^
    |
    = help: use `any Animal` for a value of any type implementing it, or a generic parameter `<T: Animal>`
 ```

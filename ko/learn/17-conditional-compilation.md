@@ -128,6 +128,8 @@ fn detached(cmd: Command) -> Command { cmd.process_group(0) }
 fn detached(cmd: Command) -> Command { cmd }
 ```
 
+C에 넘길 OS의 원시 핸들도 이 모듈에 있습니다. `as_raw_fd()`(Windows에서는 `as_raw_handle()` / `as_raw_socket()`)는 `File`, 소켓, 자식 파이프의 디스크립터를 빌립니다. 값이 여전히 그것을 소유하고 닫습니다. `into_raw_fd()`(`into_raw_handle()` / `into_raw_socket()`)는 디스크립터를 넘겨줍니다. 값은 소비되어 더는 그것을 닫지 않으므로, 닫는 일은 이제 여러분의 몫입니다. `unsafe`인 `from_raw_fd(fd)`는 `fd`를 다시 소유하는 값을 만듭니다.
+
 ## `cfg!`: 컴파일 타임 `bool`
 
 양쪽 가지가 어디서나 컴파일되고 선택만 다르다면 `cfg!(..)`가 더 짧습니다. 값이 상수 `bool`이므로 컴파일러가 죽은 가지를 버립니다. 다만 `#[cfg]`와 달리 양쪽 모두 타입 검사는 통과해야 합니다.

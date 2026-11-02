@@ -228,7 +228,7 @@ $ rok build
 error: could not build hello (1 error, 0 warnings)
 ```
 
-For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 2`): its code and kind, its message, spans with start and end line and column, `help` lines, the `fixes` it suggests, the `lint` name of a lint warning, and the spec section of the rule.
+For machine-readable output, add `--message-format=json`. Each diagnostic is printed as one line of JSON (`"schema": 2`): its code and kind, its message, spans with start and end line and column, `notes` and `help` lines, the `fixes` it suggests, and the `lint` name of a lint warning.
 
 The code in brackets names the error, one code per kind of error (every lint shares `E0132` and names itself in a note). `rokc --explain E0040` (or `rok --explain E0040`) prints what that code means and how to fix it, and the [error code index](../errors/index.html) lists every code. If rokc itself crashes (an internal compiler error), it exits with code 70, apart from a panicking program's 101; please report it.
 

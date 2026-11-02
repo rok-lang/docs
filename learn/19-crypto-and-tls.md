@@ -73,7 +73,7 @@ true false
 
 ## Key material: `Secret`
 
-A `Secret` holds bytes in *secret storage*: a buffer the collector never moves or copies and overwrites with zeros before it frees it. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman` and ML-KEM's `encapsulate` / `decapsulate` return one, and `random::secret(n)` draws random bytes straight into one. It prints as `Secret(n bytes)`, never its contents, and has no `==`: compare with `constant_time_eq`. `wipe()` zeroes it now, and a `using` binding wipes it at the end of the block. `Aead` and the private key types keep their key in secret storage too, and their `wipe` clears it.
+A `Secret` holds bytes in *secret storage*: a buffer the collector never moves or copies and overwrites with zeros before it frees it. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman` and ML-KEM's `encapsulate` / `decapsulate` return one, and `random::secret(n)` draws random bytes straight into one. It prints as `Secret { len: n, .. }`, never its contents, and has no `==`: compare with `constant_time_eq`. `wipe()` zeroes it now, and a `using` binding wipes it at the end of the block. `Aead` and the private key types keep their key in secret storage too, and their `wipe` clears it.
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Secret, constant_time_eq};
@@ -98,7 +98,7 @@ using s = Secret::new("temporary") {
 ```
 
 ```output
-Secret(32 bytes) true
+Secret { len: 32, .. } true
 0
 9 bytes
 ```

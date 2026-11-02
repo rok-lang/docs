@@ -128,6 +128,8 @@ fn detached(cmd: Command) -> Command { cmd.process_group(0) }
 fn detached(cmd: Command) -> Command { cmd }
 ```
 
+Raw OS handles for C live there too. `as_raw_fd()` (`as_raw_handle()` / `as_raw_socket()` on Windows) borrows the descriptor of a `File`, a socket or a child pipe: the value still owns it and closes it. `into_raw_fd()` (`into_raw_handle()` / `into_raw_socket()`) hands the descriptor over: the value is consumed and no longer closes it, so closing it is now up to you. `unsafe` `from_raw_fd(fd)` makes a value that owns `fd` again.
+
 ## `cfg!`: a compile-time `bool`
 
 When both branches compile everywhere and only the choice differs, `cfg!(..)` is shorter. It is a constant `bool`, so the compiler drops the dead branch; unlike `#[cfg]`, both sides must still type-check.

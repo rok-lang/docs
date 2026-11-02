@@ -73,7 +73,7 @@ true false
 
 ## 키 재료: `Secret`
 
-`Secret`은 바이트를 '비밀 저장소'에 둡니다. 비밀 저장소는 수집기가 옮기거나 복사하지 않고, 해제하기 전에 0으로 덮어쓰는 버퍼입니다. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman`, ML-KEM의 `encapsulate` / `decapsulate`가 이 버퍼를 돌려줍니다. `random::secret(n)`은 난수 바이트를 곧바로 이 버퍼에 뽑아 넣습니다. 출력하면 내용이 아니라 `Secret(n bytes)`로 보입니다. `==`가 없으므로 `constant_time_eq`로 비교합니다. `wipe()`는 그 자리에서 0으로 지우고, `using` 바인딩은 블록 끝에서 지웁니다. `Aead`와 개인 키 타입도 키를 비밀 저장소에 두고, 각자의 `wipe`가 그 키를 지웁니다.
+`Secret`은 바이트를 '비밀 저장소'에 둡니다. 비밀 저장소는 수집기가 옮기거나 복사하지 않고, 해제하기 전에 0으로 덮어쓰는 버퍼입니다. `hkdf::extract` / `expand`, `x25519::PrivateKey::diffie_hellman`, ML-KEM의 `encapsulate` / `decapsulate`가 이 버퍼를 돌려줍니다. `random::secret(n)`은 난수 바이트를 곧바로 이 버퍼에 뽑아 넣습니다. 출력하면 내용이 아니라 `Secret { len: n, .. }`로 보입니다. `==`가 없으므로 `constant_time_eq`로 비교합니다. `wipe()`는 그 자리에서 0으로 지우고, `using` 바인딩은 블록 끝에서 지웁니다. `Aead`와 개인 키 타입도 키를 비밀 저장소에 두고, 각자의 `wipe`가 그 키를 지웁니다.
 
 ```rok
 use rok::core::crypto::{Aead, AeadAlgorithm, HashAlgorithm, Secret, constant_time_eq};
@@ -98,7 +98,7 @@ using s = Secret::new("temporary") {
 ```
 
 ```output
-Secret(32 bytes) true
+Secret { len: 32, .. } true
 0
 9 bytes
 ```

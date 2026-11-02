@@ -6,38 +6,39 @@
 
 ```rok
 // A line-based TCP echo server and its clients in one program.
-use rok::std::net::{TcpListener, TcpStream, SocketAddr, Shutdown};
+use rok::std::net::{TcpListener, TcpStream, SocketAddr};
 use rok::core::io::{IoError, BufReader};
 use rok::std::thread;
 
 // Echo every line of one connection back until the client closes its side.
 fn serve(conn: TcpStream) throws (IoError) -> i32 {
     let lines = 0;
-    let r = BufReader::new(try conn.try_clone());
+    let (rh, w) = conn.split();
+    let r = BufReader::new(rh);
     try for line in r.lines() {
-        try conn.write_all(f"echo: {line}\n");
+        try w.write_all(f"echo: {line}\n");
         lines += 1;
     }
-    // Close both handles (the clone shares the socket) so the client sees EOF.
+    // Both halves closed: the socket closes and the client sees EOF.
     try r.into_inner().close();
-    try conn.close();
+    try w.close();
     lines
 }
 
 // Send each message, wait for its echo, then close the write side.
 fn client(id: i32, addr: SocketAddr, msgs: List<str>) throws (IoError) {
-    using conn = try TcpStream::connect(addr) {
-        using r = BufReader::new(try conn.try_clone()) {
-            for m in msgs {
-                try conn.write_all(f"{m}\n");
-                let reply = StrBuf::new();
-                try r.read_line(reply);
-                println(f"client {id}: sent {m:?}, got {reply.to_str().trim_end():?}");
-            }
-            try conn.shutdown(Shutdown::Write);
-            // A read of 0 bytes means the server closed the connection.
-            if (try r.read_line(StrBuf::new())) == 0 { println(f"client {id}: closed"); }
+    let (rh, w) = (try TcpStream::connect(addr)).split();
+    using r = BufReader::new(rh) {
+        for m in msgs {
+            try w.write_all(f"{m}\n");
+            let reply = StrBuf::new();
+            try r.read_line(reply);
+            println(f"client {id}: sent {m:?}, got {reply.to_str().trim_end():?}");
         }
+        // Closing the write half ends the stream for the server.
+        try w.close();
+        // A read of 0 bytes means the server closed the connection.
+        if (try r.read_line(StrBuf::new())) == 0 { println(f"client {id}: closed"); }
     }
 }
 
@@ -86,7 +87,7 @@ server echoed 6 lines and stopped
 
 - `TcpListener`를 포트 0에 바인딩하면 OS가 빈 포트를 고르고 `local_addr()`가 실제 주소를 알려 줍니다. 그래서 다른 프로그램과 충돌하지 않습니다. `bind`와 `connect`는 텍스트, `SocketAddr` 등 `ToSocketAddrs`를 구현한 무엇이든 받습니다([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../../std/std/net.html#struct.TcpListener)).
 - 서버 스레드는 연결마다 처리 스레드를 하나씩 띄운 뒤 모두 `join`으로 기다려서 처리한 줄 수를 더합니다. 클로저는 `listener`와 `conn`을 캡처해서 다른 스레드로 가져갑니다([동시성](../learn/12-concurrency.html), [`thread::spawn`](../../std/std/thread.html#fn.spawn)).
-- 줄 단위로 읽으려고 소켓을 `try_clone()`으로 복제해 `BufReader`로 감쌉니다. 읽기는 복제본을, 쓰기는 원본을 거칩니다([`BufReader`](../../std/core/io.html#struct.BufReader)).
+- 쓰면서 줄 단위로 읽으려고 소켓을 `split()`으로 읽기 반쪽과 쓰기 반쪽으로 나누고, 읽기 반쪽을 `BufReader`로 감쌉니다. 각 반쪽은 자기 방향을 소유합니다([반쪽으로 나누기](../spec/refs-standard-libraries/300-std/302-net.html#반쪽으로-나누기), [`BufReader`](../../std/core/io.html#struct.BufReader)).
 - 소켓은 소유자가 하나하나 닫습니다. 서버 처리기는 `try conn.close()`로, 클라이언트는 `using` 블록을 벗어나며, listener는 모든 클라이언트를 처리한 뒤 닫습니다. 닫기는 실패할 수 있으므로 열어 둔 채 두면 컴파일 에러입니다.
-- 종료 순서가 중요합니다. 클라이언트는 모두 보낸 뒤 `shutdown(Shutdown::Write)`로 "더 보낼 것 없음"을 알리고, 서버의 `lines()`는 그 신호로 루프를 끝냅니다. 서버가 두 핸들을 모두 닫으면 클라이언트의 `read_line`은 0 바이트를 읽습니다.
+- 종료 순서가 중요합니다. 클라이언트는 모두 보낸 뒤 쓰기 반쪽을 닫아 "더 보낼 것 없음"을 알리고(`shutdown(Write)`이며 읽기 반쪽은 열려 있음), 서버의 `lines()`는 그 신호로 루프를 끝냅니다. 서버가 두 반쪽을 모두 닫으면 소켓이 닫히고 클라이언트의 `read_line`은 0 바이트를 읽습니다.
 - 같은 서버를 블로킹 API 대신 `accept_async` / `read_async`와 task로 작성할 수도 있습니다([3.2.0 공통 규칙](../spec/refs-standard-libraries/300-std/302-net.html#320-공통-규칙)).

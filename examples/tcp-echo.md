@@ -6,38 +6,39 @@ One program starts an echo server on a free `127.0.0.1` port, has clients send l
 
 ```rok
 // A line-based TCP echo server and its clients in one program.
-use rok::std::net::{TcpListener, TcpStream, SocketAddr, Shutdown};
+use rok::std::net::{TcpListener, TcpStream, SocketAddr};
 use rok::core::io::{IoError, BufReader};
 use rok::std::thread;
 
 // Echo every line of one connection back until the client closes its side.
 fn serve(conn: TcpStream) throws (IoError) -> i32 {
     let lines = 0;
-    let r = BufReader::new(try conn.try_clone());
+    let (rh, w) = conn.split();
+    let r = BufReader::new(rh);
     try for line in r.lines() {
-        try conn.write_all(f"echo: {line}\n");
+        try w.write_all(f"echo: {line}\n");
         lines += 1;
     }
-    // Close both handles (the clone shares the socket) so the client sees EOF.
+    // Both halves closed: the socket closes and the client sees EOF.
     try r.into_inner().close();
-    try conn.close();
+    try w.close();
     lines
 }
 
 // Send each message, wait for its echo, then close the write side.
 fn client(id: i32, addr: SocketAddr, msgs: List<str>) throws (IoError) {
-    using conn = try TcpStream::connect(addr) {
-        using r = BufReader::new(try conn.try_clone()) {
-            for m in msgs {
-                try conn.write_all(f"{m}\n");
-                let reply = StrBuf::new();
-                try r.read_line(reply);
-                println(f"client {id}: sent {m:?}, got {reply.to_str().trim_end():?}");
-            }
-            try conn.shutdown(Shutdown::Write);
-            // A read of 0 bytes means the server closed the connection.
-            if (try r.read_line(StrBuf::new())) == 0 { println(f"client {id}: closed"); }
+    let (rh, w) = (try TcpStream::connect(addr)).split();
+    using r = BufReader::new(rh) {
+        for m in msgs {
+            try w.write_all(f"{m}\n");
+            let reply = StrBuf::new();
+            try r.read_line(reply);
+            println(f"client {id}: sent {m:?}, got {reply.to_str().trim_end():?}");
         }
+        // Closing the write half ends the stream for the server.
+        try w.close();
+        // A read of 0 bytes means the server closed the connection.
+        if (try r.read_line(StrBuf::new())) == 0 { println(f"client {id}: closed"); }
     }
 }
 
@@ -86,7 +87,7 @@ server echoed 6 lines and stopped
 
 - Binding `TcpListener` to port 0 lets the OS choose a free port, and `local_addr()` reports the actual address, so there is no clash with other programs. `bind` and `connect` take text, a `SocketAddr` or anything else that implements `ToSocketAddrs` ([3.2 net](../spec/refs-standard-libraries/300-std/302-net.html), [`TcpListener`](../std/std/net.html#struct.TcpListener)).
 - The server thread starts one handler thread per connection, then `join`s them all and adds up the lines served. The closures capture `listener` and `conn` and carry them to the other threads ([Concurrency](../learn/12-concurrency.html), [`thread::spawn`](../std/std/thread.html#fn.spawn)).
-- To read line by line, the socket is `try_clone()`d and wrapped in a `BufReader`: reads go through the clone, writes through the original ([`BufReader`](../std/core/io.html#struct.BufReader)).
+- To read line by line while writing, the socket is `split()` into a read half, wrapped in a `BufReader`, and a write half: each half owns its direction ([split halves](../spec/refs-standard-libraries/300-std/302-net.html#split-halves), [`BufReader`](../std/core/io.html#struct.BufReader)).
 - Every socket is closed by its owner: the server handler with `try conn.close()`, the client by leaving its `using` block, the listener once all clients are served. Leaving one open is a compile error, since its close can fail.
-- Shutdown order matters. After sending everything, the client calls `shutdown(Shutdown::Write)` to say "nothing more", and the server's `lines()` ends its loop on that signal. Once the server closes both handles, the client's `read_line` reads 0 bytes.
+- Shutdown order matters. After sending everything, the client closes its write half to say "nothing more" (a `shutdown(Write)`, the read half stays open), and the server's `lines()` ends its loop on that signal. Once the server closes both halves, the socket closes and the client's `read_line` reads 0 bytes.
 - The same server can be written with `accept_async` / `read_async` and tasks instead of the blocking API ([3.2.0 common rules](../spec/refs-standard-libraries/300-std/302-net.html#320-common-rules)).

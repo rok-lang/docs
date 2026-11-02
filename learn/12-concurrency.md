@@ -266,7 +266,9 @@ Using `rows` after the spawn is an error, as after a send; the help also names `
 
 A `fn` value is captured the same way. A parameter `f: fn() + Send` is `Send` but not `Sync`, so a spawned closure that calls it must move it in, `[move f]`. To call it from several spawned closures, take `fn() + Send + Sync` instead.
 
-A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error.
+A closure that owns moved values is handed over once, however it gets there: through another variable, a field, a list, an `if` arm, or a function that returns it. Passing the same closure twice to one call, `par::join(f, f)`, is a second hand-over and an error too ([E0134](../errors/E0134.html)); make two closures, each moving in its own `.clone()`. An `async [move ..]` closure and the futures its calls make share one owner: you can await them here one after another, but handing one of them to `task::spawn` takes the others along.
+
+A lock guard's value works the same way. What `g.get()` returns is a view of the object the `Mutex` protects, so it can't leave the `using` block: once the block ends, the lock no longer guards it. Returning it, throwing it in an error, or sending it is an error, and so is carrying it out of the block as a `break` value, an `if` or `match` arm, a `catch`, or a closure's result.
 
 ```text check=checks/12-lock-value.rok
 error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
@@ -274,9 +276,9 @@ error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and
    |
  2 | let xs = using g = m.lock() { g.get() };
    |          ^^^^^
-   |          ----- taken out of the lock here
+   |                               ------- taken out of the lock here
    |
-   = help: use it inside the `using` block, or make the block's value `using.clone()`
+   = help: use it inside the `using` block, or make the block's value `g.get_clone()`
 ```
 
 Passing it to a function is fine while that function only uses it. A function that keeps it (in a `Cell`, a field, a closure, a thread-local) would let it outlive the lock, so that call is an error too. Keep a deep copy instead: `g.get_clone()` copies the value and everything in it, and the copy is yours.
@@ -592,6 +594,8 @@ tick 20
 tick 30
 ```
 
+A stream held in a variable (or a field) is polled in place, not through a copy: a loop that stops early with `break` leaves the stream where it stopped, and the next `for await` over it goes on from there. A stream that owns a resource (a file, a socket) has one owner, so `let t = s` moves it and `s` can't be walked afterwards.
+
 The `Stream` trait has combinators such as `map`, `filter`, `take`, and `throttle` ([`Stream` API](../std/core/stream.html#trait.Stream)).
 
 ## Pitfalls
@@ -724,7 +728,7 @@ println(f"{compute()}");
 - `thread::local` gives each thread its own value: use it inside `with(|v| ..)`, or move it in and out with `set` / `replace` / `take`.
 - Share data that is only read through `Frozen<T>`: every `get()` is the reader's own copy, so keep big read-only parts in a `Frozen` field of their own.
 - `await` is a prefix operator on the call after it (`await f() == x` compares the result). Use `async fn` / `await` and `task::spawn` / `task::join` to run wait-heavy work concurrently.
-- `task::spawn` hands its future over like a send: the task works on its own copy of what the future captured, so return its changes with `await`. A closure gives a list to a thread with `[move xs]`.
+- `task::spawn` hands its future over like a send: the task works on its own copy of what the future captured, so return its changes with `await`. A closure gives a list to a thread with `[move xs]`, and such a closure is handed over once: `par::join(f, f)` is an error.
 - Join your threads and await your futures: un-joined threads die with `main`, and a future runs only when awaited; the lints warn about both. A dropped `task::spawn` task still runs. `task::spawn` needs an async `main` (or `task::block_on`).
 - For data-parallel computation, `par::map`, `par::for_each`, `par::join`, and `par::scope` keep things simple. Items that share a collection run one at a time, with a warning.
 - Create and consume streams with `async yield fn` and `for await`.

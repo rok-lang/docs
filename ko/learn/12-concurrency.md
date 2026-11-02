@@ -266,7 +266,9 @@ spawn 뒤에 `rows`를 쓰면 send 뒤와 마찬가지로 에러입니다. 리�
 
 `fn` 값도 똑같이 캡처됩니다. `f: fn() + Send` 매개변수는 `Send`이지만 `Sync`는 아니므로, 그것을 부르는 클로저를 spawn하려면 `[move f]`로 옮겨 넣어야 합니다. 여러 클로저에서 spawn해 부르려면 `fn() + Send + Sync`로 받으세요.
 
-잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체의 뷰이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다. 그 값을 돌려주거나, 에러에 담아 던지거나, 보내면 에러입니다.
+옮겨 넣은 값을 가진 클로저는 어떤 길로 가든 한 번만 넘겨집니다. 다른 변수, 필드, 리스트, `if`의 갈래, 그것을 돌려주는 함수를 거쳐도 같습니다. 같은 클로저를 한 호출에 두 번 넘기는 `par::join(f, f)`도 두 번째 넘김이므로 에러입니다([E0134](../errors/E0134.html)). 각자 `.clone()`을 옮겨 넣은 클로저 두 개를 만드세요. `async [move ..]` 클로저와 그 호출이 만든 future들은 소유자가 하나입니다. 여기서 차례로 await할 수는 있지만, 그중 하나를 `task::spawn`에 넘기면 나머지도 함께 넘어갑니다.
+
+잠금 가드의 값도 같은 방식으로 동작합니다. `g.get()`이 반환하는 것은 `Mutex`가 보호하는 객체의 뷰이므로 `using` 블록을 떠날 수 없습니다. 블록이 끝나면 잠금이 더는 그 객체를 지키지 않기 때문입니다. 그 값을 돌려주거나, 에러에 담아 던지거나, 보내면 에러이고, `break` 값, `if`나 `match`의 갈래, `catch`, 클로저의 결과로 블록 밖에 내보내도 에러입니다.
 
 ```text check=checks/12-lock-value.rok
 error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and the block releases the lock before it is used
@@ -274,9 +276,9 @@ error[E0106]: the value of `g`'s `using` block is what the `Mutex` protects, and
    |
  2 | let xs = using g = m.lock() { g.get() };
    |          ^^^^^
-   |          ----- taken out of the lock here
+   |                               ------- taken out of the lock here
    |
-   = help: use it inside the `using` block, or make the block's value `using.clone()`
+   = help: use it inside the `using` block, or make the block's value `g.get_clone()`
 ```
 
 그 값을 함수에 넘기는 것은 그 함수가 쓰기만 한다면 괜찮습니다. 값을 간직하는 함수(`Cell`, 필드, 클로저, 스레드 로컬에 저장하는 함수)는 값이 잠금보다 오래 살게 하므로, 그런 호출도 에러입니다. 대신 깊은 복사본을 남깁니다. `g.get_clone()`은 값과 그 안의 모든 것을 복사하며, 그 복사본은 여러분의 것입니다.
@@ -592,6 +594,8 @@ tick 20
 tick 30
 ```
 
+변수(또는 필드)에 든 스트림은 복사본이 아니라 그 자리에서 poll됩니다. `break`로 일찍 끝난 루프는 스트림을 멈춘 자리에 두고, 같은 스트림을 다시 `for await`로 돌면 거기서부터 이어집니다. 자원(파일, 소켓)을 가진 스트림은 소유자가 하나이므로 `let t = s`는 스트림을 옮기고, 그 뒤에는 `s`를 돌 수 없습니다.
+
 `Stream` 트레잇에는 `map`, `filter`, `take`, `throttle` 같은 결합자가 있습니다([`Stream` API](../../std/core/stream.html#trait.Stream)).
 
 ## 함정
@@ -724,7 +728,7 @@ println(f"{compute()}");
 - `thread::local`은 스레드마다 자기 값을 줍니다. `with(|v| ..)` 안에서 쓰거나 `set` / `replace` / `take`로 넣고 꺼냅니다.
 - 읽기만 하는 데이터는 `Frozen<T>`로 공유합니다. `get()`은 매번 읽는 쪽에 따로 복사본을 주므로 큰 읽기 전용 부분은 자기 `Frozen` 필드에 둡니다.
 - `await`는 뒤따르는 호출에 붙는 전위 연산자입니다(`await f() == x`는 결과를 비교합니다). 기다림이 많은 작업을 동시에 실행하려면 `async fn` / `await`와 `task::spawn` / `task::join`을 씁니다.
-- `task::spawn`은 send처럼 future를 넘깁니다. task는 future가 캡처한 것의 자기 복사본으로 작업하므로 변경 결과는 `await`로 돌려받습니다. 클로저는 `[move xs]`로 리스트를 스레드에 넘깁니다.
+- `task::spawn`은 send처럼 future를 넘깁니다. task는 future가 캡처한 것의 자기 복사본으로 작업하므로 변경 결과는 `await`로 돌려받습니다. 클로저는 `[move xs]`로 리스트를 스레드에 넘기고, 그런 클로저는 한 번만 넘겨집니다. `par::join(f, f)`는 에러입니다.
 - 스레드는 join으로, future는 await로 기다립니다. 기다리지 않은 스레드는 `main`과 함께 죽고, future는 기다릴 때에만 실행됩니다. 두 경우 모두 린트가 경고합니다. 버린 `task::spawn` task는 그래도 실행됩니다. `task::spawn`에는 async `main`(또는 `task::block_on`)이 필요합니다.
 - 데이터 병렬 계산에는 `par::map`, `par::for_each`, `par::join`, `par::scope`가 간단합니다. 컬렉션을 공유하는 항목은 경고와 함께 하나씩 실행됩니다.
 - 스트림은 `async yield fn`으로 만들고 `for await`로 소비합니다.

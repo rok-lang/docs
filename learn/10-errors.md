@@ -186,7 +186,7 @@ println(f"{try! total(["1", "2", "3"])} {(try? total(["1", "x"])) ?? -1}");
 6 -1
 ```
 
-`try! for` panics on a failed step, and `try? for` ends the loop there. To go on past errors, loop over `it.results()`, which gives each step as a `Result`.
+A `TryIterator` held in a variable is stepped in place: a loop that leaves early with `break` leaves the variable where the loop stopped, and a second loop over it goes on from there. `try! for` panics on a failed step, and `try? for` ends the loop there. To go on past errors, loop over `it.results()`, which gives each step as a `Result`.
 
 ## Your own error types
 

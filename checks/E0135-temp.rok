@@ -1,0 +1,6 @@
+use rok::std::fs::File;
+use rok::core::io::IoError;
+
+fn whole(path: str) throws (IoError) -> str {
+    try (try File::open(path)).read_to_str()
+}

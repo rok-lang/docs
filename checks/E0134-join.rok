@@ -1,0 +1,4 @@
+let xs = [1, 2, 3];
+let f = [move xs] || xs.len();
+let (a, b) = par::join(f, f);
+println(f"{a} {b}");

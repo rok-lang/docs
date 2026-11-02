@@ -1,0 +1,8 @@
+use rok::std::fs::File;
+use rok::std::process::{Command, Stdio};
+
+fn main() throws {
+    let s = Stdio::File(try File::create("out.txt"));
+    let a = try Command::new("echo").arg("a").stdout(s).status();
+    let b = try Command::new("echo").arg("b").stdout(s).status();
+}

@@ -1,0 +1,12 @@
+use rok::std::fs::File;
+use rok::core::io::{BufReader, IoError};
+
+fn count(path: str) throws (IoError) -> usize {
+    let r = BufReader::new(try File::open(path));
+    let ls = r.lines();
+    let kept = r;
+    let n = 0usize;
+    try for l in ls { n += 1; }
+    try kept.close();
+    n
+}

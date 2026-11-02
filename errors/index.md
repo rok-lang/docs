@@ -147,6 +147,7 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0135](E0135.html) | `handoff` | resource not closed |
 | [E0137](E0137.html) | `handoff` | thread-local value kept past `with` |
 | [E0138](E0138.html) | `handoff` | list view used after a resize |
+| [E0140](E0140.html) | `handoff` | stream view used past its stream |
 
 ## Attributes and meta
 

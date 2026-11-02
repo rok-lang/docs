@@ -1,0 +1,8 @@
+use rok::std::fs::File;
+use rok::core::io::{BufReader, IoError, Lines};
+
+fn lines_of(path: str) throws (IoError) -> Lines<BufReader<File>> {
+    using r = BufReader::new(try File::open(path)) {
+        return r.lines();
+    }
+}

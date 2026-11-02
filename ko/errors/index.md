@@ -147,6 +147,7 @@ rokc의 모든 진단은 `error[E0040]: mismatched types: ...`처럼 코드로 �
 | [E0135](E0135.html) | `handoff` | 닫지 않은 자원 |
 | [E0137](E0137.html) | `handoff` | `with` 뒤에도 간직한 스레드 로컬 값 |
 | [E0138](E0138.html) | `handoff` | 크기를 바꾼 뒤에 쓴 리스트 뷰 |
+| [E0140](E0140.html) | `handoff` | 스트림보다 오래 쓴 스트림 뷰 |
 
 ## 속성과 메타
 

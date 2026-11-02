@@ -123,6 +123,7 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0096](E0096.html) | `type` | `try` or `catch` that does nothing |
 | [E0097](E0097.html) | `type` | ROKON value of the wrong shape |
 | [E0139](E0139.html) | `type` | `pub` function signature not written out |
+| [E0141](E0141.html) | `type` | assignment to a value that is not a place |
 
 ## Patterns
 

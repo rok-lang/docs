@@ -1,0 +1,4 @@
+let counts: Dict<str, i32> = Dict::new();
+for w in ["a", "b", "a"] {
+    counts.entry(w).or_insert(0) += 1;
+}

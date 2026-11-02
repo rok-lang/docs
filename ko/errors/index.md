@@ -123,6 +123,7 @@ rokc의 모든 진단은 `error[E0040]: mismatched types: ...`처럼 코드로 �
 | [E0096](E0096.html) | `type` | 아무것도 하지 않는 `try`나 `catch` |
 | [E0097](E0097.html) | `type` | 형태가 틀린 ROKON 값 |
 | [E0139](E0139.html) | `type` | 적어 두지 않은 `pub` 함수 시그니처 |
+| [E0141](E0141.html) | `type` | 자리가 아닌 값에 대입 |
 
 ## 패턴
 

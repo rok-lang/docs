@@ -6,6 +6,8 @@ Rok을 처음 접하는 사람을 위한 가이드입니다. 설치부터 에러
 
 Python을 써 왔다면 [Python 사용자를 위한 Rok](rok-for-python.html)에서 Python 관용구와 표준 라이브러리 모듈이 Rok의 무엇에 해당하는지 볼 수 있습니다.
 
+Rust를 써 왔다면 [Rust 사용자를 위한 Rok](rok-for-rust.html)에서 소유권, 에러, `Option`에 대해 버려야 할 습관과 Cargo 명령이 Rok의 어디에 있는지 볼 수 있습니다.
+
 전체 규칙은 [언어 참조](../spec/refs-lang/index.html)와 [표준 라이브러리 사양](../spec/refs-standard-libraries/index.html)에 있습니다. 함수와 타입은 [표준 라이브러리 API](../../std/index.html)에 정리해 두었습니다. 작고 완결된 프로그램은 [예제](../examples/index.html)에 모아 두었습니다. 파일 읽기, 시간 재기, 스레드, JSON, HTTP 같은 흔한 작업은 [어떻게 하나요](20-cookbook.html)에서 바로 답을 찾을 수 있습니다. 컴파일러가 에러를 내면 그 에러 코드를 [에러 코드 색인](../errors/index.html)에서 찾아보세요.
 
 ## 목차

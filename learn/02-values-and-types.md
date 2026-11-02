@@ -33,8 +33,8 @@ error[E0057]: `coutn` is not declared; a variable is created only by `let`
 A few more rules:
 
 - An initial value is required. `let x;` is an error. If there is no value yet, state the absence explicitly: `let x: i32 | none = none;`.
-- You cannot redeclare the same name with `let` in the same scope (there is no Rust-style shadowing). A `let` in an inner block creates a separate variable from the outer one.
 - A variable's type is fixed at declaration and never changes. Assigning a string to an `i32` variable is an error.
+- A `let` of a name you already have makes a new variable that hides the old one, in the same scope or an inner block. Its initial value can read the old one, and its type may differ, so a value can keep its name through each step.
 - Keywords cannot be names. Six of them are reserved for later and have no syntax yet: `macro`, `defer`, `dyn`, `move`, `gen` and `do`. To use a keyword as a name anyway, put `r#` in front (`r#move`, `r#type`); the error suggests it.
 
 ```rok
@@ -51,6 +51,19 @@ println(f"outer a = {a}");
 inner a = 10
 outer a = 1
 ```
+
+```rok
+let line = "  42  ";
+let line = line.trim();          // reads the old `line`
+let line: i32 = try! line.parse();
+println(f"{line + 1}");
+```
+
+```output
+43
+```
+
+To change a variable's value, assign without `let`. A redeclaration leaves the old variable as it was ([5.1.4](../spec/refs-lang/005-modules/501-variable-declaration.html#514-redeclaration-in-the-same-scope)): a file you opened is not closed by it, so close it first or move it into the new value, as in `let f = BufReader::new(f);` (chapter 13).
 
 ## Numeric types and literals
 
@@ -301,7 +314,7 @@ welcome: 58 seats left
 
 ## Summary
 
-- `let` declares, `=` reassigns. Redeclaring in the same scope is forbidden, and an initial value is required.
+- `let` declares, `=` reassigns. A new `let` of a name makes a new variable, and an initial value is required.
 - Unsuffixed literals follow the expected type, defaulting to `i32` / `f64`.
 - There is no automatic conversion between numeric types. Use `as`, `.into()`, or `.try_into::<T>()`.
 - `len()` and indexes are `usize`; convert with `as` to mix them with `i32`.

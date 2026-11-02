@@ -55,7 +55,7 @@ rokc의 모든 진단은 `error[E0040]: mismatched types: ...`처럼 코드로 �
 | [E0035](E0035.html) | `module` | 모듈 파일 문제 |
 | [E0036](E0036.html) | `module` | 잘못된 프로그램 진입점 |
 | [E0037](E0037.html) | `module` | 잘못된 의존성 |
-| [E0038](E0038.html) | `resolve` | 두 번 선언한 지역 변수 |
+| [E0038](E0038.html) | `resolve` | 중첩 함수와 이름이 같은 변수 |
 | [E0039](E0039.html) | `resolve` | 바깥 지역 변수를 쓰는 중첩 항목 |
 | [E0129](E0129.html) | `module` | 잘못된 WIT |
 | [E0136](E0136.html) | `resolve` | 메서드의 트레이트가 스코프에 없음 |

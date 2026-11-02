@@ -1,2 +1,5 @@
-let x = 1;
-let x = 2;
+fn main() {
+    fn step(x: i32) -> i32 { x + 1 }
+    let step = 2;
+    println(f"{step}");
+}

@@ -91,7 +91,7 @@ histogram:
 
 ## Walkthrough
 
-- Top-level `let`s and `fn`s in a notebook cell persist for the whole session. Unlike a regular source file, a cell may `let` the same name again at top level, so you can re-run a cell with different data ([5.1.4 No redeclaration in the same scope](../spec/refs-lang/005-modules/501-variable-declaration.html#514-no-redeclaration-in-the-same-scope)).
+- Top-level `let`s and `fn`s in a notebook cell persist for the whole session. A cell may `let` the same name again, as a source file may, so you can re-run a cell with different data ([5.1.4 Redeclaration in the same scope](../spec/refs-lang/005-modules/501-variable-declaration.html#514-redeclaration-in-the-same-scope)).
 - `f64` is not totally ordered, so `sort_by` gets `partial_cmp`, and an incomparable NaN is handled with `?? Ordering::Equal` ([Collections and iterators](../learn/08-collections-iterators.html)).
 - A single `fold` finds both the minimum and the maximum. Starting from `f64::INFINITY` / `f64::NEG_INFINITY` means the first element replaces them, as long as the list is not empty ([`Iterator`](../std/core/iter.html#trait.Iterator)).
 - `temps[week * 7:(week + 1) * 7]` takes one range of the list as a slice ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).

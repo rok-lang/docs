@@ -251,7 +251,7 @@ List<i32>
 >>> :exit
 ```
 
-`:type expr` reports the type of an expression without running it. Whenever you wonder about a type while reading this guide, check it in the REPL. Unlike regular source, the REPL lets you redeclare the same name with `let`, and a cell's last `let` needs no `;`. [Chapter 16](16-tools.html#repl-and-jupyter) covers the rest ([JIT cells](../spec/refs-lang/009-tools/907-jit-cells.html)).
+`:type expr` reports the type of an expression without running it. Whenever you wonder about a type while reading this guide, check it in the REPL. A cell's last `let` needs no `;`. [Chapter 16](16-tools.html#repl-and-jupyter) covers the rest ([JIT cells](../spec/refs-lang/009-tools/907-jit-cells.html)).
 
 ## Summary
 

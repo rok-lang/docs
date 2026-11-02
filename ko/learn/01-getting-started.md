@@ -251,7 +251,7 @@ List<i32>
 >>> :exit
 ```
 
-`:type expr`는 식을 실행하지 않고 타입만 알려 줍니다. 가이드를 읽다가 타입이 궁금하면 REPL에서 확인해 보세요. 일반 소스와 달리 REPL에서는 같은 이름을 `let`으로 다시 선언할 수 있습니다. 셀의 마지막 `let`에는 `;`이 필요 없습니다. 나머지는 [16장](16-tools.html#repl과-jupyter)에서 다룹니다([JIT 셀](../spec/refs-lang/009-tools/907-jit-cells.html)).
+`:type expr`는 식을 실행하지 않고 타입만 알려 줍니다. 가이드를 읽다가 타입이 궁금하면 REPL에서 확인해 보세요. 셀의 마지막 `let`에는 `;`이 필요 없습니다. 나머지는 [16장](16-tools.html#repl과-jupyter)에서 다룹니다([JIT 셀](../spec/refs-lang/009-tools/907-jit-cells.html)).
 
 ## 정리
 

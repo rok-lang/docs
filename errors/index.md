@@ -55,7 +55,7 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0035](E0035.html) | `module` | module file problem |
 | [E0036](E0036.html) | `module` | invalid program entry point |
 | [E0037](E0037.html) | `module` | invalid dependency |
-| [E0038](E0038.html) | `resolve` | local declared twice |
+| [E0038](E0038.html) | `resolve` | variable named like a nested function |
 | [E0039](E0039.html) | `resolve` | nested item uses an outer local |
 | [E0129](E0129.html) | `module` | invalid WIT |
 | [E0136](E0136.html) | `resolve` | trait of the method not in scope |

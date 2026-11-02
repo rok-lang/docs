@@ -121,80 +121,83 @@ core ["ada", "grace"]
 ```rok
 struct Counter { n: i32; }
 
-fn bump_copy(c: Counter) { c.n += 1; }    // changes its own copy
-fn bump(ref c: Counter) { c.n += 1; }     // changes the caller's variable
+fn bumped(c: Counter) -> i32 { c.n += 1; c.n }    // changes its own copy
+fn bump(ref c: Counter) { c.n += 1; }             // changes the caller's variable
 
 let c = Counter { n: 0 };
-bump_copy(c);
-println(f"{c.n}");
+println(f"{bumped(c)} {c.n}");
 bump(ref c);
 println(f"{c.n}");
 ```
 
 ```output
-0
+1 0
 1
 ```
 
-메서드도 같습니다. `self`는 사본이고, `ref self`는 호출한 쪽의 값입니다. 메서드는 호출하는 곳에 `ref`가 필요 없습니다. `ref self`를 빠뜨려도 컴파일은 되지만 메서드가 반환하면 바꾼 내용이 사라집니다.
+메서드도 같습니다. `self`는 사본이고, `ref self`는 호출한 쪽의 값입니다. 메서드는 호출하는 곳에 `ref`가 필요 없습니다. 사본에 쓴 뒤 아무도 읽지 않는 필드는 바꾼 내용이 사라지므로, `ref self`를 빠뜨리면 에러입니다.
+
+```rok norun
+struct Counter { n: i32; }
+
+impl Counter {
+    fn inc(self) { self.n += 1; }
+}
+```
+
+```text check=checks/06-write-to-copy.rok
+error[E0057]: `self.n` is set on a copy of the receiver, so the change is lost when `inc` returns
+  --> main.rok:4:20
+   |
+ 4 |     fn inc(self) { self.n += 1; }
+   |                    ^^^^^^
+   |
+   = help: take `ref self` to change the caller's value: `fn inc(ref self)`; to change a local copy, write `let c = self;` and change `c`
+```
+
+help대로 `ref self`를 받습니다.
 
 ```rok
 struct Counter { n: i32; }
 
 impl Counter {
-    fn inc_wrong(self) { self.n += 1; }    // changes a copy
     fn inc(ref self) { self.n += 1; }
 }
 
 let c = Counter { n: 0 };
-c.inc_wrong();
-println(f"{c.n}");
+c.inc();
 c.inc();
 println(f"{c.n}");
 ```
 
 ```output
-0
-1
+2
 ```
 
-`write_to_copy` 린트가 이 실수를 잡습니다. `rok check`와 `rok lint`(그리고 에디터)는 사본에 값을 쓴 뒤 아무도 읽지 않는 필드를 경고합니다.
-
-```text check=checks/06-write-to-copy.rok
-warning[E0132]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
-  --> main.rok:4:26
-   |
- 4 |     fn inc_wrong(self) { self.n += 1; }    // changes a copy
-   |                          ^^^^^^
-   |
-   = help: take `ref self` to change the caller's value: `fn inc_wrong(ref self)`
-   = note: `#[warn(write_to_copy)]` on by default
-```
-
-같은 함정은 루프에도 있습니다. `for p in ps { p.x *= 10; }`는 원소의 사본을 바꾸고, 린트가 이를 알려 줍니다.
+루프도 같습니다. `for p in ps`는 각 원소의 사본을 묶으므로 `p.x *= 10`은 사본만 바꿉니다.
 
 ```rok norun
 for p in ps { p.x *= 10; }
 ```
 
 ```text check=checks/06-loop-copy.rok
-warning[E0132]: `p.x` is set on a copy of the element, so `ps` does not change
+error[E0057]: `p.x` is set on a copy of the element, so `ps` does not change
   --> main.rok:4:15
    |
  4 | for p in ps { p.x *= 10; }
    |               ^^^
    |
-   = help: loop over the indexes to change the elements: `for i in 0..ps.len() { ps[i].x *= 10; }`
+   = help: bind each element as a place with `for ref`: `for ref p in ps { p.x *= 10; }`
 ```
 
-원소를 제자리에서 바꾸려면 리스트에 인덱스로 접근하거나 새 리스트를 만듭니다. 원소(`ps[i].shift(1)`)나 `Dict` 항목에 `ref self` 메서드를 불러도 제자리에서 바뀝니다.
+`for ref p in ps`는 각 원소를 자리로 묶습니다. `p`를 읽으면 원소를 읽고, `p`나 그 필드에 쓰면 원소에 씁니다. `p`(또는 `ps[i]`, `Dict` 항목)에 `ref self` 메서드를 불러도 제자리에서 바뀝니다.
 
 ```rok
 struct Point { x: i32; y: i32; }
 
 let ps = [Point { x: 1, y: 0 }, Point { x: 2, y: 0 }];
-for i in 0..ps.len() {
-    ps[i].x *= 10;
+for ref p in ps {
+    p.x *= 10;
 }
 println(f"{ps[0].x} {ps[1].x}");
 ```
@@ -202,6 +205,8 @@ println(f"{ps[0].x} {ps[1].x}");
 ```output
 10 20
 ```
+
+`for ref` 루프는 순회하는 리스트의 크기를 바꿀 수 없습니다. 본문의 `ps.push(..)`는 에러입니다([E0138](../errors/E0138.html)). 길이는 루프가 끝난 뒤 바꾸세요.
 
 ## enum: 이름 붙은 경우
 

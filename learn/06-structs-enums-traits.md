@@ -121,80 +121,83 @@ A function gets a copy of its struct arguments. To change the caller's variable,
 ```rok
 struct Counter { n: i32; }
 
-fn bump_copy(c: Counter) { c.n += 1; }    // changes its own copy
-fn bump(ref c: Counter) { c.n += 1; }     // changes the caller's variable
+fn bumped(c: Counter) -> i32 { c.n += 1; c.n }    // changes its own copy
+fn bump(ref c: Counter) { c.n += 1; }             // changes the caller's variable
 
 let c = Counter { n: 0 };
-bump_copy(c);
-println(f"{c.n}");
+println(f"{bumped(c)} {c.n}");
 bump(ref c);
 println(f"{c.n}");
 ```
 
 ```output
-0
+1 0
 1
 ```
 
-A method works the same way: `self` is a copy, and `ref self` is the caller's value (for methods, the call site needs no `ref`). Forgetting `ref self` compiles, but the change is lost when the method returns:
+A method works the same way: `self` is a copy, and `ref self` is the caller's value (for methods, the call site needs no `ref`). A field set on a copy that nothing reads afterwards would be lost, so forgetting `ref self` is an error:
+
+```rok norun
+struct Counter { n: i32; }
+
+impl Counter {
+    fn inc(self) { self.n += 1; }
+}
+```
+
+```text check=checks/06-write-to-copy.rok
+error[E0057]: `self.n` is set on a copy of the receiver, so the change is lost when `inc` returns
+  --> main.rok:4:20
+   |
+ 4 |     fn inc(self) { self.n += 1; }
+   |                    ^^^^^^
+   |
+   = help: take `ref self` to change the caller's value: `fn inc(ref self)`; to change a local copy, write `let c = self;` and change `c`
+```
+
+Take `ref self`, as the help says:
 
 ```rok
 struct Counter { n: i32; }
 
 impl Counter {
-    fn inc_wrong(self) { self.n += 1; }    // changes a copy
     fn inc(ref self) { self.n += 1; }
 }
 
 let c = Counter { n: 0 };
-c.inc_wrong();
-println(f"{c.n}");
+c.inc();
 c.inc();
 println(f"{c.n}");
 ```
 
 ```output
-0
-1
+2
 ```
 
-The `write_to_copy` lint catches this. `rok check` and `rok lint` (and your editor) warn about a field set on a copy that nothing reads afterwards:
-
-```text check=checks/06-write-to-copy.rok
-warning[E0132]: `self.n` is set on a copy of the receiver, so the change is lost when `inc_wrong` returns
-  --> main.rok:4:26
-   |
- 4 |     fn inc_wrong(self) { self.n += 1; }    // changes a copy
-   |                          ^^^^^^
-   |
-   = help: take `ref self` to change the caller's value: `fn inc_wrong(ref self)`
-   = note: `#[warn(write_to_copy)]` on by default
-```
-
-The same trap catches loops. `for p in ps { p.x *= 10; }` changes copies of the elements, and the lint says so:
+The same goes for loops. `for p in ps` binds a copy of each element, so `p.x *= 10` would change copies only:
 
 ```rok norun
 for p in ps { p.x *= 10; }
 ```
 
 ```text check=checks/06-loop-copy.rok
-warning[E0132]: `p.x` is set on a copy of the element, so `ps` does not change
+error[E0057]: `p.x` is set on a copy of the element, so `ps` does not change
   --> main.rok:4:15
    |
  4 | for p in ps { p.x *= 10; }
    |               ^^^
    |
-   = help: loop over the indexes to change the elements: `for i in 0..ps.len() { ps[i].x *= 10; }`
+   = help: bind each element as a place with `for ref`: `for ref p in ps { p.x *= 10; }`
 ```
 
-To change the elements in place, index the list, or build a new one. A `ref self` method called on an element (`ps[i].shift(1)`) or a `Dict` entry changes it in place too.
+`for ref p in ps` binds each element as a place: reading `p` reads the element, and writing `p` or its fields writes the element. A `ref self` method called on `p` (or on `ps[i]`, or a `Dict` entry) changes it in place too.
 
 ```rok
 struct Point { x: i32; y: i32; }
 
 let ps = [Point { x: 1, y: 0 }, Point { x: 2, y: 0 }];
-for i in 0..ps.len() {
-    ps[i].x *= 10;
+for ref p in ps {
+    p.x *= 10;
 }
 println(f"{ps[0].x} {ps[1].x}");
 ```
@@ -202,6 +205,8 @@ println(f"{ps[0].x} {ps[1].x}");
 ```output
 10 20
 ```
+
+A `for ref` loop cannot resize the list it walks: `ps.push(..)` in its body is an error ([E0138](../errors/E0138.html)). Change the length after the loop.
 
 ## enum: named cases
 

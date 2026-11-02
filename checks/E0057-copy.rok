@@ -1,0 +1,4 @@
+struct Point { x: i32; y: i32; }
+
+let ps = [Point { x: 1, y: 0 }, Point { x: 2, y: 0 }];
+for p in ps { p.x = 7; }

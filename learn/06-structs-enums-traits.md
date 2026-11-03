@@ -73,14 +73,14 @@ println(f"{a.x} {b.x}");
 let ps = [Point { x: 1, y: 0 }, Point { x: 2, y: 0 }];
 let first = ps[0];      // also a copy
 first.x = 99;
-println(f"{ps[0].x}");
+println(f"{ps[0].x} {first.x}");
 ps[0].x = 99;           // writes into the list
 println(f"{ps[0].x}");
 ```
 
 ```output
 1 100
-1
+1 99
 99
 ```
 

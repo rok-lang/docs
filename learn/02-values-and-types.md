@@ -148,17 +148,17 @@ A number never casts to `bool`: `n as bool` is an error. Write the comparison yo
 
 A few integer rules surprise people coming from Python, Go, or JavaScript.
 
-**`len()` is a `usize`.** Lengths and indexes are `usize`, while an unsuffixed literal is an `i32`. Since nothing converts implicitly, `total / xs.len()` with an `i32` `total` is an error. Convert one side with `as`.
+**`len()` is a `usize`.** Lengths and indexes are `usize`. A literal takes its type from its uses, so `let total = 6;` divided by `xs.len()` is a `usize` too, but a value whose type is already fixed (an `i64` field, parameter or annotation) is not converted: `total / xs.len()` with an `i64` `total` is an error. Convert one side with `as`.
 
 ```text check=checks/02-len-usize.rok
-error[E0054]: operator `/` cannot be applied to `i32` and `usize`
+error[E0054]: operator `/` cannot be applied to `i64` and `usize`
 ```
 
 ```rok
-let xs = [10, 20, 30];
+let xs: List<i64> = [10, 20, 30];
 let total = 0;
 for x in xs { total += x; }
-let avg = total / (xs.len() as i32);
+let avg = total / (xs.len() as i64);
 println(f"average {avg}");
 
 for i in 0..xs.len() {       // i is a usize, so xs[i] just works
@@ -338,9 +338,9 @@ welcome: 58 seats left
 ## Summary
 
 - `let` declares, `=` reassigns. A new `let` of a name makes a new variable, and an initial value is required.
-- Unsuffixed literals follow the expected type, defaulting to `i32` / `f64`.
+- Unsuffixed literals follow the expected type, defaulting to `i64` / `f64`.
 - There is no automatic conversion between numeric types. Use `as`, `.into()`, or `.try_into::<T>()`.
-- `len()` and indexes are `usize`; convert with `as` to mix them with `i32`.
+- `len()` and indexes are `usize`; convert with `as` to mix them with `i64`.
 - `/` and `%` truncate toward zero; `%%` is floored modulo. Overflow panics in every build unless overflow checks are turned off.
 - `[...]` is a `List`; with a `[T; N]` type it is a fixed array. Print a `List` with `{:?}`.
 - `int` is an unbounded integer; `const` is a compile-time constant.

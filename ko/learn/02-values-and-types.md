@@ -148,17 +148,17 @@ println(f"{2.9 as i32} {300 as u8} {x as f64 / 4.0}");
 
 Python, Go, JavaScript를 쓰던 사람이 놀랄 만한 정수 규칙이 몇 가지 있습니다.
 
-**`len()`은 `usize`입니다.** 길이와 인덱스는 `usize`이고, 접미사 없는 리터럴은 `i32`입니다. 암묵 변환이 없으므로 `total`이 `i32`이면 `total / xs.len()`은 에러입니다. 한쪽을 `as`로 변환하세요.
+**`len()`은 `usize`입니다.** 길이와 인덱스는 `usize`입니다. 리터럴은 쓰이는 곳에서 타입을 얻으므로 `let total = 6;`을 `xs.len()`으로 나누면 `total`도 `usize`가 되지만, 타입이 이미 정해진 값(`i64` 필드, 매개변수, 타입 표기)은 변환되지 않습니다. `total`이 `i64`이면 `total / xs.len()`은 에러입니다. 한쪽을 `as`로 변환하세요.
 
 ```text check=checks/02-len-usize.rok
-error[E0054]: operator `/` cannot be applied to `i32` and `usize`
+error[E0054]: operator `/` cannot be applied to `i64` and `usize`
 ```
 
 ```rok
-let xs = [10, 20, 30];
+let xs: List<i64> = [10, 20, 30];
 let total = 0;
 for x in xs { total += x; }
-let avg = total / (xs.len() as i32);
+let avg = total / (xs.len() as i64);
 println(f"average {avg}");
 
 for i in 0..xs.len() {       // i is a usize, so xs[i] just works
@@ -338,9 +338,9 @@ welcome: 58 seats left
 ## 정리
 
 - `let`은 선언하고, `=`는 재할당합니다. 이름에 `let`을 다시 쓰면 새 변수가 생기고, 초기값이 필요합니다.
-- 접미사 없는 리터럴은 기대 타입을 따르고, 기본은 `i32` / `f64`입니다.
+- 접미사 없는 리터럴은 기대 타입을 따르고, 기본은 `i64` / `f64`입니다.
 - 숫자 타입 사이에 자동 변환은 없습니다. `as`, `.into()`, `.try_into::<T>()`를 씁니다.
-- `len()`과 인덱스는 `usize`입니다. `i32`와 섞으려면 `as`로 변환합니다.
+- `len()`과 인덱스는 `usize`입니다. `i64`와 섞으려면 `as`로 변환합니다.
 - `/`와 `%`는 0 쪽으로 버리고, `%%`는 내림 나머지입니다. 오버플로 검사를 끄지 않으면 어느 빌드에서든 오버플로가 나면 panic이 일어납니다.
 - `[...]`는 `List`이고, `[T; N]` 타입이면 고정 배열입니다. `List`는 `{:?}`로 출력합니다.
 - `int`는 범위 제한이 없는 정수이고, `const`는 컴파일 타임 상수입니다.

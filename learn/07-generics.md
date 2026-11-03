@@ -302,6 +302,24 @@ large: 20
 
 Inside `nums`, `Evens` is the concrete filter type, so its functions can use all of it. Outside, only `Iterator` is there: `b.items.len()` is an error, and so is `let n: i64 = ..` for a `some Display` type ([E0147](../errors/E0147.html)). The module needs at least one function that returns `Evens`, and all of them must give the same type ([E0146](../errors/E0146.html)). Calls and fields stay static: a `Batch` holds the filter itself, with no box. `type X = any Trait` is something else, a plain alias of a dynamic slot whose values may each have a different type.
 
+`some` goes in those three places only. A field or a type argument written `some Trait` is an error; name the type with `type`, as `Evens` does, or declare `<T: Trait>`:
+
+```rok norun
+struct Label {
+    text: some Display;
+}
+```
+
+```text check=checks/07-some-field.rok
+error[E0010]: `some Trait` is only a function's parameter or return type, or the whole right side of a `type` alias
+  --> main.rok:2:11
+   |
+ 2 |     text: some Display;
+   |           ^^^^
+   |
+   = help: for a variable, leave the type out (`let x = ..`); for a field or a type argument, declare `<T: Trait>` and write `T`, or name the type with `type Name = some Trait;`; for a value of several types, write `any Trait`
+```
+
 ## Generics and `any`
 
 Generics are static. When you instead need a slot whose value's type may change at runtime, write `any` **explicitly**. Narrow `any` values with `is` before use. Dynamic dispatch costs appear only where you wrote `any`.

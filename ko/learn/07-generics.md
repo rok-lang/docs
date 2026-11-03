@@ -302,6 +302,24 @@ large: 20
 
 `nums` 안에서 `Evens`는 구체 필터 타입이므로 그 함수들은 타입 전부를 쓸 수 있습니다. 밖에서는 `Iterator`만 있습니다. `b.items.len()`은 에러이고, `some Display` 타입을 `let n: i64 = ..`에 넣어도 에러입니다([E0147](../errors/E0147.html)). 모듈에는 `Evens`를 반환하는 함수가 하나 이상 있어야 하고, 모두 같은 타입을 내야 합니다([E0146](../errors/E0146.html)). 호출과 필드는 정적입니다. `Batch`는 박스 없이 필터 자체를 담습니다. `type X = any Trait`은 다른 것으로, 값마다 타입이 다를 수 있는 동적 슬롯의 평범한 별칭입니다.
 
+`some`은 이 세 자리에만 씁니다. 필드나 타입 인자에 `some Trait`을 쓰면 에러입니다. `Evens`처럼 `type`으로 이름을 붙이거나 `<T: Trait>`을 선언하세요.
+
+```rok norun
+struct Label {
+    text: some Display;
+}
+```
+
+```text check=checks/07-some-field.rok
+error[E0010]: `some Trait` is only a function's parameter or return type, or the whole right side of a `type` alias
+  --> main.rok:2:11
+   |
+ 2 |     text: some Display;
+   |           ^^^^
+   |
+   = help: for a variable, leave the type out (`let x = ..`); for a field or a type argument, declare `<T: Trait>` and write `T`, or name the type with `type Name = some Trait;`; for a value of several types, write `any Trait`
+```
+
 ## 제네릭과 `any`
 
 제네릭은 정적입니다. 반대로 런타임에 값의 타입이 바뀔 수 있는 슬롯이 필요하면 `any`를 **직접** 적습니다. `any` 값은 쓰기 전에 `is`로 좁힙니다. 동적 디스패치 비용은 `any`를 쓴 곳에서만 생깁니다.

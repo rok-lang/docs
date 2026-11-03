@@ -1,0 +1,3 @@
+struct Bag { xs: List<i32>; }
+
+let bags = [Bag { xs: [] }; 3];

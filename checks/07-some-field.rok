@@ -1,0 +1,3 @@
+struct Label {
+    text: some Display;
+}

@@ -53,6 +53,8 @@ error[E0012]: rok has no `let mut`: variables are mutable by default
    = help: drop `mut`: `let total = ..;`
 ```
 
+다른 Rust 표기도 같은 식으로 빌드를 멈추고, 도움말이 Rok 형태를 적어 줍니다. `&x`와 `&mut x`, `&T`와 `&mut self`, 수명, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::`와 `super::`, `Vec`, `String`, `HashMap`, `throws` 함수 안의 `Ok(x)`와 `Err(e)`, 에러를 던지는 호출 뒤의 `.unwrap()`이 그렇습니다.
+
 ## 메모리: GC, 값과 핸들
 
 구조체는 값입니다. 대입하거나, 인자로 넘기거나, 리스트에서 꺼내면 복사되고 원래 값은 그대로 쓸 수 있습니다. move되는 것은 `Drop`이 있는 타입뿐이니(다음 절), 다시 쓰려고 clone할 일이 없습니다. 호출한 쪽의 구조체를 바꿔야 하는 함수는 `ref`를 받고, 호출하는 쪽에서도 `ref`를 써서 무엇이 바뀔 수 있는지 읽는 사람이 알 수 있게 합니다. 받는 값을 바꾸는 메서드는 `&mut self`에 해당하는 `ref self`를 받고, 호출하는 쪽에는 표시가 필요 없습니다. 그냥 `self`는 Rust에서 `Copy` 타입의 `self`처럼 복사본입니다.

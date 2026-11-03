@@ -203,9 +203,64 @@ println(f"{m .+ col:?}");
 [[101, 102, 103], [204, 205, 206]]
 ```
 
-랭크가 다른 배열은 길이 1인 축을 직접 붙여 맞춥니다. 행이라면 `v[none, :]`입니다. 랭크가 타입에 들어 있으므로 결과의 랭크가 코드에 그대로 보입니다.
+랭크가 낮은 배열은 앞에 길이 1인 축이 있는 것처럼 다른 쪽의 마지막 축들과 맞춰집니다. 그래서 벡터를 행렬의 모든 행에 더할 수 있습니다. 결과는 높은 쪽 랭크입니다.
 
-`List`에서는 점 연산자 사슬 전체가 중간 리스트 없이 루프 하나로 돕니다. `Array`에서는 지금은 연산자마다 결과를 만들므로, 긴 사슬은 연산자마다 한 번씩 할당합니다.
+```rok
+use rok::core::array::Array;
+
+let m: Array<f64, 2> = [[1, 2], [3, 4]];
+let v: Array<f64, 1> = [10, 20];
+println(f"{m .+ v:?}");
+```
+
+```output
+[[11.0, 22.0], [13.0, 24.0]]
+```
+
+점 연산자 사슬 전체는 `List`에서처럼 `Array`에서도 중간 배열 없이 루프 하나로 돕니다. `a .* x .+ b .* 2.0`은 `a`, `x`, `b`의 원소를 한 번씩 읽고 결과를 한 번 씁니다.
+
+## 제자리에서 갱신하기
+
+`y .= expr`는 `expr`의 원소를 `y`에 쓰고, `y .+= x`, `.-=`, `.*=`, `./=`, `.%=`, `.**=`는 `y`와 `x`를 원소별로 합칩니다. 할당은 없습니다. 루프가 `y`에 바로 씁니다. 대상이 뷰여도 되므로 배열의 슬라이스나 열을 그 자리에서 갱신합니다.
+
+```rok
+use rok::core::array::Array;
+
+let y: Array<f64, 1> = Array::zeros([4]);
+let x: Array<f64, 1> = [1, 2, 3, 4];
+y .= 0.5 .* x .+ 1.0;
+y .*= 2.0;
+let m: Array<f64, 2> = [[1, 2], [3, 4]];
+m[:, 0] .= 0.0;
+let xs = [1, 2, 3];
+xs .+= [10, 10, 10];
+println(f"{y:?} {m:?} {xs:?}");
+```
+
+```output
+[3.0, 4.0, 5.0, 6.0] [[0.0, 2.0], [0.0, 4.0]] [11, 12, 13]
+```
+
+대상은 모양을 유지합니다. 오른쪽이 대상에 맞춰 늘어나고, 반대는 없습니다. 오른쪽이 대상 자신의 원소를 다른 위치에서 읽으면(`v .= v[::-1]`) 먼저 떠 둔 복사본을 읽으므로, 결과는 모든 원소를 계산한 뒤에 저장한 것과 같습니다. 그 밖의 연산자는 `.=`로 씁니다: `xs .= xs .%% 3`.
+
+## 빠진 값
+
+원소 타입 `T | none`은 빠진 값을 나타냅니다. `a .?? b`는 `none`마다 `b`의 대응 원소로, `b`가 값 하나이면 그 값으로 채웁니다. NaN은 `none`이 아닙니다. 부동소수 값이므로 그대로 지나갑니다. NaN을 빠진 값으로 다루려면 `f64::is_nan.(a)`로 골라 대입합니다.
+
+```rok
+use rok::core::array::Array;
+
+let raw: Array<f64 | none, 1> = Array::from_list([1.0, none, f64::NAN], [3]);
+let filled = raw .?? 0.0;
+println(f"{filled:?}");
+filled[f64::is_nan.(filled)] = -1.0;
+println(f"{filled:?}");
+```
+
+```output
+[1.0, 0.0, NaN]
+[1.0, 0.0, -1.0]
+```
 
 ## 줄이기와 반복
 
@@ -282,3 +337,51 @@ println(f"{v.x} {v.y}");
 ```
 
 맨 타입 매개변수가 내 타입보다 먼저 나오는 `impl<T> Mul<V2> for T`는 여전히 거부됩니다. 다른 패키지가 자기 타입에 대해 같은 impl을 쓸 수 있기 때문입니다.
+
+내 타입의 점 식이 `Array`처럼 융합되게 하려면 원소를 `Array`로 보여 주는 `Broadcastable`과, 내 타입이 앞설 때 결과를 감싸는 `Materialize`를 구현합니다. 데이터를 `Array`에 두는 타입은 그것을 돌려주면 됩니다.
+
+```rok
+use rok::core::array::Array;
+use rok::core::ops::{Broadcastable, Materialize};
+
+struct Signal { data: Array<f64, 1>; }
+
+impl Broadcastable<1> for Signal {
+    type Elem = f64;
+    fn broadcast_view(self) -> Array<f64, 1> { self.data }
+}
+
+impl Materialize<f64, 1> for Signal {
+    type Output = Signal;
+    fn materialize(self, out: Array<f64, 1>) -> Signal { Signal { data: out } }
+}
+
+let s = Signal { data: [1, 2, 3] };
+let t = s .* 2.0 .+ 0.5;
+t .-= 0.5;
+println(f"{t.data:?}");
+```
+
+```output
+[2.0, 4.0, 6.0]
+```
+
+## 리터럴 접미사
+
+패키지는 핸들러 함수에 `#[literal(number "suffix")]`를 붙여 수에 자기 접미사를 줄 수 있습니다. 핸들러가 `pub`이면 그 패키지에 의존하는 모든 패키지도 `use` 없이 그 접미사를 씁니다.
+
+```rok norun
+// `units` 스톤 안
+pub struct Meters { pub v: f64; }
+
+#[literal(number "m")]
+pub fn meters(n: f64) -> Meters { Meters { v: n } }
+```
+
+```rok norun
+// `"units": Dep::path("../units")`가 있는 패키지 안
+let d = 9.81m;          // units::meters(9.81)
+println(f"{d.v}");
+```
+
+`pub`이 아닌 핸들러는 자기 패키지 안에서만 동작합니다. 두 의존성이 같은 접미사를 등록하면 그 사용이 모호해지므로 한쪽에 `priority`를 줍니다.

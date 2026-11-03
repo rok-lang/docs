@@ -203,9 +203,64 @@ println(f"{m .+ col:?}");
 [[101, 102, 103], [204, 205, 206]]
 ```
 
-Arrays of different rank are lined up by adding the length-1 axes yourself, `v[none, :]` for a row: since the rank is in the type, the result's rank stays visible in the code.
+An array of lower rank lines up with the last axes of the other, as if it had leading axes of length 1, so a vector adds to every row of a matrix. The result has the higher rank.
 
-On a `List`, a whole chain of dot operators runs as one loop with no intermediate lists. On an `Array` each operator makes its own result for now, so a long chain allocates once per operator.
+```rok
+use rok::core::array::Array;
+
+let m: Array<f64, 2> = [[1, 2], [3, 4]];
+let v: Array<f64, 1> = [10, 20];
+println(f"{m .+ v:?}");
+```
+
+```output
+[[11.0, 22.0], [13.0, 24.0]]
+```
+
+A whole chain of dot operators runs as one loop with no intermediate arrays, on an `Array` as on a `List`: `a .* x .+ b .* 2.0` reads each element of `a`, `x` and `b` once and writes the result once.
+
+## Updating in place
+
+`y .= expr` writes the elements of `expr` into `y`, and `y .+= x`, `.-=`, `.*=`, `./=`, `.%=`, `.**=` combine `y` with `x` element by element. Nothing is allocated: the loop writes straight into `y`. The target can be a view, so a slice or a column of an array is updated where it sits.
+
+```rok
+use rok::core::array::Array;
+
+let y: Array<f64, 1> = Array::zeros([4]);
+let x: Array<f64, 1> = [1, 2, 3, 4];
+y .= 0.5 .* x .+ 1.0;
+y .*= 2.0;
+let m: Array<f64, 2> = [[1, 2], [3, 4]];
+m[:, 0] .= 0.0;
+let xs = [1, 2, 3];
+xs .+= [10, 10, 10];
+println(f"{y:?} {m:?} {xs:?}");
+```
+
+```output
+[3.0, 4.0, 5.0, 6.0] [[0.0, 2.0], [0.0, 4.0]] [11, 12, 13]
+```
+
+The target keeps its shape: the right side stretches to it, never the other way. When the right side reads the target's own elements at other positions (`v .= v[::-1]`), it reads a copy taken first, so the result is what you would get by computing every element before storing any. Other operators are written with `.=`: `xs .= xs .%% 3`.
+
+## Missing values
+
+An element type `T | none` marks missing values. `a .?? b` fills each `none` with the matching element of `b`, or with `b` itself when it is a single value. NaN is not `none`: it is a float value and passes through. To treat NaN as missing, select it with `f64::is_nan.(a)` and assign.
+
+```rok
+use rok::core::array::Array;
+
+let raw: Array<f64 | none, 1> = Array::from_list([1.0, none, f64::NAN], [3]);
+let filled = raw .?? 0.0;
+println(f"{filled:?}");
+filled[f64::is_nan.(filled)] = -1.0;
+println(f"{filled:?}");
+```
+
+```output
+[1.0, 0.0, NaN]
+[1.0, 0.0, -1.0]
+```
 
 ## Reductions and loops
 
@@ -282,3 +337,51 @@ println(f"{v.x} {v.y}");
 ```
 
 The rule still refuses `impl<T> Mul<V2> for T`, where a bare type parameter comes before your type: another package could write the same impl for its own type.
+
+To make dot expressions over your type fuse like `Array`'s, implement `Broadcastable`, which shows its elements as an `Array`, and `Materialize`, which wraps a result when your type comes first. A type that keeps its data in an `Array` returns it:
+
+```rok
+use rok::core::array::Array;
+use rok::core::ops::{Broadcastable, Materialize};
+
+struct Signal { data: Array<f64, 1>; }
+
+impl Broadcastable<1> for Signal {
+    type Elem = f64;
+    fn broadcast_view(self) -> Array<f64, 1> { self.data }
+}
+
+impl Materialize<f64, 1> for Signal {
+    type Output = Signal;
+    fn materialize(self, out: Array<f64, 1>) -> Signal { Signal { data: out } }
+}
+
+let s = Signal { data: [1, 2, 3] };
+let t = s .* 2.0 .+ 0.5;
+t .-= 0.5;
+println(f"{t.data:?}");
+```
+
+```output
+[2.0, 4.0, 6.0]
+```
+
+## Literal suffixes
+
+A package can give numbers a suffix of its own with `#[literal(number "suffix")]` on a handler function. When the handler is `pub`, every package that depends on yours gets the suffix too, without a `use`:
+
+```rok norun
+// in the `units` stone
+pub struct Meters { pub v: f64; }
+
+#[literal(number "m")]
+pub fn meters(n: f64) -> Meters { Meters { v: n } }
+```
+
+```rok norun
+// in a package with `"units": Dep::path("../units")`
+let d = 9.81m;          // units::meters(9.81)
+println(f"{d.v}");
+```
+
+A handler that is not `pub` works only inside its own package. Two dependencies that register the same suffix make its uses ambiguous; give one a `priority`.

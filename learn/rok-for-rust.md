@@ -53,6 +53,8 @@ error[E0012]: rok has no `let mut`: variables are mutable by default
    = help: drop `mut`: `let total = ..;`
 ```
 
+The other Rust spellings stop the build the same way, and each help writes the Rok form: `&x` and `&mut x`, `&T` and `&mut self`, lifetimes, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::` and `super::`, `Vec`, `String` and `HashMap`, `Ok(x)` and `Err(e)` in a `throws` function, and `.unwrap()` on a call that throws.
+
 ## Memory: a GC, values and handles
 
 A struct is a value: assigning it, passing it or reading it out of a list copies it, and the original stays usable. Only a type with `Drop` moves (next section), so there is nothing to clone before reuse. A function that should change its caller's struct takes `ref`, and the call site writes `ref` too, so the reader sees what may change. A method that changes its receiver takes `ref self`, the counterpart of `&mut self`; the call site needs no marker. `self` alone is a copy, like Rust's `self` on a `Copy` type.

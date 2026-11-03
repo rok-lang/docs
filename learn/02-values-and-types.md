@@ -309,7 +309,7 @@ println(f"{g:?} {rows:?}");
 [[0, 5, 0], [0, 0, 0]] [[7], [], []]
 ```
 
-Numbers and other plain values are copied as they are. An element that holds a collection is copied with `clone()`, so its type must be `Clone`. A type that is not, or a value with one owner such as an open `File`, is a compile error; its help writes `List::from_fn(n, |_| ..)`, which builds each element with its own value.
+Numbers and other plain values are copied as they are. An element that holds a collection is copied with `clone()`, so its type must be `Clone`. A type that is not, or a value with one owner such as an open `File`, is a compile error; its help writes `array::from_fn::<T, n>(|_| ..)`, which builds each element with its own value.
 
 An empty list takes its element type from later uses: after `let xs = []; xs.push(1u8);`, `xs` is a `List<u8>`. When nothing in the function says, write the type: `let xs: List<i32> = [];`.
 

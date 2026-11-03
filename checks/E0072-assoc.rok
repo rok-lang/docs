@@ -1,0 +1,8 @@
+struct Count { n: i32; }
+impl Iterator for Count {
+    fn next(ref self) -> i32 | none {
+        if self.n > 2 { return none; }
+        self.n += 1;
+        self.n
+    }
+}

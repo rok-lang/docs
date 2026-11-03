@@ -266,6 +266,42 @@ hi 2.5
 
 그 타입에는 이름이 없으니 호출에서 `::<..>`로 고를 수 없습니다. 골라야 한다면 `<T: Trait>`를 선언합니다. `some`은 `any Trait`의 정적 짝입니다. `some`은 호출마다 또는 본문이 정하는 타입 하나이고, `any`는 그런 타입의 아무 값이나 담아 실행 중에 디스패치합니다.
 
+## 숨긴 타입에 이름 붙이기: `type X = some Trait`
+
+`-> some Trait` 타입에는 이름이 없어서 구조체 필드에 담거나 다른 시그니처에 쓸 수 없습니다. `type X = some Trait;`이 이름을 붙입니다. X의 모듈에서 `X`를 반환하는 함수가 이 타입을 정의합니다. `-> some`처럼 그 본문이 구체 타입 하나를 고릅니다. 다른 모듈은 모두 `X`를 필드, `let x: X`, `List<X>`에 담고 넘기고 반환할 수 있으며, 바운드만 봅니다.
+
+```rok
+mod nums {
+    pub type Evens = some Iterator<Item = i64>;
+
+    pub fn evens(n: i64) -> Evens {
+        (0..n).filter(|x| x % 2 == 0)
+    }
+}
+
+struct Batch {
+    name: str;
+    items: nums::Evens;
+}
+
+fn total(b: Batch) -> i64 { b.items.sum() }
+
+let batches = [
+    Batch { name: "small", items: nums::evens(5) },
+    Batch { name: "large", items: nums::evens(10) },
+];
+for b in batches {
+    println(f"{b.name}: {total(b)}");
+}
+```
+
+```output
+small: 6
+large: 20
+```
+
+`nums` 안에서 `Evens`는 구체 필터 타입이므로 그 함수들은 타입 전부를 쓸 수 있습니다. 밖에서는 `Iterator`만 있습니다. `b.items.len()`은 에러이고, `some Display` 타입을 `let n: i64 = ..`에 넣어도 에러입니다([E0147](../errors/E0147.html)). 모듈에는 `Evens`를 반환하는 함수가 하나 이상 있어야 하고, 모두 같은 타입을 내야 합니다([E0146](../errors/E0146.html)). 호출과 필드는 정적입니다. `Batch`는 박스 없이 필터 자체를 담습니다. `type X = any Trait`은 다른 것으로, 값마다 타입이 다를 수 있는 동적 슬롯의 평범한 별칭입니다.
+
 ## 제네릭과 `any`
 
 제네릭은 정적입니다. 반대로 런타임에 값의 타입이 바뀔 수 있는 슬롯이 필요하면 `any`를 **직접** 적습니다. `any` 값은 쓰기 전에 `is`로 좁힙니다. 동적 디스패치 비용은 `any`를 쓴 곳에서만 생깁니다.
@@ -304,7 +340,7 @@ show_sum(1.5, 2.0);   // 3.5
 - `T: Ord + Clone` 같은 바운드가 본체에서 쓸 수 있는 연산을 정합니다. 긴 바운드는 `where` 절로 옮깁니다.
 - 연관 타입 `type Item;`은 구현마다 한 타입으로 정해지고, 바깥에서는 `C::Item`으로 씁니다.
 - `const N: usize`는 값을 타입 매개변수로 받습니다.
-- `-> some Trait`은 호출자가 `Trait`으로만 쓰는 숨은 구체 타입 하나를 반환하고, `x: some Trait`은 `Trait`을 가진 아무 타입을 호출마다 하나씩 받습니다.
+- `-> some Trait`은 호출자가 `Trait`으로만 쓰는 숨은 구체 타입 하나를 반환하고, `x: some Trait`은 `Trait`을 가진 아무 타입을 호출마다 하나씩 받습니다. `type X = some Trait;`은 모듈의 함수가 정하는 숨은 타입에 이름을 붙여 필드와 시그니처에 씁니다.
 - 제네릭은 정적이고(단형화), `any`는 직접 적은 곳에만 생기는 동적 슬롯입니다.
 
 ## 더 읽을거리

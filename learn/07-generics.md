@@ -266,6 +266,42 @@ hi 2.5
 
 The type has no name, so a call can't choose it with `::<..>`; declare `<T: Trait>` when it should. `some` is the static counterpart of `any Trait`: `some` is one type, fixed at each call or by the body, while `any` holds a value of any such type and dispatches at run time.
 
+## Naming a hidden type: `type X = some Trait`
+
+A `-> some Trait` type has no name, so you can't keep it in a struct field or write it in another signature. `type X = some Trait;` gives it one. The functions of X's module that return `X` define it: their bodies pick the one concrete type, as with `-> some`. Every other module can store `X` in fields, `let x: X` and `List<X>`, pass it and return it, and sees only the bound.
+
+```rok
+mod nums {
+    pub type Evens = some Iterator<Item = i64>;
+
+    pub fn evens(n: i64) -> Evens {
+        (0..n).filter(|x| x % 2 == 0)
+    }
+}
+
+struct Batch {
+    name: str;
+    items: nums::Evens;
+}
+
+fn total(b: Batch) -> i64 { b.items.sum() }
+
+let batches = [
+    Batch { name: "small", items: nums::evens(5) },
+    Batch { name: "large", items: nums::evens(10) },
+];
+for b in batches {
+    println(f"{b.name}: {total(b)}");
+}
+```
+
+```output
+small: 6
+large: 20
+```
+
+Inside `nums`, `Evens` is the concrete filter type, so its functions can use all of it. Outside, only `Iterator` is there: `b.items.len()` is an error, and so is `let n: i64 = ..` for a `some Display` type ([E0147](../errors/E0147.html)). The module needs at least one function that returns `Evens`, and all of them must give the same type ([E0146](../errors/E0146.html)). Calls and fields stay static: a `Batch` holds the filter itself, with no box. `type X = any Trait` is something else, a plain alias of a dynamic slot whose values may each have a different type.
+
 ## Generics and `any`
 
 Generics are static. When you instead need a slot whose value's type may change at runtime, write `any` **explicitly**. Narrow `any` values with `is` before use. Dynamic dispatch costs appear only where you wrote `any`.
@@ -304,7 +340,7 @@ show_sum(1.5, 2.0);   // 3.5
 - Bounds like `T: Ord + Clone` determine which operations the body may use. Move long ones to a `where` clause.
 - An associated type `type Item;` is fixed to one type per implementation and is written `C::Item` from outside.
 - `const N: usize` takes a value as a type parameter.
-- `-> some Trait` returns one hidden concrete type that callers use only through `Trait`; `x: some Trait` takes any type with `Trait`, one per call.
+- `-> some Trait` returns one hidden concrete type that callers use only through `Trait`; `x: some Trait` takes any type with `Trait`, one per call; `type X = some Trait;` names a hidden type, fixed by its module's functions, for fields and signatures.
 - Generics are static (monomorphized); `any` is a dynamic slot that exists only where you write it.
 
 ## Further reading

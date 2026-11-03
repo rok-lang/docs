@@ -128,6 +128,8 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0143](E0143.html) | `type` | rows of an array literal differ in length |
 | [E0144](E0144.html) | `type` | multi-axis index on a type indexed along one axis |
 | [E0145](E0145.html) | `type` | integer raised to a negative power |
+| [E0146](E0146.html) | `type` | named `some` type not defined by its module |
+| [E0147](E0147.html) | `type` | named `some` type used as its concrete type |
 
 ## Patterns
 

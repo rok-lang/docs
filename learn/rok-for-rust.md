@@ -222,7 +222,7 @@ The variants of the enum a `match` is on are written bare (`Circle(r)`, not `Sha
 
 Traits, `impl Trait for Type`, generic bounds, `where` clauses, default methods and associated types work as in Rust, and so does the orphan rule: an `impl` needs the trait or the type to come from your package ([E0076](../errors/E0076.html)). The differences:
 
-- A trait is not a type. `dyn Trait` is `any Trait`, with no `Box`: `List<any Shape>` holds values of any type that implements `Shape`. `impl Trait` is `some Trait`, in argument and return position: `fn area(s: some Shape)` is a generic parameter with no name, `fn evens() -> some Iterator<Item = i32>` hides the type it returns.
+- A trait is not a type. `dyn Trait` is `any Trait`, with no `Box`: `List<any Shape>` holds values of any type that implements `Shape`. `impl Trait` is `some Trait`, in argument and return position: `fn area(s: some Shape)` is a generic parameter with no name, `fn evens() -> some Iterator<Item = i32>` hides the type it returns. Rust's `type X = impl Trait;` (type alias `impl Trait`) is `type X = some Trait;`: the functions of X's module that return `X` define it, and other modules see only the bounds.
 - A parameter with no type is generic: `fn loud(x) -> str { x.to_uppercase() }` accepts any type with the methods the body calls.
 - `Fn`, `FnMut` and `FnOnce` are one type, `fn(i32) -> i32`, which holds a function or a closure. `fn() + Send` is one that may move to another thread.
 - A closure captures by copying values. `[ref x]` captures the variable itself, so the closure can change it, and `[move x]` hands the value over: the code that made the closure cannot use `x` afterwards.
@@ -469,6 +469,7 @@ println(gcd(12, 18));
 | `Box<dyn Trait>`, `Vec<Box<dyn Trait>>` | `any Trait`, `List<any Trait>` |
 | `fn f(x: impl Trait)` | `fn f(x: some Trait)` |
 | `fn f() -> impl Trait` | `fn f() -> some Trait` |
+| `type X = impl Trait;` | `type X = some Trait;` |
 | `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `some fn(i32) -> i32`, `fn(i32) -> i32`, `fn()` |
 | `move \|\| ..` | `[move x] \|\| ..` |
 | closure mutating a captured local | `[ref x] \|\| { x += 1; }` |

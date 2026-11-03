@@ -1,0 +1,7 @@
+mod shapes {
+    pub type Count = some Display;
+
+    pub fn count() -> Count { 3 }
+}
+
+let n: i64 = shapes::count();

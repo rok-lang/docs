@@ -222,7 +222,7 @@ negative, int 7, str x, nothing
 
 트레이트, `impl Trait for Type`, 제네릭 바운드, `where` 절, 기본 메서드, 연관 타입은 Rust와 같고, orphan rule도 같습니다. `impl`에는 트레이트나 타입 가운데 하나가 내 패키지에 있어야 합니다([E0076](../errors/E0076.html)). 다른 점은 이렇습니다.
 
-- 트레이트는 타입이 아닙니다. `dyn Trait`은 `any Trait`이고 `Box`가 필요 없습니다. `List<any Shape>`는 `Shape`를 구현한 어떤 타입의 값이든 담습니다. 인자와 반환 자리의 `impl Trait`은 `some Trait`입니다. `fn area(s: some Shape)`는 이름 없는 제네릭 매개변수이고, `fn evens() -> some Iterator<Item = i32>`는 반환하는 타입을 숨깁니다.
+- 트레이트는 타입이 아닙니다. `dyn Trait`은 `any Trait`이고 `Box`가 필요 없습니다. `List<any Shape>`는 `Shape`를 구현한 어떤 타입의 값이든 담습니다. 인자와 반환 자리의 `impl Trait`은 `some Trait`입니다. `fn area(s: some Shape)`는 이름 없는 제네릭 매개변수이고, `fn evens() -> some Iterator<Item = i32>`는 반환하는 타입을 숨깁니다. Rust의 `type X = impl Trait;`(type alias `impl Trait`)은 `type X = some Trait;`입니다. X의 모듈에서 `X`를 반환하는 함수가 정의하고, 다른 모듈은 바운드만 봅니다.
 - 타입을 적지 않은 매개변수는 제네릭입니다. `fn loud(x) -> str { x.to_uppercase() }`는 본문이 부르는 메서드가 있는 타입이면 무엇이든 받습니다.
 - `Fn`, `FnMut`, `FnOnce`는 함수나 클로저를 담는 한 타입 `fn(i32) -> i32`입니다. 다른 스레드로 옮겨도 되는 것은 `fn() + Send`입니다.
 - 클로저는 값을 복사해서 캡처합니다. `[ref x]`는 변수 자체를 캡처해서 클로저가 바꿀 수 있게 하고, `[move x]`는 값을 넘겨줍니다. 클로저를 만든 쪽은 그 뒤로 `x`를 쓸 수 없습니다.
@@ -469,6 +469,7 @@ println(gcd(12, 18));
 | `Box<dyn Trait>`, `Vec<Box<dyn Trait>>` | `any Trait`, `List<any Trait>` |
 | `fn f(x: impl Trait)` | `fn f(x: some Trait)` |
 | `fn f() -> impl Trait` | `fn f() -> some Trait` |
+| `type X = impl Trait;` | `type X = some Trait;` |
 | `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `some fn(i32) -> i32`, `fn(i32) -> i32`, `fn()` |
 | `move \|\| ..` | `[move x] \|\| ..` |
 | 캡처한 지역 변수를 바꾸는 클로저 | `[ref x] \|\| { x += 1; }` |

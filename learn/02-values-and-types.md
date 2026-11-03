@@ -295,6 +295,22 @@ println(f"{grid:?} {grid[1][0]} {grid.len()}");
 [[1, 2], [3, 4]] 3 2
 ```
 
+`[v; n]` makes an array of `n` elements from one value. Rok evaluates `v` once and gives each element its own copy, so changing one element never changes another, even when the elements are lists:
+
+```rok
+let g = [[0; 3]; 2];
+g[0][1] = 5;
+let rows = [List::<i32>::new(); 3];
+rows[0].push(7);
+println(f"{g:?} {rows:?}");
+```
+
+```output
+[[0, 5, 0], [0, 0, 0]] [[7], [], []]
+```
+
+Numbers and other plain values are copied as they are. An element that holds a collection is copied with `clone()`, so its type must be `Clone`. A type that is not, or a value with one owner such as an open `File`, is a compile error; its help writes `List::from_fn(n, |_| ..)`, which builds each element with its own value.
+
 An empty list takes its element type from later uses: after `let xs = []; xs.push(1u8);`, `xs` is a `List<u8>`. When nothing in the function says, write the type: `let xs: List<i32> = [];`.
 
 ## Big integers: `int`
@@ -344,7 +360,7 @@ welcome: 58 seats left
 - There is no automatic conversion between numeric types. Use `as`, `.into()`, or `.try_into::<T>()`.
 - `len()` and indexes are `usize`; convert with `as` to mix them with `i64`.
 - `/` and `%` truncate toward zero; `%%` is floored modulo. Overflow panics in every build unless overflow checks are turned off.
-- `[...]` is a `List`; with a `[T; N]` type it is a fixed array. Print a `List` with `{:?}`.
+- `[...]` is a `List`; with a `[T; N]` type it is a fixed array. `[v; n]` is a fixed array whose elements are separate copies of `v`. Print a `List` with `{:?}`.
 - `int` is an unbounded integer; `const` is a compile-time constant.
 
 ## Further reading

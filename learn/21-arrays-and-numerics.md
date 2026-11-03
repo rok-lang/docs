@@ -75,6 +75,8 @@ println(f"{g:?} {r:?}");
 
 `Array::full(shape, v)` repeats one value, and `Array::from(xs)` turns a list into a rank-1 array.
 
+The fixed-size `[T; N]` has its own repeat form, `[v; N]`: `v` is evaluated once and each element gets its own copy. A plain value such as `0.0` is copied as it is; an element that holds a collection is cloned, so `[List::<f64>::new(); 4]` is four separate lists and `[[0.0; 3]; 3]` three separate rows ([chapter 2](02-values-and-types.html)).
+
 ## Indexing and slicing
 
 Inside the brackets, each comma-separated part is one axis. A position picks one index along its axis and removes that axis; a slice `a:b:k` keeps the axis with the elements it selects, by the same rules as a list slice (negative bounds from the end, clamping, a negative step walks backwards). As many positions as the rank give one element.

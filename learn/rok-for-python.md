@@ -260,6 +260,8 @@ println(2 ** 10);
 
 `**` is the power operator, as in Python: `2 ** 10`, and `-x ** 2` is `-(x ** 2)` ([chapter 21](21-arrays-and-numerics.html)). An integer base takes a `u32` exponent, so `2 ** -1` is an error that says to write `2.0 ** -1.0`.
 
+A grid built by repetition is where the two differ. Python's `[[0] * 3] * 2` puts the same row list in both slots, so `g[0][1] = 5` changes both rows. Rok's `[[0; 3]; 2]` evaluates the row once and copies it into each slot (a fixed array, [chapter 2](02-values-and-types.html)), so `g[0][1] = 5` changes only the first row. An element that holds a list is copied with `clone()`: `[List::<i32>::new(); 3]` is three separate lists.
+
 ## `with` is `using`
 
 `using` binds a value that is closed when its scope ends, as a `with` block closes its file.
@@ -331,6 +333,7 @@ ababab
 | `int(s)`, `float(s)` | `try s.parse::<int>()`, `try s.parse::<f64>()` |
 | `", ".join(xs)` | `xs.join(", ")` |
 | `s * 3` | `s.repeat(3)` |
+| `[[0] * 3] * 2` (rows shared) | `[[0; 3]; 2]` (each row a copy) |
 | `range(n)`, `range(a, b)` | `0..n`, `a..b` |
 | `for i, x in enumerate(xs)` | `for (i, x) in xs.enumerate()` |
 | `for k, v in d.items()` | `for (k, v) in d` |

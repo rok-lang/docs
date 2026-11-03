@@ -125,6 +125,9 @@ Codes are numbered in the order they were added, from E0001 up, and a number is 
 | [E0097](E0097.html) | `type` | ROKON value of the wrong shape |
 | [E0139](E0139.html) | `type` | `pub` function signature not written out |
 | [E0141](E0141.html) | `type` | assignment to a value that is not a place |
+| [E0143](E0143.html) | `type` | rows of an array literal differ in length |
+| [E0144](E0144.html) | `type` | multi-axis index on a type indexed along one axis |
+| [E0145](E0145.html) | `type` | integer raised to a negative power |
 
 ## Patterns
 

@@ -244,7 +244,7 @@ println((-7).div_floor(2));
 println(-7 %% 2);
 println(7.0 / 2.0);
 println((7 as f64) / 2.0);
-println(2.pow(10));
+println(2 ** 10);
 ```
 
 ```output
@@ -258,7 +258,7 @@ println(2.pow(10));
 1024
 ```
 
-`x ** 2` is `x.pow(2)`.
+`**` is the power operator, as in Python: `2 ** 10`, and `-x ** 2` is `-(x ** 2)` ([chapter 21](21-arrays-and-numerics.html)). An integer base takes a `u32` exponent, so `2 ** -1` is an error that says to write `2.0 ** -1.0`.
 
 ## `with` is `using`
 
@@ -335,7 +335,7 @@ ababab
 | `for i, x in enumerate(xs)` | `for (i, x) in xs.enumerate()` |
 | `for k, v in d.items()` | `for (k, v) in d` |
 | `[f(x) for x in xs if c]` | `xs.filter(\|x\| c).map(\|x\| f(x)).to_list()` |
-| `x ** 2`, `n // 2` | `x.pow(2)`, `n.div_floor(2)` |
+| `x ** 2`, `n // 2` | `x ** 2`, `n.div_floor(2)` |
 | `raise ValueError("m")` / `except E as e` | `throw "m"` / `catch e: E` |
 | `with open(p) as f:` | `using f = try File::open(p);` |
 | `assert x == 2, "m"` | `assert(x == 2, "m");` |

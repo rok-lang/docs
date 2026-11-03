@@ -424,7 +424,8 @@ $ rok help fmt
 usage: rok fmt [path] [options]
 
 Format .rok and .rokon files in place: <path> is one file, or a directory
-whose files are all formatted (default: the current one).
+whose files are all formatted (default: the package the current directory
+is in).
 
 examples:
   rok fmt                      format everything here

@@ -53,7 +53,7 @@ fn eval(x: Value, env: Env) throws (LispError) -> Value {
     let items = match x {
         Value::Sym(name) => {
             for i in (0..env.frames.len()).rev() {
-                if let v: Value = env.frames[i].get(name) { return v; }
+                if let v = env.frames[i].get(name) { return v; }
             }
             throw err(f"undefined symbol `{name}`");
         },

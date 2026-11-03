@@ -118,14 +118,14 @@ true "six"
 
 ## `if let`과 `match`
 
-검사하면서 값을 새 이름에 바인딩하려면 `if let name: T = expr`을 씁니다. `match`에서는 `none`을 리터럴 패턴으로 씁니다.
+검사하면서 값을 새 이름에 바인딩하려면 `if let name = expr`을 씁니다. `T | none` 값이면 `name`은 `none`을 뺀 `T`입니다. 더 넓은 합에서 멤버 하나를 고를 때만 `if let name: T = expr`을 씁니다. `match`에서는 `none`을 리터럴 패턴으로 씁니다.
 
 ```rok
 fn lookup(id: i32) -> str? {
     if id == 1 { "kim" } else { none }
 }
 
-if let name: str = lookup(1) {
+if let name = lookup(1) {
     println(f"found: {name}");
 } else {
     println("not found");
@@ -145,6 +145,22 @@ found: kim
 2 → (none)
 ```
 
+`none`과 비교해도 좁혀집니다. `x != none` 뒤, `if x == none`의 `else`, 그리고 `if x == none { return ..; }` 아래에서 `x`는 `none`을 뺀 값입니다. `none`일 수 있는 값을 대입하기 전까지 그렇습니다.
+
+```rok
+fn shout(name: str?) -> str {
+    if name == none { return "nobody"; }
+    name.to_uppercase()       // 여기서 name: str
+}
+println(shout("kim"));
+println(shout(none));
+```
+
+```output
+KIM
+nobody
+```
+
 ## `let else`: 일찍 빠져나가기
 
 `let pattern = expr else { ... };`는 패턴이 맞으면 이름을 바인딩하고, 맞지 않으면 `else` 블록을 실행합니다. `else` 블록은 `return`, `break`, `continue`, `throw`로 스코프를 떠나야 합니다. 그래서 "없으면 일찍 빠져나가기"를 들여쓰기 없이 쓸 수 있습니다. 그 뒤에서 이름은 좁혀진 타입이 됩니다.
@@ -158,7 +174,7 @@ fn first_even(xs: List<i32>) -> i32 | none {
 }
 
 fn report(xs: List<i32>) -> str {
-    let n: i32 = first_even(xs) else {
+    let n = first_even(xs) else {
         return "no even number";
     };
     f"first even is {n}, half is {n / 2}"
@@ -236,7 +252,7 @@ none
 
 - `A | B`는 닫힌 합 타입입니다. 항의 순서와 중복은 상관없고, `match`는 모든 항을 처리해야 합니다.
 - 값이 없을 수 있으면 `T | none`, 줄여서 `T?`를 씁니다. 값은 감싸지 않고 그대로 반환합니다.
-- `x is T`는 검사와 좁히기를 함께 합니다. 값은 `if let x: T = ...`, `let x: T = ... else { return .. };`, `match`의 `n: T` / `none` 패턴으로 꺼냅니다.
+- `x is T`, `x != none`, 일찍 빠져나가는 `if x == none { return .. }`이 `x`를 좁힙니다. 값은 `if let x = ...`, `let x = ... else { return .. };`, `match`의 `n: T` / `none` 패턴으로 꺼냅니다.
 - `??`는 기본값을 주고, `?.`는 none이면 접근을 건너뛰고, 후위 `?`는 none이면 함수에서 반환합니다.
 
 ## 더 읽을거리

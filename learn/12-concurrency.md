@@ -45,7 +45,7 @@ The simplest way to pass values between threads is a channel. `channel()` return
 ```rok
 use rok::std::thread;
 
-let (tx, rx) = channel::<str>();
+let (tx, rx) = channel();
 let workers: List<thread::JoinHandle<()>> = [];
 for id in 0..3 {
     let tx = tx.clone();
@@ -221,7 +221,7 @@ To hand out the elements one by one, take each one out first. `pop` and `remove`
 use rok::std::thread;
 
 let jobs = [[3, 1, 2], [9, 7], [5, 4, 6]];
-let (tx, rx) = channel::<List<i32>>();
+let (tx, rx) = channel();
 let worker = thread::spawn(|| {
     let total = 0;
     for job in rx {
@@ -230,7 +230,7 @@ let worker = thread::spawn(|| {
     }
     total
 });
-while let job: List<i32> = jobs.pop() {
+while let job = jobs.pop() {
     try! tx.send(job);         // `pop` took it out of `jobs`, so `jobs` stays usable
 }
 tx.close();
@@ -308,11 +308,11 @@ A hand-off also copies at run time: the new owner gets its own copy of every col
 
 ```rok
 let data = [1, 2, 3, 4];
-let (tx, rx) = channel::<(List<i32>, Slice<i32>)>();
+let (tx, rx) = channel();
 try! tx.send((data, data[0:2]));
 tx.close();
 
-if let (list, head): (List<i32>, Slice<i32>) = rx.recv() {
+if let (list, head) = rx.recv() {
     list[0] = 10;           // the view still sees the list it came from
     println(f"{list:?} {head:?}");
 }
@@ -337,7 +337,7 @@ impl Shape for Sq { fn area(self) -> f64 { self.s * self.s } }
 
 let (tx, rx) = channel::<any Shape>();
 let h = thread::spawn(|| {
-    if let s: any Shape = rx.recv() { s.area() } else { 0.0 }
+    if let s = rx.recv() { s.area() } else { 0.0 }
 });
 try! tx.send(Sq { s: 3.0 });
 tx.close();
@@ -438,7 +438,7 @@ println(f"{c.pos}");
 Channels work in async code too. `for await` waits for values without blocking the task. The task below releases `tx` when it ends, and that closes the channel.
 
 ```rok
-let (tx, rx) = channel::<i32>();
+let (tx, rx) = channel();
 let producer = task::spawn(async {
     for i in 1..=3 {
         try! tx.send(i);

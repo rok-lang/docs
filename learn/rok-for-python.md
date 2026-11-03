@@ -18,7 +18,7 @@ A map for Python programmers: what carries over, what Rok writes differently, an
 - `print` adds no newline; `println` does. Both take several values and `sep:`.
 - Every value has a type the compiler knows. Parameters with no type are generic: they accept any type with the methods the body calls, which is duck typing checked at compile time.
 - Blocks use `{ }`, not indentation, and a new name is declared with `let`.
-- There is no truthiness: a condition is a `bool`. Write `!xs.is_empty()`, `n != 0`, or `x is none`.
+- There is no truthiness: a condition is a `bool`. Write `!xs.is_empty()`, `n != 0`, or `x != none`.
 - A missing value is `none`, and a type that may hold it is written `T | none`.
 - `/` on integers rounds toward zero (`7 / 2` is `3`); floor division is `n.div_floor(2)` and `%%` is the floored remainder. `//` starts a comment.
 - An `i32` that overflows panics; use `i64`, or `int` for any size.
@@ -129,7 +129,7 @@ Closures are written `|x| x + 1` where Python writes `lambda x: x + 1`.
 
 ## `none` instead of `None`
 
-A function that may find nothing returns `T | none`. `??` gives a default, `x is none` tests, and `if let` takes the value out.
+A function that may find nothing returns `T | none`. `??` gives a default, `x == none` tests, and `if let` takes the value out.
 
 ```rok
 let xs = ["a", "b"];
@@ -318,7 +318,7 @@ ababab
 | `f"{x!r}"` | `f"{x:?}"` |
 | `a and b`, `a or b`, `not a` | `a && b`, `a \|\| b`, `!a` |
 | `x not in xs` | `x !in xs` |
-| `x is None`, `x is not None` | `x is none`, `!(x is none)` |
+| `x is None`, `x is not None` | `x == none`, `x != none` |
 | `None`, `True`, `False` | `none`, `true`, `false` |
 | `a if c else b` | `if c { a } else { b }` |
 | `elif` | `else if` |

@@ -53,14 +53,14 @@ async fn main() {
 
     // A channel is multi-producer, multi-consumer: every worker holds a copy
     // of one job receiver, and each URL goes to whichever worker takes it first.
-    let (job_tx, job_rx) = channel::<str>();
-    let (done_tx, done_rx) = channel::<Outcome>();
+    let (job_tx, job_rx) = channel();
+    let (done_tx, done_rx) = channel();
     for _ in 0..WORKERS {
         let jobs = job_rx;
         let done = done_tx.clone();
         task::spawn(async {
             loop {
-                let url: str = await jobs.recv_async() else { break; };
+                let url = await jobs.recv_async() else { break; };
                 try! done.send(Outcome { url: url, status: await fetch_with_deadline(url) });
             }
             done.close();

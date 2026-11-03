@@ -18,7 +18,7 @@ Python 프로그래머를 위한 안내입니다. 그대로 통하는 것, Rok�
 - `print`는 줄을 바꾸지 않고, `println`이 줄을 바꿉니다. 둘 다 값을 여러 개 받고 `sep:`도 받습니다.
 - 모든 값의 타입을 컴파일러가 압니다. 타입을 적지 않은 매개변수는 제네릭이라, 본문이 부르는 메서드가 있는 타입이면 무엇이든 받습니다. 컴파일 시점에 검사하는 덕 타이핑입니다.
 - 블록은 들여쓰기가 아니라 `{ }`로 묶고, 새 이름은 `let`으로 선언합니다.
-- truthiness가 없습니다. 조건은 `bool`이어야 하니 `!xs.is_empty()`, `n != 0`, `x is none`처럼 씁니다.
+- truthiness가 없습니다. 조건은 `bool`이어야 하니 `!xs.is_empty()`, `n != 0`, `x != none`처럼 씁니다.
 - 값이 없음은 `none`이고, 그것을 담을 수 있는 타입은 `T | none`으로 씁니다.
 - 정수의 `/`는 0 쪽으로 버립니다(`7 / 2`는 `3`). 내림 나눗셈은 `n.div_floor(2)`이고, `%%`가 내림 나머지입니다. `//`는 주석의 시작입니다.
 - `i32`가 넘치면 panic이 납니다. `i64`를 쓰거나, 크기 제한이 없는 `int`를 쓰세요.
@@ -129,7 +129,7 @@ Python의 `lambda x: x + 1`은 클로저 `|x| x + 1`입니다.
 
 ## `None` 대신 `none`
 
-아무것도 못 찾을 수 있는 함수는 `T | none`을 반환합니다. `??`는 기본값을 주고, `x is none`은 검사하고, `if let`은 값을 꺼냅니다.
+아무것도 못 찾을 수 있는 함수는 `T | none`을 반환합니다. `??`는 기본값을 주고, `x == none`은 검사하고, `if let`은 값을 꺼냅니다.
 
 ```rok
 let xs = ["a", "b"];
@@ -318,7 +318,7 @@ ababab
 | `f"{x!r}"` | `f"{x:?}"` |
 | `a and b`, `a or b`, `not a` | `a && b`, `a \|\| b`, `!a` |
 | `x not in xs` | `x !in xs` |
-| `x is None`, `x is not None` | `x is none`, `!(x is none)` |
+| `x is None`, `x is not None` | `x == none`, `x != none` |
 | `None`, `True`, `False` | `none`, `true`, `false` |
 | `a if c else b` | `if c { a } else { b }` |
 | `elif` | `else if` |

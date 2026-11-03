@@ -14,7 +14,7 @@ fn factorial(n: i64) -> int {
 
 // n! in i64: none once it overflows.
 fn factorial_i64(n: i64) -> i64 | none {
-    let acc = 1i64;
+    let acc = 1;
     for k in 2..=n {
         acc = acc.checked_mul(k)?;
     }
@@ -33,7 +33,7 @@ fn fib(n: i64) -> int {
 }
 
 fn digit_sum(x: int) -> i64 {
-    let sum = 0i64;
+    let sum = 0;
     for c in f"{x}".chars() { sum += (c as i64) - ('0' as i64); }
     sum
 }
@@ -45,7 +45,7 @@ println(f"digits: {text.len()}, digit sum: {digit_sum(f100)}");
 println(f"bits: {f100.bit_length()}");
 
 // Where does i64 give up?
-for n in 19i64..=22 {
+for n in 19..=22 {
     match factorial_i64(n) {
         v: i64 => println(f"{n}! fits in i64: {v}"),
         none => println(f"{n}! overflows i64, int says {factorial(n)}"),

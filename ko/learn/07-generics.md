@@ -91,7 +91,7 @@ fn boxed<T>(x: T) -> any { x }
 
 println(f"{double(21)} {double(1.5)}");
 println(f"{keep("a", true):?} {keep(1, false):?}");
-println(f"{boxed(3) is i32}");
+println(f"{boxed(3) is i64}");
 ```
 
 ```output
@@ -220,13 +220,59 @@ println(f"{total(a)} {a.len()} {z:?}");
 
 `const` 매개변수의 타입은 정수, `bool`, `char`만 될 수 있습니다.
 
+## 반환 타입 숨기기: `some`
+
+반복자 어댑터와 클로저의 타입은 길어서 시그니처에 적고 싶지 않습니다. `-> some Trait`은 호출자가 `Trait`으로만 보는 구체 타입 하나를 반환합니다. 본문이 타입을 고르고, 호출은 정적으로 남으며, 시그니처를 바꾸지 않고 본문을 바꿀 수 있습니다. `pub` 함수에서도 됩니다.
+
+```rok
+pub fn evens(n: i32) -> some Iterator<Item = i32> {
+    (0..n).filter(|x| x % 2 == 0)
+}
+
+fn adder(k: i32) -> some fn(i32) -> i32 {
+    |x| x + k
+}
+
+println(evens(10).map(|x| x * x).sum());
+println(adder(3)(4));
+```
+
+```output
+120
+7
+```
+
+호출자는 바운드가 주는 것만 씁니다. `Iterator`에는 `contains`가 없으므로 `evens(10).contains(4)`는 에러입니다. 본문은 한 타입을 반환합니다. 경로마다 다른 타입을 반환하려면 `-> any Trait`을 씁니다.
+
+## 트레잇을 가진 아무 타입 받기: `some` 매개변수
+
+`x: some Trait`로 쓴 매개변수는 타입 매개변수에 이름을 붙이지 않고 `Trait`을 가진 아무 타입을 받습니다. `fn show(x: some Display)`는 `fn show<T: Display>(x: T)`입니다. 호출마다 정적 타입은 인자의 타입 하나이고, `some` 매개변수는 저마다 따로인 타입입니다.
+
+```rok
+fn show(x: some Display) -> str { f"<{x}>" }
+fn both(a: some Display, b: some Display) -> str { f"{a} {b}" }
+fn twice(f: some fn(i32) -> i32, x: i32) -> i32 { f(f(x)) }
+
+println(show(5));
+println(both("hi", 2.5));
+println(twice(|x| x * 3, 2));
+```
+
+```output
+<5>
+hi 2.5
+18
+```
+
+그 타입에는 이름이 없으니 호출에서 `::<..>`로 고를 수 없습니다. 골라야 한다면 `<T: Trait>`를 선언합니다. `some`은 `any Trait`의 정적 짝입니다. `some`은 호출마다 또는 본문이 정하는 타입 하나이고, `any`는 그런 타입의 아무 값이나 담아 실행 중에 디스패치합니다.
+
 ## 제네릭과 `any`
 
 제네릭은 정적입니다. 반대로 런타임에 값의 타입이 바뀔 수 있는 슬롯이 필요하면 `any`를 **직접** 적습니다. `any` 값은 쓰기 전에 `is`로 좁힙니다. 동적 디스패치 비용은 `any`를 쓴 곳에서만 생깁니다.
 
 ```rok
 let v: any = 1;
-println(f"{v is i32}");
+println(f"{v is i64}");
 v = "text";
 if v is str {
     println(f"now a string, length {v.len()}");
@@ -258,6 +304,7 @@ show_sum(1.5, 2.0);   // 3.5
 - `T: Ord + Clone` 같은 바운드가 본체에서 쓸 수 있는 연산을 정합니다. 긴 바운드는 `where` 절로 옮깁니다.
 - 연관 타입 `type Item;`은 구현마다 한 타입으로 정해지고, 바깥에서는 `C::Item`으로 씁니다.
 - `const N: usize`는 값을 타입 매개변수로 받습니다.
+- `-> some Trait`은 호출자가 `Trait`으로만 쓰는 숨은 구체 타입 하나를 반환하고, `x: some Trait`은 `Trait`을 가진 아무 타입을 호출마다 하나씩 받습니다.
 - 제네릭은 정적이고(단형화), `any`는 직접 적은 곳에만 생기는 동적 슬롯입니다.
 
 ## 더 읽을거리

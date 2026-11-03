@@ -118,14 +118,14 @@ After `v = "six"`, writing `v + 1` would be a type error, because `+` is not def
 
 ## `if let` and `match`
 
-To test and bind the value to a new name at the same time, use `if let name: T = expr`. In `match`, write `none` as a literal pattern.
+To test and bind the value to a new name at the same time, use `if let name = expr`: on a `T | none` value, `name` is the `T` without the `none`. Write `if let name: T = expr` only to pick one member of a wider sum. In `match`, write `none` as a literal pattern.
 
 ```rok
 fn lookup(id: i32) -> str? {
     if id == 1 { "kim" } else { none }
 }
 
-if let name: str = lookup(1) {
+if let name = lookup(1) {
     println(f"found: {name}");
 } else {
     println("not found");
@@ -145,6 +145,22 @@ found: kim
 2 → (none)
 ```
 
+A check against `none` narrows too. After `x != none`, in the `else` of `if x == none`, and below an `if x == none { return ..; }`, `x` is the value without `none`, until you assign it something that may be `none`.
+
+```rok
+fn shout(name: str?) -> str {
+    if name == none { return "nobody"; }
+    name.to_uppercase()       // name: str here
+}
+println(shout("kim"));
+println(shout(none));
+```
+
+```output
+KIM
+nobody
+```
+
 ## `let else`: bail out early
 
 `let pattern = expr else { ... };` binds the name if the pattern matches and otherwise runs the `else` block, which must leave the scope with `return`, `break`, `continue`, or `throw`. This lets you write "bail out early if missing" without extra indentation, and after it the name has the narrowed type.
@@ -158,7 +174,7 @@ fn first_even(xs: List<i32>) -> i32 | none {
 }
 
 fn report(xs: List<i32>) -> str {
-    let n: i32 = first_even(xs) else {
+    let n = first_even(xs) else {
         return "no even number";
     };
     f"first even is {n}, half is {n / 2}"
@@ -236,7 +252,7 @@ none
 
 - `A | B` is a closed sum type. Variant order and duplicates don't matter, and `match` must handle every variant.
 - When a value may be absent, use `T | none`, or `T?` for short. Return the value as is, without wrapping.
-- `x is T` both tests and narrows. Extract values with `if let x: T = ...`, `let x: T = ... else { return .. };`, and the `n: T` / `none` patterns in `match`.
+- `x is T`, `x != none` and an early `if x == none { return .. }` narrow `x`. Extract values with `if let x = ...`, `let x = ... else { return .. };`, and the `n: T` / `none` patterns in `match`.
 - `??` supplies a default, `?.` skips the access on none, and postfix `?` returns from the function on none.
 
 ## Further reading

@@ -38,7 +38,7 @@ impl Bank {
             Mutex::new(START), Mutex::new(START), Mutex::new(START), Mutex::new(START),
             Mutex::new(START),
         ];
-        Bank { accounts: accounts, moved: Atomic::new(0i64), rejected: Atomic::new(0i64) }
+        Bank { accounts: accounts, moved: Atomic::new(0), rejected: Atomic::new(0) }
     }
 
     // Lock both accounts, always the lower index first, so two opposite
@@ -51,7 +51,7 @@ impl Bank {
             using b = self.accounts[second].lock() {
                 let (src, dst) = if from == first { (a, b) } else { (b, a) };
                 if src.get() < amount {
-                    self.rejected.fetch_add(1i64);
+                    self.rejected.fetch_add(1);
                 } else {
                     src.set(src.get() - amount);
                     dst.set(dst.get() + amount);
@@ -63,7 +63,7 @@ impl Bank {
 
     // Sum of all balances (called while no transfers are running).
     fn total(self) -> i64 {
-        let sum: i64 = 0;
+        let sum = 0;
         for m in self.accounts {
             using g = m.lock() { sum += g.get(); }
         }

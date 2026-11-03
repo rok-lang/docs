@@ -7,8 +7,8 @@ Write the Fibonacci sequence, a prime stream, a hand-made `take_while` adapter a
 ```rok
 // An endless Fibonacci stream.
 yield fn fibonacci() -> i64 {
-    let a = 0i64;
-    let b = 1i64;
+    let a = 0;
+    let b = 1;
     loop {
         yield a;
         let next = a + b;
@@ -20,7 +20,7 @@ yield fn fibonacci() -> i64 {
 // Primes by trial division against the primes found so far.
 yield fn primes() -> i64 {
     let found: List<i64> = [];
-    let n = 2i64;
+    let n = 2;
     loop {
         let is_prime = true;
         for p in found {
@@ -74,7 +74,7 @@ println(f"1000th prime: {primes().nth(999) ?? -1}");
 
 // An inline generator block.
 let squares = yield {
-    for i in 1i64..=5 { yield i * i; }
+    for i in 1..=5 { yield i * i; }
 };
 println(f"squares: {squares.collect::<List<i64>>():?}");
 

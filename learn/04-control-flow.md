@@ -117,7 +117,7 @@ for (idx, name) in ["ada", "grace"].iter().enumerate() {
 
 ```rok
 let stack = [1, 2, 3];
-while let top: i32 = stack.pop() {
+while let top = stack.pop() {
     print(f"{top} ");
 }
 println("");

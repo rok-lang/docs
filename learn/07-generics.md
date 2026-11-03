@@ -91,7 +91,7 @@ fn boxed<T>(x: T) -> any { x }
 
 println(f"{double(21)} {double(1.5)}");
 println(f"{keep("a", true):?} {keep(1, false):?}");
-println(f"{boxed(3) is i32}");
+println(f"{boxed(3) is i64}");
 ```
 
 ```output
@@ -220,13 +220,59 @@ println(f"{total(a)} {a.len()} {z:?}");
 
 `const` parameters can only be integers, `bool`, or `char`.
 
+## Hiding a return type: `some`
+
+Iterator adapters and closures have long types you don't want in a signature. `-> some Trait` returns one concrete type that callers see only as `Trait`: the body picks it, calls stay static, and you can change the body without changing the signature. It works on `pub` functions too.
+
+```rok
+pub fn evens(n: i32) -> some Iterator<Item = i32> {
+    (0..n).filter(|x| x % 2 == 0)
+}
+
+fn adder(k: i32) -> some fn(i32) -> i32 {
+    |x| x + k
+}
+
+println(evens(10).map(|x| x * x).sum());
+println(adder(3)(4));
+```
+
+```output
+120
+7
+```
+
+A caller may use only what the bound gives: `evens(10).contains(4)` is an error, since `Iterator` has no `contains`. The body returns one type; to return different types from different paths, write `-> any Trait`.
+
+## Taking any type with a trait: `some` parameters
+
+A parameter written `x: some Trait` takes any type with `Trait`, without naming a type parameter: `fn show(x: some Display)` is `fn show<T: Display>(x: T)`. Each call has one static type, the argument's, and each `some` parameter is its own type.
+
+```rok
+fn show(x: some Display) -> str { f"<{x}>" }
+fn both(a: some Display, b: some Display) -> str { f"{a} {b}" }
+fn twice(f: some fn(i32) -> i32, x: i32) -> i32 { f(f(x)) }
+
+println(show(5));
+println(both("hi", 2.5));
+println(twice(|x| x * 3, 2));
+```
+
+```output
+<5>
+hi 2.5
+18
+```
+
+The type has no name, so a call can't choose it with `::<..>`; declare `<T: Trait>` when it should. `some` is the static counterpart of `any Trait`: `some` is one type, fixed at each call or by the body, while `any` holds a value of any such type and dispatches at run time.
+
 ## Generics and `any`
 
 Generics are static. When you instead need a slot whose value's type may change at runtime, write `any` **explicitly**. Narrow `any` values with `is` before use. Dynamic dispatch costs appear only where you wrote `any`.
 
 ```rok
 let v: any = 1;
-println(f"{v is i32}");
+println(f"{v is i64}");
 v = "text";
 if v is str {
     println(f"now a string, length {v.len()}");
@@ -258,6 +304,7 @@ show_sum(1.5, 2.0);   // 3.5
 - Bounds like `T: Ord + Clone` determine which operations the body may use. Move long ones to a `where` clause.
 - An associated type `type Item;` is fixed to one type per implementation and is written `C::Item` from outside.
 - `const N: usize` takes a value as a type parameter.
+- `-> some Trait` returns one hidden concrete type that callers use only through `Trait`; `x: some Trait` takes any type with `Trait`, one per call.
 - Generics are static (monomorphized); `any` is a dynamic slot that exists only where you write it.
 
 ## Further reading

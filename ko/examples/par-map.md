@@ -10,7 +10,7 @@
 fn is_prime(n: i64) -> bool {
     if n < 2 { return false; }
     if n % 2 == 0 { return n == 2; }
-    let d: i64 = 3;
+    let d = 3;
     while d * d <= n {
         if n % d == 0 { return false; }
         d += 2;
@@ -19,7 +19,7 @@ fn is_prime(n: i64) -> bool {
 }
 
 fn count_primes(lo: i64, hi: i64) -> i64 {
-    let c: i64 = 0;
+    let c = 0;
     for n in lo..hi {
         if is_prime(n) { c += 1; }
     }
@@ -27,12 +27,12 @@ fn count_primes(lo: i64, hi: i64) -> i64 {
 }
 
 fn main() {
-    let limit: i64 = 2000000;
-    let block: i64 = 250000;
+    let limit = 2000000;
+    let block = 250000;
 
     // 1. map: one block per item; results come back in input order.
     let starts: List<i64> = [];
-    let s: i64 = 0;
+    let s = 0;
     while s < limit { starts.push(s); s += block; }
     let counts: List<i64> = par::map(starts, |lo: i64| count_primes(lo, lo + block));
     for (i, c) in counts.iter().enumerate() {
@@ -41,12 +41,12 @@ fn main() {
     }
 
     // 2. fold: sum the per-block counts (the function must be associative).
-    let total = par::fold(counts, 0i64, |a: i64, b: i64| a + b);
+    let total = par::fold(counts, 0, |a, b| a + b);
     println(f"total below {limit}: {total}");
 
     // 3. filter: keep the primes of a smaller range, in order.
     let nums: List<i64> = [];
-    for n in 999900i64..1000100i64 { nums.push(n); }
+    for n in 999900..1000100 { nums.push(n); }
     let near: List<i64> = par::filter(nums, |n: i64| is_prime(n));
     println(f"primes around one million: {near:?}");
 
@@ -60,17 +60,17 @@ fn main() {
 }
 
 fn twin_primes(limit: i64) -> i64 {
-    let c: i64 = 0;
-    for n in 3i64..limit - 2 {
+    let c = 0;
+    for n in 3..limit - 2 {
         if is_prime(n) && is_prime(n + 2) { c += 1; }
     }
     c
 }
 
 fn largest_gap(limit: i64) -> i64 {
-    let prev: i64 = 2;
-    let best: i64 = 0;
-    for n in 3i64..limit {
+    let prev = 2;
+    let best = 0;
+    for n in 3..limit {
         if is_prime(n) {
             if n - prev > best { best = n - prev; }
             prev = n;

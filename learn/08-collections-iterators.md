@@ -233,8 +233,8 @@ When managing state by hand gets tedious, use a **generator**. A `yield fn` is a
 
 ```rok
 yield fn fib() -> i64 {
-    let a = 0i64;
-    let b = 1i64;
+    let a = 0;
+    let b = 1;
     loop {
         yield a;
         let t = a + b;

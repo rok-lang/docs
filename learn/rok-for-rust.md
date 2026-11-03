@@ -20,7 +20,7 @@ A map for Rust programmers: what carries over, what to unlearn, and where Cargo'
 - Structs, enums and tuples are values that copy on assignment, with nothing to opt into. `List`, `Dict` and `Set` are handles to one shared object. `ref` lets a function change its caller's struct.
 - Errors are not values you return. A function that can fail says `throws`, and each call to it says `try`. There is no `?` for errors.
 - There is no `Option`. A value that may be missing has the type `T | none`, and `T?` is short for it.
-- Unsuffixed integer literals default to `i32`, not to a type inferred from later use. Numbers never convert implicitly, not even `i32` to `i64`.
+- An unsuffixed integer literal takes its type from its uses in the function, as in Rust, and is `i64` when nothing fixes it. Numbers never convert implicitly, not even `i32` to `i64`.
 - Only a type with `Drop` (a file, a socket, a channel sender) has a single owner and moves. A file, whose close can fail, is closed explicitly, with `using` or `try f.close()`.
 - A statement ends with `;`, as in Rust, but struct fields do too: `struct P { x: i32; y: i32; }`.
 
@@ -222,7 +222,7 @@ The variants of the enum a `match` is on are written bare (`Circle(r)`, not `Sha
 
 Traits, `impl Trait for Type`, generic bounds, `where` clauses, default methods and associated types work as in Rust, and so does the orphan rule: an `impl` needs the trait or the type to come from your package ([E0076](../errors/E0076.html)). The differences:
 
-- A trait is not a type. `dyn Trait` is `any Trait`, with no `Box`: `List<any Shape>` holds values of any type that implements `Shape`. There is no `impl Trait` in argument or return position; take a generic `<T: Shape>`.
+- A trait is not a type. `dyn Trait` is `any Trait`, with no `Box`: `List<any Shape>` holds values of any type that implements `Shape`. `impl Trait` is `some Trait`, in argument and return position: `fn area(s: some Shape)` is a generic parameter with no name, `fn evens() -> some Iterator<Item = i32>` hides the type it returns.
 - A parameter with no type is generic: `fn loud(x) -> str { x.to_uppercase() }` accepts any type with the methods the body calls.
 - `Fn`, `FnMut` and `FnOnce` are one type, `fn(i32) -> i32`, which holds a function or a closure. `fn() + Send` is one that may move to another thread.
 - A closure captures by copying values. `[ref x]` captures the variable itself, so the closure can change it, and `[move x]` hands the value over: the code that made the closure cannot use `x` afterwards.
@@ -268,16 +268,16 @@ area 3.1
 
 ## Numbers
 
-An unsuffixed integer literal takes its type from where it goes (`let b: u8 = 200;`, an argument, an operand of another type) and is `i32` when nothing gives it one. A float literal is `f64` the same way. Lengths and indexes are `usize`, so `total / xs.len()` with an `i32` `total` needs `as`. `int` is an integer of any size.
+An unsuffixed integer literal takes its type from where it goes (`let b: u8 = 200;`, an argument, an operand of another type) or from its later uses, and is `i64` when nothing gives it one. A float literal is `f64` the same way. Lengths and indexes are `usize`, so `total / xs.len()` with an `i32` `total` needs `as`. `int` is an integer of any size.
 
 Nothing converts implicitly: `i32 + i64` is an error whose help writes the `as`. `as` truncates, `.into()` is allowed only where nothing is lost, and `.try_into::<T>()` throws when the value does not fit, so `try_from` needs a `try`.
 
 ```rok
-let a = 7;                    // i32
+let a = 7;                    // i64: nothing else gives it a type
 let b: u8 = 200;
-let n = 3i64;
-println(f"{(a as i64) + n} {b as i32 + 100} {300 as u8}");
-let w: i64 = a.into();
+let n = 3i32;
+println(f"{a + 1} {(n as i64) + a} {b as i32 + 100} {300 as u8}");
+let w: i64 = n.into();
 let small: u8 = try 255i32.try_into::<u8>();
 println(f"{w} {small}");
 println(try? 256i32.try_into::<u8>() ?? 0);
@@ -287,8 +287,8 @@ println(big.pow(100));
 ```
 
 ```output
-10 300 44
-7 255
+8 10 300 44
+3 255
 0
 -3 -1 1 49
 1267650600228229401496703205376
@@ -467,8 +467,9 @@ println(gcd(12, 18));
 | `for x in xs.iter_mut()` | `for ref x in xs` |
 | `x.clone()` before reuse | nothing: structs copy; `.clone()` for a separate `List` |
 | `Box<dyn Trait>`, `Vec<Box<dyn Trait>>` | `any Trait`, `List<any Trait>` |
-| `fn f(x: impl Trait)` | `fn f<T: Trait>(x: T)` |
-| `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `fn(i32) -> i32`, `fn()` |
+| `fn f(x: impl Trait)` | `fn f(x: some Trait)` |
+| `fn f() -> impl Trait` | `fn f() -> some Trait` |
+| `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `some fn(i32) -> i32`, `fn(i32) -> i32`, `fn()` |
 | `move \|\| ..` | `[move x] \|\| ..` |
 | closure mutating a captured local | `[ref x] \|\| { x += 1; }` |
 | `Option<T>`, `Some(x)`, `None` | `T?`, `x`, `none` |

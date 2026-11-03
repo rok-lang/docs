@@ -20,7 +20,7 @@ Rust 프로그래머를 위한 안내입니다. 그대로 통하는 것, 버려�
 - 구조체, enum, 튜플은 대입할 때 복사되는 값이고, 따로 선택할 것이 없습니다. `List`, `Dict`, `Set`은 공유되는 객체 하나를 가리키는 핸들입니다. 함수가 호출한 쪽의 구조체를 바꾸려면 `ref`를 씁니다.
 - 에러는 반환하는 값이 아닙니다. 실패할 수 있는 함수는 `throws`라고 밝히고, 그 함수를 부를 때마다 `try`를 붙입니다. 에러에 쓰는 `?`는 없습니다.
 - `Option`이 없습니다. 없을 수도 있는 값의 타입은 `T | none`이고, 줄여서 `T?`로 씁니다.
-- 접미사 없는 정수 리터럴은 뒤에 쓰인 곳에서 타입을 추론하지 않고 `i32`가 됩니다. 숫자는 암묵적으로 변환되지 않습니다. `i32`에서 `i64`로도 마찬가지입니다.
+- 접미사 없는 정수 리터럴은 Rust처럼 함수 안의 쓰임에서 타입을 얻고, 아무것도 정하지 않으면 `i64`입니다. 숫자는 암묵적으로 변환되지 않습니다. `i32`에서 `i64`로도 마찬가지입니다.
 - `Drop`이 있는 타입(파일, 소켓, 채널 sender)만 소유자가 하나이고 move됩니다. 닫기가 실패할 수 있는 파일은 `using`이나 `try f.close()`로 명시적으로 닫습니다.
 - 문장은 Rust처럼 `;`로 끝나지만, 구조체 필드도 `;`로 끝납니다: `struct P { x: i32; y: i32; }`.
 
@@ -222,7 +222,7 @@ negative, int 7, str x, nothing
 
 트레이트, `impl Trait for Type`, 제네릭 바운드, `where` 절, 기본 메서드, 연관 타입은 Rust와 같고, orphan rule도 같습니다. `impl`에는 트레이트나 타입 가운데 하나가 내 패키지에 있어야 합니다([E0076](../errors/E0076.html)). 다른 점은 이렇습니다.
 
-- 트레이트는 타입이 아닙니다. `dyn Trait`은 `any Trait`이고 `Box`가 필요 없습니다. `List<any Shape>`는 `Shape`를 구현한 어떤 타입의 값이든 담습니다. 인자나 반환 자리의 `impl Trait`은 없으니 제네릭 `<T: Shape>`를 받습니다.
+- 트레이트는 타입이 아닙니다. `dyn Trait`은 `any Trait`이고 `Box`가 필요 없습니다. `List<any Shape>`는 `Shape`를 구현한 어떤 타입의 값이든 담습니다. 인자와 반환 자리의 `impl Trait`은 `some Trait`입니다. `fn area(s: some Shape)`는 이름 없는 제네릭 매개변수이고, `fn evens() -> some Iterator<Item = i32>`는 반환하는 타입을 숨깁니다.
 - 타입을 적지 않은 매개변수는 제네릭입니다. `fn loud(x) -> str { x.to_uppercase() }`는 본문이 부르는 메서드가 있는 타입이면 무엇이든 받습니다.
 - `Fn`, `FnMut`, `FnOnce`는 함수나 클로저를 담는 한 타입 `fn(i32) -> i32`입니다. 다른 스레드로 옮겨도 되는 것은 `fn() + Send`입니다.
 - 클로저는 값을 복사해서 캡처합니다. `[ref x]`는 변수 자체를 캡처해서 클로저가 바꿀 수 있게 하고, `[move x]`는 값을 넘겨줍니다. 클로저를 만든 쪽은 그 뒤로 `x`를 쓸 수 없습니다.
@@ -268,16 +268,16 @@ area 3.1
 
 ## 숫자
 
-접미사 없는 정수 리터럴은 들어가는 자리(`let b: u8 = 200;`, 인자, 다른 타입의 피연산자)에서 타입을 얻고, 아무것도 정해 주지 않으면 `i32`입니다. 실수 리터럴은 같은 방식으로 `f64`입니다. 길이와 인덱스는 `usize`이므로, `i32`인 `total`로 `total / xs.len()`을 하려면 `as`가 필요합니다. `int`는 크기 제한이 없는 정수입니다.
+접미사 없는 정수 리터럴은 들어가는 자리(`let b: u8 = 200;`, 인자, 다른 타입의 피연산자)나 뒤의 쓰임에서 타입을 얻고, 아무것도 정해 주지 않으면 `i64`입니다. 실수 리터럴은 같은 방식으로 `f64`입니다. 길이와 인덱스는 `usize`이므로, `i32`인 `total`로 `total / xs.len()`을 하려면 `as`가 필요합니다. `int`는 크기 제한이 없는 정수입니다.
 
 암묵적 변환은 없습니다. `i32 + i64`는 에러이고, help가 `as`를 써 줍니다. `as`는 잘라 내고, `.into()`는 잃는 것이 없을 때만 허용되며, `.try_into::<T>()`는 값이 맞지 않으면 에러를 던지므로 `try_from` 자리에는 `try`가 붙습니다.
 
 ```rok
-let a = 7;                    // i32
+let a = 7;                    // i64: 다른 무엇도 타입을 주지 않음
 let b: u8 = 200;
-let n = 3i64;
-println(f"{(a as i64) + n} {b as i32 + 100} {300 as u8}");
-let w: i64 = a.into();
+let n = 3i32;
+println(f"{a + 1} {(n as i64) + a} {b as i32 + 100} {300 as u8}");
+let w: i64 = n.into();
 let small: u8 = try 255i32.try_into::<u8>();
 println(f"{w} {small}");
 println(try? 256i32.try_into::<u8>() ?? 0);
@@ -287,8 +287,8 @@ println(big.pow(100));
 ```
 
 ```output
-10 300 44
-7 255
+8 10 300 44
+3 255
 0
 -3 -1 1 49
 1267650600228229401496703205376
@@ -467,8 +467,9 @@ println(gcd(12, 18));
 | `for x in xs.iter_mut()` | `for ref x in xs` |
 | 다시 쓰려고 `x.clone()` | 필요 없음: 구조체는 복사됨. 따로 둘 `List`에는 `.clone()` |
 | `Box<dyn Trait>`, `Vec<Box<dyn Trait>>` | `any Trait`, `List<any Trait>` |
-| `fn f(x: impl Trait)` | `fn f<T: Trait>(x: T)` |
-| `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `fn(i32) -> i32`, `fn()` |
+| `fn f(x: impl Trait)` | `fn f(x: some Trait)` |
+| `fn f() -> impl Trait` | `fn f() -> some Trait` |
+| `impl Fn(i32) -> i32`, `Box<dyn FnMut()>` | `some fn(i32) -> i32`, `fn(i32) -> i32`, `fn()` |
 | `move \|\| ..` | `[move x] \|\| ..` |
 | 캡처한 지역 변수를 바꾸는 클로저 | `[ref x] \|\| { x += 1; }` |
 | `Option<T>`, `Some(x)`, `None` | `T?`, `x`, `none` |

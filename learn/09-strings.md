@@ -67,7 +67,7 @@ let t = line.trim();
 println(f"[{t}]");
 println(f"{t.starts_with("name")} {t.contains("=")} {t.find("rok") ?? 99}");
 
-if let (k, v): (str, str) = t.split_once(" = ") {
+if let (k, v) = t.split_once(" = ") {
     println(f"key={k} value={v}");
 }
 

@@ -233,8 +233,8 @@ for v in (Countdown { n: 5 }).filter(|v| v % 2 == 1) { println(f"{v}"); }
 
 ```rok
 yield fn fib() -> i64 {
-    let a = 0i64;
-    let b = 1i64;
+    let a = 0;
+    let b = 1;
     loop {
         yield a;
         let t = a + b;

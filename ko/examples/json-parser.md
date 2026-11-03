@@ -59,7 +59,7 @@ impl Parser {
     fn number(ref self) throws (ParseError) -> Json {
         let start = self.pos;
         let sb = StrBuf::new();
-        while let c: char = self.peek() {
+        while let c = self.peek() {
             if !(c.is_ascii_digit() || "+-.eE".contains(f"{c}")) { break; }
             sb.push(c);
             self.pos += 1;

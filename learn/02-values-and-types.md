@@ -67,10 +67,10 @@ To change a variable's value, assign without `let`. A redeclaration leaves the o
 
 ## Numeric types and literals
 
-Integers are `i8` `i16` `i32` `i64` `isize` and the unsigned `u8` `u16` `u32` `u64` `usize`; floating-point numbers are `f32` `f64`. A literal with a type-name suffix has that type; without a suffix it follows the **expected type**. With no expected type, integers default to `i32` and floats to `f64`.
+Integers are `i8` `i16` `i32` `i64` `isize` and the unsigned `u8` `u16` `u32` `u64` `usize`; floating-point numbers are `f32` `f64`. A literal with a type-name suffix has that type; without a suffix it follows the **expected type**. A literal you bind with `let` takes its type from how the variable is used later in the function; only when nothing says, integers default to `i64` and floats to `f64`.
 
 ```rok
-let a = 42;            // i32
+let a = 42;            // i64
 let b: u8 = 200;       // u8, from the annotation
 let c = 7i64;          // suffix
 let d = 2.5f32;
@@ -86,6 +86,26 @@ println(f"{7 / 2} {-7 / 2} {7.0 / 2.0}");
 255 10 15 1000
 3 -3 3.5
 ```
+
+Because the type comes from the uses, you rarely write it:
+
+```rok
+fn count_big(xs: List<i32>) -> i32 {
+    let c = 0;                 // i32: the function returns it
+    for x in xs { if x > 100 { c += 1; } }
+    c
+}
+let hits = Atomic::new(0);     // the counter type comes from fetch_add below
+let step: u8 = 2;
+hits.fetch_add(step);
+println(f"{count_big([5, 500, 900])} {hits.load()}");
+```
+
+```output
+2 2
+```
+
+Rok still never converts: a variable holds one type. Using `let t = 0;` as an `f64` is an error that tells you to write `let t = 0.0;` at the declaration.
 
 `_` is a digit separator, and `0x` / `0b` / `0o` mean hexadecimal / binary / octal. A leading zero does not make a number octal, and `0755` is a compile error: write `0o755` for octal or `755` for decimal. Integer division truncates toward zero. A literal outside its type's range (`let x: u8 = 256;`) is a compile error.
 

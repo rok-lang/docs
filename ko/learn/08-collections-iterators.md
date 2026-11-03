@@ -136,7 +136,7 @@ d.insert("zebra", 1);
 d.insert("apple", 2);
 for (k, v) in d.iter() { println(f"{k}={v}"); }
 
-let tags: Set<str> = Set::from(["b", "a", "b", "c"]);
+let tags = Set::from(["b", "a", "b", "c"]);
 println(f"{tags:?}");
 
 let q: Deque<i32> = Deque::new();

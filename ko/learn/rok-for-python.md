@@ -340,6 +340,7 @@ ababab
 | `[f(x) for x in xs if c]` | `xs.filter(\|x\| c).map(\|x\| f(x)).to_list()` |
 | `sorted(xs, key=f, reverse=True)` | `xs.sorted_by_key(f)`, `xs.sorted(reverse: true)` |
 | `d.get(k, 0)`, `defaultdict(int)`와 `d[k] += 1` | `d[k, default: 0]`, `d[k, default: 0] += 1` |
+| `Counter(xs)`, `Counter(xs).most_common(n)` | `xs.counts()`, `xs.counts().most_common(n)` |
 | `print(f"{x=}")`, 값을 찍어 보는 디버깅 | `f"{x=}"`, `dbg(x)` |
 | `x ** 2`, `n // 2` | `x ** 2`, `n.div_floor(2)` |
 | `raise ValueError("m")` / `except E as e` | `throw "m"` / `catch e: E` |
@@ -349,7 +350,7 @@ ababab
 | `C("h", 1)` | `C { host: "h", port: 1 }` |
 | `import m` / `from m import x` | `use m;` / `use m::x;` |
 
-이 Python 형태를 Rok에 쓰면 빌드가 에러 하나로 멈추고, 그 help가 대신 쓸 Rok 형태를 보여 줍니다: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, 컴프리헨션(help가 반복자 체인을 써 줍니다), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math`와 `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, 함수로 부른 내장 함수(`len(xs)`, `str(x)`, `int(s)`), `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness(`if xs:`), `self` 없는 메서드.
+이 Python 형태를 Rok에 쓰면 빌드가 에러 하나로 멈추고, 그 help가 대신 쓸 Rok 형태를 보여 줍니다: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, 컴프리헨션(help가 반복자 체인을 써 줍니다), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math`와 `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, 함수로 부른 내장 함수(`len(xs)`, `str(x)`, `int(s)`), `Counter(xs)`와 `xs.most_common(n)`, `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness(`if xs:`), `self` 없는 메서드.
 
 ## Python 모듈을 Rok에서
 

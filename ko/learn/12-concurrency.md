@@ -102,6 +102,8 @@ println(f"sum = {counter.load()}, items = {items:?}");
 sum = 15, items = [10, 20, 30, 40, 50]
 ```
 
+리스트는 공유되므로 `v.push(..)`는 잠금 뒤의 리스트를 바꿉니다. struct는 값이라서 클로저와 가드의 `get()`은 사본을 건네고, 거기에 쓴 필드는 사라지므로 에러입니다([E0057](../errors/E0057.html), [E0141](../errors/E0141.html)). 바꾼 값은 가드의 `update`나 `set`으로 저장하세요: `using g = m.lock() { g.update(|v| { v.total += 1; v }); }`.
+
 가드를 푸는 것은 `using`뿐이므로 컴파일러는 아무것도 풀지 않는 가드를 거부합니다. 일반 `let`(이나 `if let`)으로 바인딩하거나 `lock()`의 결과를 그냥 버리는 경우가 그렇습니다. `RwLock`의 `read()` / `write()` 가드도 마찬가지입니다.
 
 ```rok norun

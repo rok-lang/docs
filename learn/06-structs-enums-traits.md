@@ -208,6 +208,8 @@ println(f"{ps[0].x} {ps[1].x}");
 
 A `for ref` loop cannot resize the list it walks: `ps.push(..)` in its body is an error ([E0138](../errors/E0138.html)). Change the length after the loop.
 
+A closure's struct argument is a copy as well, so `ps.for_each(|p| { p.x = 0; })` is the same error ([E0057](../errors/E0057.html)). Walk the list with `for ref`, or return the changed value and keep the result: `ps.map(|p| { p.x *= 10; p }).to_list()`.
+
 ## enum: named cases
 
 An `enum` defines a value that is one of several variants. A variant may carry no data (`Empty`), positional fields (`Circle(f64)`), or named fields (`Rect { w: f64; h: f64; }`). Construct values like `Shape::Circle(1.0)` and destructure them with patterns of the same shape in `match`.

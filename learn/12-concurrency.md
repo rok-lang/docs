@@ -102,6 +102,8 @@ println(f"sum = {counter.load()}, items = {items:?}");
 sum = 15, items = [10, 20, 30, 40, 50]
 ```
 
+A list is shared, so `v.push(..)` changes the list behind the lock. A struct is a value: the closure and a guard's `get()` hand out a copy, and a field set on it is lost, which is an error ([E0057](../errors/E0057.html), [E0141](../errors/E0141.html)). Store the change through the guard with `update` or `set`: `using g = m.lock() { g.update(|v| { v.total += 1; v }); }`.
+
 Only `using` releases a guard, so the compiler refuses a guard that nothing releases: binding it with a plain `let` (or `if let`), or dropping the result of `lock()` on the floor. The same holds for the `read()` / `write()` guards of `RwLock`.
 
 ```rok norun

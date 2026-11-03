@@ -340,6 +340,7 @@ ababab
 | `[f(x) for x in xs if c]` | `xs.filter(\|x\| c).map(\|x\| f(x)).to_list()` |
 | `sorted(xs, key=f, reverse=True)` | `xs.sorted_by_key(f)`, `xs.sorted(reverse: true)` |
 | `d.get(k, 0)`, `defaultdict(int)` and `d[k] += 1` | `d[k, default: 0]`, `d[k, default: 0] += 1` |
+| `Counter(xs)`, `Counter(xs).most_common(n)` | `xs.counts()`, `xs.counts().most_common(n)` |
 | `print(f"{x=}")`, `breakpoint()`-style dumps | `f"{x=}"`, `dbg(x)` |
 | `x ** 2`, `n // 2` | `x ** 2`, `n.div_floor(2)` |
 | `raise ValueError("m")` / `except E as e` | `throw "m"` / `catch e: E` |
@@ -349,7 +350,7 @@ ababab
 | `C("h", 1)` | `C { host: "h", port: 1 }` |
 | `import m` / `from m import x` | `use m;` / `use m::x;` |
 
-Each of these Python forms, typed in Rok, stops the build with one error whose help shows the Rok form to write: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, comprehensions (the help writes the iterator chain), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math` and `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, builtins called as functions (`len(xs)`, `str(x)`, `int(s)`), `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness (`if xs:`) and a method without `self`.
+Each of these Python forms, typed in Rok, stops the build with one error whose help shows the Rok form to write: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, comprehensions (the help writes the iterator chain), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math` and `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, builtins called as functions (`len(xs)`, `str(x)`, `int(s)`), `Counter(xs)` and `xs.most_common(n)`, `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness (`if xs:`) and a method without `self`.
 
 ## Python modules in Rok
 

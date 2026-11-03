@@ -346,7 +346,7 @@ A closure that captures variables can't be kept in a cell's top-level `let`, bec
 error: `f: closure(i32) -> i32` cannot be kept for later cells (its type has no name)
 ```
 
-Give the binding a function type, `let f: fn(i32) -> i32 = |n: i32| n * x`, which carries over. (An `fn` carries over too, but it cannot see cell variables such as `x`; pass them as arguments.) Closures used inside a cell, as in `xs.iter().map(|n| n * x)`, work as usual.
+Give the binding a function type, `let f: fn(i32) -> i32 = |n: i32| n * x`, which carries over. (An `fn` carries over too, but it cannot see cell variables such as `x`; pass them as arguments.) Closures used inside a cell, as in `xs.map(|n| n * x)`, work as usual.
 
 On a terminal the REPL edits the line itself:
 

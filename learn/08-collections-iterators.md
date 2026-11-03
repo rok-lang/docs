@@ -102,13 +102,19 @@ println(f"a={counts["a"]} b={counts["b"]}");
 let s: Set<i32> = {1, 2, 3};
 let t: Set<i32> = {2, 3, 4};
 println(f"{2 in s} {s.intersection(t).len()} {s.union(t).len()}");
+println(f"{s & t:?} {s | t:?} {s - t:?} {s ^ t:?}");
+println(f"{counts["z", default: 0]} {[1, 2] + [3]:?}");
 ```
 
 ```output
 30 -1 true 2
 a=3 b=1
 true 2 4
+{2, 3} {1, 2, 3, 4} {1} {1, 4}
+0 [1, 2, 3]
 ```
+
+`d[k, default: v]` reads `v` for a missing key; as the target of `=` or `+=`, or the receiver of a method, it stores `v` first. `&`, `|`, `-` and `^` on sets are intersection, union, difference and symmetric difference, and `+` joins two lists into a new one.
 
 After `ages.remove("lee")`, a fourth line `println(f"{ages["lee"]}");` would panic, and the message says what to write instead:
 
@@ -171,7 +177,7 @@ let pairs = names.zip(xs.iter()).map(|(n, x)| f"{n}{x}").to_list();
 println(pairs);
 
 let back = xs.rev().take(2).to_list();
-let uniq: Set<i32> = [1, 1, 2].iter().collect();
+let uniq: Set<i32> = [1, 1, 2].collect();
 println(back, uniq.len());
 ```
 
@@ -190,16 +196,18 @@ println(back, uniq.len());
 let words = ["kiwi", "fig", "apple", "fig"];
 println(words.sorted(), words.sorted_by_key(|w| w.len(), reverse: true));
 println(words.counts().most_common(1), words.group_by(|w| w.len()));
-println(words.enumerate(start: 1).map(|p| f"{p.0}.{p.1}").to_list().join(" "));
+println(words.enumerate(start: 1).map(|(i, w)| f"{i}.{w}").to_list().join(" "));
+println([1, 2, 3].combinations(2).to_list(), [1, 2, 3].pairwise().to_list());
 ```
 
 ```output
 ["apple", "fig", "fig", "kiwi"] ["apple", "kiwi", "fig", "fig"]
 [("fig", 2)] {4: ["kiwi"], 3: ["fig", "fig"], 5: ["apple"]}
 1.kiwi 2.fig 3.apple 4.fig
+[[1, 2], [1, 3], [2, 3]] [(1, 2), (2, 3)]
 ```
 
-A collection answers the iterator methods itself: `xs.sum()` is `xs.iter().sum()`, lazy as before (a `List`'s own methods such as `contains` and `windows` come first). `to_list()` gathers the items into a new `List`; `collect` builds whatever the receiving type is (`Set<i32>` above) and a `List` when nothing says. `sorted`, `sorted_by_key`, `counts` (Python's `Counter`, ranked with `most_common`), `group_by` and `enumerate(start:)` return new collections or count from where you say. `d[k, default: 0] += 1` stores `0` first when `k` is missing.
+A collection answers the iterator methods itself: `xs.sum()` is `xs.iter().sum()`, lazy as before (a `List`'s own methods such as `contains` and `windows` come first). `to_list()` gathers the items into a new `List`; `collect` builds whatever the receiving type is (`Set<i32>` above) and a `List` when nothing says. `sorted`, `sorted_by_key`, `counts` (Python's `Counter`, ranked with `most_common`), `group_by` and `enumerate(start:)` return new collections or count from where you say; `combinations(k)`, `permutations(k)` and `pairwise()` are lazy, as in Python's `itertools`. `min` and `max` need only `PartialOrd`, so they work on floats, and a float `sum` adds pairwise in a fixed order.
 
 ## Writing your own iterators: `Iterator` and `yield`
 
@@ -237,13 +245,11 @@ yield fn fib() -> i64 {
     let b = 1;
     loop {
         yield a;
-        let t = a + b;
-        a = b;
-        b = t;
+        (a, b) = (b, a + b);
     }
 }
 
-let first: List<i64> = fib().take(10).collect();
+let first = fib().take(10).to_list();
 println(f"{first:?}");
 
 let squares = yield { for i in 1..5 { yield i * i; } };
@@ -294,14 +300,14 @@ struct Vector { xs: List<f64>; }
 impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
-        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|(a, b)| a + b).collect() }
+        Vector { xs: self.xs.zip(o.xs.iter()).map(|(a, b)| a + b).to_list() }
     }
 }
 
 impl ops::DotMul<f64> for Vector {
     type Output = Vector;
     fn dot_mul(self, k: f64) -> Vector {
-        Vector { xs: self.xs.iter().map(|x| x * k).collect() }
+        Vector { xs: self.xs.map(|x| x * k).to_list() }
     }
 }
 
@@ -315,7 +321,7 @@ println(f"{c.xs:?}");
 [21.0, 42.0, 63.0]
 ```
 
-The spec defines these operators for `List` and fixed-size arrays as standard, along with `f.(xs)`, which applies a function to every element by adding a dot after it.
+The spec defines these operators for `List`, fixed-size arrays and `Array` as standard, along with `f.(xs)`, which applies a function to every element by adding a dot after it. A chain of them runs as one loop, and `ys .= expr`, `ys .+= xs` and the other `.op=` forms write into an existing list without a new one ([chapter 21](21-arrays-and-numerics.html)).
 
 ```rok
 let a = [1.0, 2.0, 3.0];
@@ -332,11 +338,11 @@ println(f"{c:?} {d:?} {r:?}");
 
 ## Summary
 
-- `List` provides `push` / `pop` / `insert` / `remove` / `sort` / `get`, `Dict` provides `d[k]` / `get` / `entry`, and `Set` provides set operations.
+- `List` provides `push` / `pop` / `insert` / `remove` / `sort` / `get`, `Dict` provides `d[k]` / `get` / `d[k, default: v]`, and `Set` provides set operations (`&`, `|`, `-`, `^`).
 - Collections are reference handles. Call `clone()` when you need a copy.
 - `xs[a:b:s]` slicing works like Python and never panics on out-of-range bounds (a step of 0 does). The result is a `Slice<T>` view; a `SliceMut<T>` writes the list.
 - `Dict` and `Set` keep insertion order; for a double-ended queue, use `Deque`.
-- Chain adapters after `iter()` and consume with `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
+- Call adapters on a collection or after `iter()` and consume with `to_list` / `collect` / `sum` / `fold`. Implement just `next` and your own type becomes an iterator.
 - `yield fn` and `yield { }` make iterators easy to write.
 
 ## Further reading

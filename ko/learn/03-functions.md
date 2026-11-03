@@ -224,7 +224,7 @@ repeat(3) |i| {
     println(f"tick {i}");
 }
 let total = measure("sum") { 1 + 2 + 3 };
-let evens: List<i32> = [1, 2, 3, 4].iter().filter |x| { x % 2 == 0 }.collect();
+let evens = [1, 2, 3, 4].filter |x| { x % 2 == 0 }.to_list();
 println(f"{total} {evens:?}");
 ```
 

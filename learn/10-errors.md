@@ -72,7 +72,7 @@ error: `main` returned an uncaught error: 42 is too big
 A bare `return;` in the top-level statements ends the script with exit code 0. With `let .. else` it stops a script whose input is missing:
 
 ```rok
-let first: str = ["a", "b"].first() else {
+let first = ["a", "b"].first() else {
     return;
 };
 println(first);
@@ -286,7 +286,7 @@ A higher-order function that takes a function as an argument can be declared `re
 
 ```rok
 fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
-    let out: List<i32> = [];
+    let out = [];
     for x in xs { out.push(try f(x)); }
     out
 }

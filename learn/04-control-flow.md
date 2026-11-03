@@ -101,7 +101,7 @@ for k in 0..10 {
 }
 println("");
 
-for (idx, name) in ["ada", "grace"].iter().enumerate() {
+for (idx, name) in ["ada", "grace"].enumerate() {
     println(f"{idx}: {name}");
 }
 ```
@@ -221,7 +221,7 @@ Without `let`, a tuple of existing places on the left of `=` assigns each of the
 - `if`, `match`, `loop`, and blocks are expressions that produce values. Branches must have the same type.
 - `match` supports literals, `|`, ranges, `@` bindings, and guards, and checks exhaustiveness.
 - `while let` repeats while the pattern matches.
-- `for x in a..b` / `a..=b` iterates over ranges; `.iter().enumerate()` iterates with indices; `x in a..b` tests a range.
+- `for x in a..b` / `a..=b` iterates over ranges; `xs.enumerate()` iterates with indices; `x in a..b` tests a range.
 - `(a, b) = (b, a + b)` assigns several places at once, after evaluating the right side.
 - `break value` and `'label:` let you exit nested loops and return a result.
 

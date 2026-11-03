@@ -102,13 +102,19 @@ println(f"a={counts["a"]} b={counts["b"]}");
 let s: Set<i32> = {1, 2, 3};
 let t: Set<i32> = {2, 3, 4};
 println(f"{2 in s} {s.intersection(t).len()} {s.union(t).len()}");
+println(f"{s & t:?} {s | t:?} {s - t:?} {s ^ t:?}");
+println(f"{counts["z", default: 0]} {[1, 2] + [3]:?}");
 ```
 
 ```output
 30 -1 true 2
 a=3 b=1
 true 2 4
+{2, 3} {1, 2, 3, 4} {1} {1, 4}
+0 [1, 2, 3]
 ```
+
+`d[k, default: v]`는 키가 없으면 `v`를 읽습니다. `=`나 `+=`의 대상, 또는 메서드의 수신자로 쓰면 먼저 `v`를 넣습니다. 집합의 `&`, `|`, `-`, `^`는 교집합, 합집합, 차집합, 대칭차이고, `+`는 두 리스트를 이어 새 리스트를 만듭니다.
 
 `ages.remove("lee")` 다음 넷째 줄에 `println(f"{ages["lee"]}");`를 쓰면 panic이 일어나고, 메시지가 대신 쓸 코드를 알려 줍니다.
 
@@ -171,7 +177,7 @@ let pairs = names.zip(xs.iter()).map(|(n, x)| f"{n}{x}").to_list();
 println(pairs);
 
 let back = xs.rev().take(2).to_list();
-let uniq: Set<i32> = [1, 1, 2].iter().collect();
+let uniq: Set<i32> = [1, 1, 2].collect();
 println(back, uniq.len());
 ```
 
@@ -190,16 +196,18 @@ println(back, uniq.len());
 let words = ["kiwi", "fig", "apple", "fig"];
 println(words.sorted(), words.sorted_by_key(|w| w.len(), reverse: true));
 println(words.counts().most_common(1), words.group_by(|w| w.len()));
-println(words.enumerate(start: 1).map(|p| f"{p.0}.{p.1}").to_list().join(" "));
+println(words.enumerate(start: 1).map(|(i, w)| f"{i}.{w}").to_list().join(" "));
+println([1, 2, 3].combinations(2).to_list(), [1, 2, 3].pairwise().to_list());
 ```
 
 ```output
 ["apple", "fig", "fig", "kiwi"] ["apple", "kiwi", "fig", "fig"]
 [("fig", 2)] {4: ["kiwi"], 3: ["fig", "fig"], 5: ["apple"]}
 1.kiwi 2.fig 3.apple 4.fig
+[[1, 2], [1, 3], [2, 3]] [(1, 2), (2, 3)]
 ```
 
-컬렉션은 반복자 메서드에 직접 답합니다. `xs.sum()`은 `xs.iter().sum()`이고 전과 같이 미리 계산하지 않습니다(`contains`, `windows` 같은 `List` 자신의 메서드가 먼저입니다). `to_list()`는 항목을 새 `List`에 모읍니다. `collect`는 받는 쪽의 타입(위의 `Set<i32>`)으로 만들고, 정하는 것이 없으면 `List`로 만듭니다. `sorted`, `sorted_by_key`, `counts`(Python의 `Counter`, 순위는 `most_common`), `group_by`, `enumerate(start:)`는 새 컬렉션을 돌려주거나 원하는 수부터 셉니다. `d[k, default: 0] += 1`은 `k`가 없으면 먼저 `0`을 넣습니다.
+컬렉션은 반복자 메서드에 직접 답합니다. `xs.sum()`은 `xs.iter().sum()`이고 전과 같이 미리 계산하지 않습니다(`contains`, `windows` 같은 `List` 자신의 메서드가 먼저입니다). `to_list()`는 항목을 새 `List`에 모읍니다. `collect`는 받는 쪽의 타입(위의 `Set<i32>`)으로 만들고, 정하는 것이 없으면 `List`로 만듭니다. `sorted`, `sorted_by_key`, `counts`(Python의 `Counter`, 순위는 `most_common`), `group_by`, `enumerate(start:)`는 새 컬렉션을 돌려주거나 원하는 수부터 셉니다. `combinations(k)`, `permutations(k)`, `pairwise()`는 Python의 `itertools`처럼 미리 계산하지 않습니다. `min`과 `max`는 `PartialOrd`만 있으면 되므로 실수에도 쓸 수 있고, 실수의 `sum`은 정해진 순서로 둘씩 짝지어 더합니다.
 
 ## 반복자 직접 만들기: `Iterator`와 `yield`
 
@@ -237,13 +245,11 @@ yield fn fib() -> i64 {
     let b = 1;
     loop {
         yield a;
-        let t = a + b;
-        a = b;
-        b = t;
+        (a, b) = (b, a + b);
     }
 }
 
-let first: List<i64> = fib().take(10).collect();
+let first = fib().take(10).to_list();
 println(f"{first:?}");
 
 let squares = yield { for i in 1..5 { yield i * i; } };
@@ -294,14 +300,14 @@ struct Vector { xs: List<f64>; }
 impl ops::DotAdd for Vector {
     type Output = Vector;
     fn dot_add(self, o: Vector) -> Vector {
-        Vector { xs: self.xs.iter().zip(o.xs.iter()).map(|(a, b)| a + b).collect() }
+        Vector { xs: self.xs.zip(o.xs.iter()).map(|(a, b)| a + b).to_list() }
     }
 }
 
 impl ops::DotMul<f64> for Vector {
     type Output = Vector;
     fn dot_mul(self, k: f64) -> Vector {
-        Vector { xs: self.xs.iter().map(|x| x * k).collect() }
+        Vector { xs: self.xs.map(|x| x * k).to_list() }
     }
 }
 
@@ -315,7 +321,7 @@ println(f"{c.xs:?}");
 [21.0, 42.0, 63.0]
 ```
 
-사양은 `List`와 고정 크기 배열에 이 연산자를 표준으로 정의합니다. 함수 뒤에 점을 붙여 모든 원소에 적용하는 `f.(xs)`도 함께 정의합니다.
+사양은 `List`, 고정 크기 배열, `Array`에 이 연산자를 표준으로 정의합니다. 함수 뒤에 점을 붙여 모든 원소에 적용하는 `f.(xs)`도 함께 정의합니다. 이 연산자를 이어 쓴 식은 루프 하나로 돌고, `ys .= expr`, `ys .+= xs` 같은 `.op=` 형태는 새 리스트 없이 기존 리스트에 씁니다([21장](21-arrays-and-numerics.html)).
 
 ```rok
 let a = [1.0, 2.0, 3.0];
@@ -332,11 +338,11 @@ println(f"{c:?} {d:?} {r:?}");
 
 ## 정리
 
-- `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `entry`가, `Set`에는 집합 연산이 있습니다.
+- `List`에는 `push` / `pop` / `insert` / `remove` / `sort` / `get`이, `Dict`에는 `d[k]` / `get` / `d[k, default: v]`가, `Set`에는 집합 연산(`&`, `|`, `-`, `^`)이 있습니다.
 - 컬렉션은 참조 핸들입니다. 복사본이 필요하면 `clone()`을 호출합니다.
 - `xs[a:b:s]` 슬라이싱은 Python처럼 동작하고 범위를 벗어나도 panic을 일으키지 않습니다(간격이 0이면 panic입니다). 결과는 `Slice<T>` 뷰이고, 리스트에 쓰려면 `SliceMut<T>`를 씁니다.
 - `Dict`와 `Set`은 삽입 순서를 지킵니다. 양방향 큐가 필요하면 `Deque`를 씁니다.
-- `iter()` 뒤에 어댑터를 이어 붙이고 `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
+- 컬렉션이나 `iter()` 뒤에 어댑터를 이어 붙이고 `to_list` / `collect` / `sum` / `fold`로 소비합니다. `next` 하나만 구현하면 내 타입이 반복자가 됩니다.
 - `yield fn`과 `yield { }`를 쓰면 반복자를 짧게 작성할 수 있습니다.
 
 ## 더 읽을거리

@@ -71,9 +71,11 @@ if let (k, v) = t.split_once(" = ") {
     println(f"key={k} value={v}");
 }
 
-let parts: List<str> = "a,b,,c".split(",").collect();
+let parts = "a,b,,c".split(",").to_list();
 println(f"{parts:?}");
 println(f"{"ab".repeat(3)} {t.to_uppercase()} {t.replace("rok", "ROK")}");
+println(f"{"stressed".reversed()} {"banana".count("an")} {"a-b-c".replacen("-", "+", 1)} {"hello rok".to_titlecase()}");
+println(42.to_str() + "px");
 
 let n: i32 = try! "42".parse();
 println(f"{n + 1}");
@@ -85,10 +87,12 @@ true true 7
 key=name value=rok
 ["a", "b", "", "c"]
 ababab NAME = ROK name = ROK
+desserts 2 a+b-c Hello Rok
+42px
 43
 ```
 
-`parse`는 실패하면 에러를 던지는 함수이므로 예제에서는 `try!`를 붙였습니다. 에러는 [다음 장](10-errors.html)에서 다룹니다. 그 밖에 `lines()`, `split_whitespace()`, `strip_prefix()`, `trim_start()` 같은 메서드가 있습니다([`str` API](../../std/core/str.html#impl.str)).
+`reversed`는 문자 순서를 뒤집고, `count`는 겹치지 않게 일치하는 횟수를 세며, `replacen`은 앞에서부터 `n`개만 바꿉니다. `to_str()`는 Python의 `str(x)`처럼 모든 `Display` 값에 있습니다. `parse`는 실패하면 에러를 던지는 함수이므로 예제에서는 `try!`를 붙였습니다. 에러는 [다음 장](10-errors.html)에서 다룹니다. 그 밖에 `lines()`, `split_whitespace()`, `strip_prefix()`, `trim_start()` 같은 메서드가 있습니다([`str` API](../../std/core/str.html#impl.str)).
 
 ## `StrBuf`: 조금씩 만들기
 
@@ -169,7 +173,7 @@ true
 바이트 하나는 `b'0'`으로 씁니다. 규칙이 같은 `u8`이며(`b'\n'`, `b'\xFF'`), 파서가 바이트를 비교할 때 편합니다.
 
 ```rok
-let digits = "a1b22".as_bytes().iter().filter(|c| b'0' <= c <= b'9').count();
+let digits = "a1b22".as_bytes().filter(|c| b'0' <= c <= b'9').count();
 println(f"{b'0'} {digits}");
 ```
 
@@ -220,7 +224,7 @@ nested: [2]
 
 ## 형식 지정자
 
-구멍의 식 뒤에 `:`을 붙여 형식을 지정합니다. 문법은 `[fill][align][sign][#][0][width][.precision][type]`입니다.
+구멍의 식 뒤에 `:`을 붙여 형식을 지정합니다. 문법은 `[fill][align][sign][#][0][width][grouping][.precision][type]`입니다.
 
 ```rok
 let pi = 3.14159;
@@ -237,6 +241,18 @@ println(f"{"hi":?} {[1, 2]:?}");
 [ab   ] [   ab] [007] [+5]
 ff 0xFF 101 ff
 "hi" [1, 2]
+```
+
+`{x=}`는 Python처럼 식의 글자, `=`, 값을 차례로 출력합니다(`{x = }`는 공백을 그대로 둡니다). 너비 뒤의 `,`나 `_`는 정수를 세 자리씩 끊고(`{1234567:,}`는 `1,234,567`), 타입 `%`는 100을 곱해 퍼센트 기호를 붙입니다(`{0.256:.1%}`는 `25.6%`).
+
+```rok
+let n = 1234567;
+let rate = 0.256;
+println(f"{n=} {n:,} {n:_} {rate:.1%} {n + 1 = }");
+```
+
+```output
+n=1234567 1,234,567 1_234_567 25.6% n + 1 = 1234568
 ```
 
 정렬을 지정하지 않으면 숫자는 오른쪽, 그 밖의 값은 왼쪽으로 정렬됩니다. `?`는 `Debug` 형식을 고르고, 문자열을 따옴표와 이스케이프까지 포함해 보여 줍니다. 컴파일러는 지정자가 구멍의 타입과 맞는지 컴파일 시점에 검사합니다. 그래서 `{s:x}`(`s: str`) 같은 실수는 바로 에러가 됩니다.
@@ -288,7 +304,7 @@ println(f"{Shape::Circle(1.5):?} {Shape::Rect { w: 2.5, h: 3.0 }:?}");
 Circle(1.5) Rect { w: 2.5, h: 3.0 }
 ```
 
-너비와 정렬(`{p:>10}`)은 `fmt`가 쓴 출력 전체에 적용됩니다. `Display`를 구현하면 그 타입을 f-string 어디에든 바로 넣을 수 있습니다. `Debug`가 있으면 그 타입을 담은 `List`나 `Dict`도 `{:?}`로 출력할 수 있습니다. `{3.0}`이 `3`으로 출력되는 이유는 부동소수 수의 기본 출력이 "다시 읽었을 때 같은 값이 되는 가장 짧은 표현"이기 때문입니다. `Debug`는 정수 값에 `.0`을 붙이므로 `h: 3.0`은 부동소수로 읽힙니다. `{p:#?}`는 구조체나 컬렉션을 필드나 원소 하나씩 한 줄에 들여 써서 출력합니다.
+출력이 필드에 대한 f-string 하나라면 타입에 `#[display("({self.x}, {self.y})")]`를 붙여 같은 `impl Display`를 얻습니다. enum에서는 variant마다 따로 붙이고, 필드는 이름(`{w}`)이나 위치(`{_0}`)로 씁니다. 너비와 정렬(`{p:>10}`)은 `fmt`가 쓴 출력 전체에 적용됩니다. `Display`를 구현하면 그 타입을 f-string 어디에든 바로 넣을 수 있습니다. `Debug`가 있으면 그 타입을 담은 `List`나 `Dict`도 `{:?}`로 출력할 수 있습니다. `{3.0}`이 `3`으로 출력되는 이유는 부동소수 수의 기본 출력이 "다시 읽었을 때 같은 값이 되는 가장 짧은 표현"이기 때문입니다. `Debug`는 정수 값에 `.0`을 붙이므로 `h: 3.0`은 부동소수로 읽힙니다. `{p:#?}`는 구조체나 컬렉션을 필드나 원소 하나씩 한 줄에 들여 써서 출력합니다.
 
 ## 정리
 
@@ -298,7 +314,7 @@ Circle(1.5) Rect { w: 2.5, h: 3.0 }
 - `b"..."`는 `[u8; N]`(기대되는 자리에서는 `Slice<u8>`)입니다. `include_str!` / `include_bytes!`는 컴파일 시점에 파일을 포함합니다.
 - f-string의 구멍에는 바깥과 같은 따옴표를 포함해 어떤 식이든 들어갑니다. `{{`와 `}}`는 중괄호 자체입니다.
 - `:.2`, `:>8`, `:x`, `:?` 같은 지정자로 형식을 정하고, `${..}`로 동적으로 만듭니다.
-- 내 타입에는 `Display`를 직접 구현하고 `Debug`는 derive로 구현합니다.
+- 내 타입에는 `Display`를 직접 구현하고(또는 `#[display("..")]`를 붙이고) `Debug`는 derive로 구현합니다. `{x=}`는 이름과 값을 함께 보여 주고, `{n:,}`는 자릿수를 끊으며, `to_str()`는 어떤 `Display` 값이든 `str`로 바꿉니다.
 
 ## 더 읽을거리
 

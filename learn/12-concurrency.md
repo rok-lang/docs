@@ -14,12 +14,12 @@ Which of these need a `use`? The prelude ([chapter 11](11-modules-packages.html)
 ```rok
 use rok::std::thread;
 
-let handles: List<thread::JoinHandle<i32>> = [];
+let handles = [];
 for i in 1..=4 {
     handles.push(thread::spawn(|| i * i));
 }
 
-let results: List<i32> = [];
+let results = [];
 for h in handles {
     results.push(try h.join());
 }
@@ -58,7 +58,7 @@ for id in 0..3 {
 }
 tx.close();
 
-let got: List<str> = [];
+let got = [];
 for msg in rx {
     got.push(msg);
 }
@@ -76,7 +76,7 @@ A `Sender` has one owner: `let tx2 = tx` moves it (using `tx` afterwards is an e
 
 ## `Mutex` and `Atomic`
 
-When several threads modify the same value, you need synchronization. For a single integer counter use `Atomic`; wrap other values in a `Mutex`. The guard returned by `Mutex::lock()` must be bound with `using` so the lock is released when the block ends (the same rule as `using` in [chapter 10](10-errors.html)).
+When several threads modify the same value, you need synchronization. For a single integer counter use `Atomic`; wrap other values in a `Mutex`. The guard returned by `Mutex::lock()` must be bound with `using` so the lock is released when the block ends (the same rule as `using` in [chapter 10](10-errors.html)). For one short step, `m.with(|v| ..)` takes the lock, calls the closure with the value and releases the lock when it returns, as the example below does; `RwLock` has `read_with` and `write_with`.
 
 ```rok
 use rok::std::thread;

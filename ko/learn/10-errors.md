@@ -72,7 +72,7 @@ error: `main` returned an uncaught error: 42 is too big
 최상위 문장의 `return;`은 스크립트를 종료 코드 0으로 끝냅니다. `let .. else`와 함께 쓰면 입력이 없을 때 스크립트를 멈출 수 있습니다.
 
 ```rok
-let first: str = ["a", "b"].first() else {
+let first = ["a", "b"].first() else {
     return;
 };
 println(first);
@@ -286,7 +286,7 @@ missing: b
 
 ```rok
 fn apply_all(xs: List<i32>, f: fn(i32) throws -> i32) rethrows -> List<i32> {
-    let out: List<i32> = [];
+    let out = [];
     for x in xs { out.push(try f(x)); }
     out
 }

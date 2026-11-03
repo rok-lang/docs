@@ -19,10 +19,10 @@ println(f"{2.0 ** -1} {2.0 ** 0.5}");
 0.5 1.4142135623730951
 ```
 
-정수 밑은 `u32` 지수를 받아 자기 타입의 정수를 줍니다. 오버플로는 `*`처럼 panic합니다. 부동소수 밑은 부동소수 지수나 `i32` 지수를 받습니다(`i32`면 반복 곱셈을 씁니다). 지수가 밑과 같은 타입일 필요는 없습니다. `n: i64`에 대한 `n ** 2`도 되고, 리터럴은 `u32`가 됩니다. `2 ** -1`은 답이 분수이므로 컴파일 에러이며, 에러는 `2.0 ** -1.0`으로 쓰라고 알려 줍니다. `**=`는 제자리 거듭제곱이고 `.**`는 원소별 형태입니다.
+정수 밑은 `u32` 지수를 받아 자기 타입의 정수를 줍니다. 오버플로는 `*`처럼 panic합니다. 부동소수 밑은 부동소수 지수나 `i32` 지수를 받습니다(`i32`면 반복 곱셈을 씁니다). 지수가 밑과 같은 타입일 필요는 없습니다. `i64`인 `n`에 대한 `n ** 2`도 되고, 리터럴은 `u32`가 됩니다. `2 ** -1`은 답이 분수이므로 컴파일 에러이며, 에러는 `2.0 ** -1.0`으로 쓰라고 알려 줍니다. `**=`는 제자리 거듭제곱이고 `.**`는 원소별 형태입니다.
 
 ```rok
-let n: i64 = 7;
+let n = 7;
 let k: u32 = 3;
 let y = 1.5;
 y **= 2;
@@ -272,7 +272,7 @@ use rok::core::array::Array;
 let a: Array<i64, 2> = [[1, 2], [3, 4]];
 let total = a.sum();
 let sq = a.map(|x: i64| -> i64 { x * x });
-let parts: List<str> = [];
+let parts = [];
 for x in a.t() {
     parts.push(f"{x}");
 }
@@ -281,6 +281,55 @@ println(f"{total} {sq:?} {parts.join(" ")}");
 
 ```output
 10 [[1, 4], [9, 16]] 1 3 2 4
+```
+
+## 부동소수, 복소수, 난수
+
+`num::FloatingPoint`는 `f32`와 `f64`를 함께 다루는 코드의 바운드입니다. 상수(`T::NAN`, `T::PI`)와 수학 함수(`sqrt`, `exp`, `sin`, ...)를 한 트레이트로 묶습니다. `num::Num`은 모든 정수·부동소수 타입이 만족하는 더 넓은 바운드로, `+ - * /`, `0`, `1`, 비교를 줍니다. 부동소수 리스트와 반복자에는 `min`, `max`, `sum`이 있습니다. 항목 가운데 NaN이 있으면 `min`과 `max`는 NaN이 되고, `sum`은 정해진 순서로 둘씩 더하므로 결과가 플랫폼에 따라 달라지지 않습니다. 부동소수는 일부만 순서가 있으니 정렬은 `total_cmp`로 합니다. `num::linspace(a, b, n)`은 `a`부터 `b`까지 고르게 놓인 값 `n`개를, `num::arange(a, b, step)`은 `a`부터 `b` 직전까지 `step`씩 늘린 값을 줍니다.
+
+```rok
+fn hypot<T: num::FloatingPoint>(a: T, b: T) -> T { (a * a + b * b).sqrt() }
+println(f"{hypot(3.0, 4.0)} {hypot(5.0f32, 12.0f32)}");
+
+let xs = [2.5, -1.0, 7.0, 0.5];
+println(f"{xs.max() ?? 0.0} {xs.sum()} {xs.sorted_by(|a, b| a.total_cmp(b)):?}");
+println(f"{num::linspace(0.0, 1.0, 5):?}");
+```
+
+```output
+5 13
+7 9 [-1.0, 0.5, 2.5, 7.0]
+[0.0, 0.25, 0.5, 0.75, 1.0]
+```
+
+`num::Complex<T>`는 `f32`나 `f64` 위의 복소수이고, `i` 접미사로 허수부를 씁니다: `3.0 + 4.0i`. 산술 연산자를 양쪽 어디에 실수가 와도 쓸 수 있고, `abs`, `arg`, `conj`, `exp`, `ln`, `sqrt`, `pow`가 있습니다.
+
+```rok
+let z = 3.0 + 4.0i;
+println(f"{z} {z.abs()} {z * 2i} {z.conj()}");
+```
+
+```output
+3+4i 5 -8+6i 3-4i
+```
+
+`rok::std::random`에는 운영체제가 시드를 준 생성기에서 뽑는 한 번 호출 형태(`random::range(1..7)`, `random::f64()`, `random::choice(xs)`, `random::shuffle(xs)`)가 있습니다. 다시 돌려도 같은 결과가 필요하면 `seed`로 `Xoshiro256PlusPlus`를 만듭니다. 같은 시드는 모든 타깃과 릴리스에서 같은 수를 줍니다. 메서드는 `Rng` 트레이트에서 옵니다(`range`, `uniform`, `normal`, `choice`, `sample`, `shuffle`). `split()`은 다른 스레드에 줄 독립된 생성기를 만듭니다. 키나 토큰에는 모든 수를 운영체제에서 뽑는 `OsRng`를 씁니다.
+
+```rok
+use rok::std::random;
+use rok::std::random::{Rng, Xoshiro256PlusPlus};
+
+let a = Xoshiro256PlusPlus::seed(7);
+let b = Xoshiro256PlusPlus::seed(7);
+println(a.range(1..7) == b.range(1..7));
+println(0.0 <= a.uniform(0.0, 1.0) < 1.0);
+println(random::range(1..7) in 1..7);
+```
+
+```output
+true
+true
+true
 ```
 
 ## 메모리와 속도

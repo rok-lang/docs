@@ -14,12 +14,12 @@
 ```rok
 use rok::std::thread;
 
-let handles: List<thread::JoinHandle<i32>> = [];
+let handles = [];
 for i in 1..=4 {
     handles.push(thread::spawn(|| i * i));
 }
 
-let results: List<i32> = [];
+let results = [];
 for h in handles {
     results.push(try h.join());
 }
@@ -58,7 +58,7 @@ for id in 0..3 {
 }
 tx.close();
 
-let got: List<str> = [];
+let got = [];
 for msg in rx {
     got.push(msg);
 }
@@ -76,7 +76,7 @@ println(f"{got:?}");
 
 ## `Mutex`와 `Atomic`
 
-여러 스레드가 같은 값을 바꾸면 동기화가 필요합니다. 정수 카운터 하나에는 `Atomic`을 쓰고, 그 밖의 값은 `Mutex`로 감쌉니다. `Mutex::lock()`이 반환하는 가드(guard)는 `using`으로 바인딩해야 합니다. 그래야 블록이 끝날 때 잠금이 풀립니다. [10장](10-errors.html)의 `using`과 같은 규칙입니다.
+여러 스레드가 같은 값을 바꾸면 동기화가 필요합니다. 정수 카운터 하나에는 `Atomic`을 쓰고, 그 밖의 값은 `Mutex`로 감쌉니다. `Mutex::lock()`이 반환하는 가드(guard)는 `using`으로 바인딩해야 합니다. 그래야 블록이 끝날 때 잠금이 풀립니다. [10장](10-errors.html)의 `using`과 같은 규칙입니다. 짧은 한 단계라면 `m.with(|v| ..)`가 잠금을 잡고 값을 넘겨 클로저를 부른 뒤, 클로저가 돌아오면 잠금을 풉니다. 아래 예제가 그렇게 씁니다. `RwLock`에는 `read_with`와 `write_with`가 있습니다.
 
 ```rok
 use rok::std::thread;

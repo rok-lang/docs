@@ -198,6 +198,21 @@ Hello, linus!
 
 `f"..."` is an f-string: each expression inside `{}` is evaluated and inserted in place. `greet` is declared below its use, yet the call works, because declarations such as functions are visible regardless of order.
 
+`println` also takes several values and prints them with a space between, `sep:` and `end:` change what goes between and after them, and `dbg(e)` prints an expression with its place and value to stderr while you debug:
+
+```rok
+let n = 3;
+println("total:", n, [1, 2]);
+println(1, 2, 3, sep: ", ");
+println(f"{n=}");
+```
+
+```output
+total: 3 [1, 2]
+1, 2, 3
+n=3
+```
+
 Instead of top-level statements, you can use `fn main()` as the entry point. Use one or the other.
 
 ```rok

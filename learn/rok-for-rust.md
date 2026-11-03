@@ -53,7 +53,7 @@ error[E0012]: rok has no `let mut`: variables are mutable by default
    = help: drop `mut`: `let total = ..;`
 ```
 
-The other Rust spellings stop the build the same way, and each help writes the Rok form: `&x` and `&mut x`, `&T` and `&mut self`, lifetimes, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::` and `super::`, `Vec`, `String` and `HashMap`, `Ok(x)` and `Err(e)` in a `throws` function, and `.unwrap()` on a call that throws.
+The other Rust spellings stop the build the same way, and each help writes the Rok form: `&x` and `&mut x`, `&T` and `&mut self`, lifetimes, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::` and `super::`, `Vec`, `String` and `HashMap`, `Ok(x)` and `Err(e)` in a `throws` function, and `.unwrap()` on a call that throws. One mistake gives one error: `Rc::new(RefCell::new(x))` is reported once, with the whole Rok form (`Cell::new(x)`).
 
 ## Memory: a GC, values and handles
 
@@ -195,7 +195,7 @@ fn show(v: i32 | str | none) -> str {
 let u = User { name: "ada", nick: "bob" };
 println(f"{nick_len(u):?} {nick_len(none):?}");
 println(u.nick ?? "-");
-if let n: str = u.nick { println(n.to_uppercase()); }
+if let n = u.nick { println(n.to_uppercase()); }
 println(f"{show(-1)}, {show(7)}, {show("x")}, {show(none)}");
 
 enum Shape { Circle(f64), Rect { w: f64; h: f64; }, Empty }
@@ -216,11 +216,11 @@ negative, int 7, str x, nothing
 6
 ```
 
-The variants of the enum a `match` is on are written bare (`Circle(r)`, not `Shape::Circle(r)`). `if let x: T = e` takes the `T` out of a sum, where Rust writes `if let Some(x) = e`.
+The variants of the enum a `match` is on are written bare (`Circle(r)`, not `Shape::Circle(r)`). `if let x = e` takes the value out of a `T?`, where Rust writes `if let Some(x) = e`; `if let x: T = e` picks one member of a wider sum.
 
 ## Traits, generics and `impl`
 
-Traits, `impl Trait for Type`, generic bounds, `where` clauses, default methods and associated types work as in Rust, and so does the orphan rule: an `impl` needs the trait or the type to come from your package ([E0076](../errors/E0076.html)). The differences:
+Traits, `impl Trait for Type`, generic bounds, `where` clauses, default methods and associated types work as in Rust, and so does the orphan rule: an `impl` needs the trait or the type to come from your package, and a local type among the trait's arguments counts too, ahead of any bare type parameter (`impl Mul<Matrix> for f64`) ([E0076](../errors/E0076.html)). The differences:
 
 - A trait is not a type. `dyn Trait` is `any Trait`, with no `Box`: `List<any Shape>` holds values of any type that implements `Shape`. `impl Trait` is `some Trait`, in argument and return position: `fn area(s: some Shape)` is a generic parameter with no name, `fn evens() -> some Iterator<Item = i32>` hides the type it returns. Rust's `type X = impl Trait;` (type alias `impl Trait`) is `type X = some Trait;`: the functions of X's module that return `X` define it, and other modules see only the bounds.
 - A parameter with no type is generic: `fn loud(x) -> str { x.to_uppercase() }` accepts any type with the methods the body calls.
@@ -294,7 +294,7 @@ println(big.pow(100));
 1267650600228229401496703205376
 ```
 
-`%%` is the floored remainder, Rust's `rem_euclid` for a positive divisor. `x.pow(n)` is a method, as in Rust.
+`%%` is the floored remainder, Rust's `rem_euclid` for a positive divisor. `x.pow(n)` is a method, as in Rust, and `x ** n` is the operator form (an integer base takes a `u32` exponent).
 
 ## Operators
 
@@ -302,7 +302,8 @@ The arithmetic, bitwise and comparison operators and their precedence are Rust's
 
 - Chained comparisons: `0 <= i < n`.
 - `in` and `!in` for membership: `x in xs`, `k !in dict`.
-- Element-wise "dot" operators, `.+`, `.*`, `.>` and others, which apply an operator to each element of a list ([chapter 8](08-collections-iterators.html#advanced-broadcast-operators)).
+- Element-wise "dot" operators, `.+`, `.*`, `.>` and others, which apply an operator to each element of a list or an `Array`, and their in-place forms `.=` and `.+=` ([chapter 8](08-collections-iterators.html#advanced-broadcast-operators), [chapter 21](21-arrays-and-numerics.html)).
+- `**` for powers: `2 ** 10`, `x ** 0.5`.
 - `??` for a default and `?.` for chaining through `none`.
 - `/` on a `Path` joins paths: `dir / "file.txt"`.
 
@@ -475,7 +476,7 @@ println(gcd(12, 18));
 | closure mutating a captured local | `[ref x] \|\| { x += 1; }` |
 | `Option<T>`, `Some(x)`, `None` | `T?`, `x`, `none` |
 | `opt.unwrap_or(d)`, `opt.map(\|v\| v.f())` | `opt ?? d`, `opt?.f()` |
-| `if let Some(x) = opt` | `if let x: T = opt` |
+| `if let Some(x) = opt` | `if let x = opt` |
 | `fn f() -> Result<T, E>` | `fn f() throws -> T` |
 | `f()?`, `f().unwrap()`, `f().ok()` | `try f()`, `try! f()`, `try? f()` |
 | `Err("msg".into())`, `anyhow!("msg")` | `throw "msg"` |

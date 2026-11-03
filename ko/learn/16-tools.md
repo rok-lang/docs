@@ -346,7 +346,7 @@ error: the cell panicked; the session is unchanged
 error: `f: closure(i32) -> i32` cannot be kept for later cells (its type has no name)
 ```
 
-바인딩에 함수 타입을 주면(`let f: fn(i32) -> i32 = |n: i32| n * x`) 이후 셀로 이어집니다. `fn`도 이어지지만 `x` 같은 셀 변수는 보지 못하므로 인자로 넘기세요. `xs.iter().map(|n| n * x)`처럼 셀 안에서 쓰는 클로저는 평소대로 동작합니다.
+바인딩에 함수 타입을 주면(`let f: fn(i32) -> i32 = |n: i32| n * x`) 이후 셀로 이어집니다. `fn`도 이어지지만 `x` 같은 셀 변수는 보지 못하므로 인자로 넘기세요. `xs.map(|n| n * x)`처럼 셀 안에서 쓰는 클로저는 평소대로 동작합니다.
 
 터미널에서 REPL은 줄 편집을 직접 합니다.
 

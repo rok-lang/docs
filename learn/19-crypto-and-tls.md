@@ -50,10 +50,10 @@ let aead = try! Aead::new(AeadAlgorithm::ChaCha20Poly1305, key);
 let sealed = try! aead.seal(nonce, "v1", "meet at noon");
 println(f"{sealed.len()} bytes sealed");  // 12 bytes of text + a 16-byte tag
 
-if let plain: List<u8> = try! aead.open(nonce, "v1", sealed) {
+if let plain = try! aead.open(nonce, "v1", sealed) {
     println(try! str::from_utf8(plain));
 }
-sealed[0] = sealed[0] ^ 1u8;              // tamper with one bit
+sealed[0] = sealed[0] ^ 1;              // tamper with one bit
 println(f"tampered: {(try! aead.open(nonce, "v1", sealed)) is none}");
 
 let signer = try! SigningKey::from_seed(random::secret(32));   // the private key

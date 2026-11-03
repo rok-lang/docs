@@ -53,7 +53,7 @@ error[E0012]: rok has no `let mut`: variables are mutable by default
    = help: drop `mut`: `let total = ..;`
 ```
 
-다른 Rust 표기도 같은 식으로 빌드를 멈추고, 도움말이 Rok 형태를 적어 줍니다. `&x`와 `&mut x`, `&T`와 `&mut self`, 수명, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::`와 `super::`, `Vec`, `String`, `HashMap`, `throws` 함수 안의 `Ok(x)`와 `Err(e)`, 에러를 던지는 호출 뒤의 `.unwrap()`이 그렇습니다.
+다른 Rust 표기도 같은 식으로 빌드를 멈추고, 도움말이 Rok 형태를 적어 줍니다. `&x`와 `&mut x`, `&T`와 `&mut self`, 수명, `impl Trait`, `Box<dyn Trait>`, `Fn(i32) -> i32`, `move ||`, `println!`, `vec![..]`, `format!`, `macro_rules!`, `pub(crate)`, `crate::`와 `super::`, `Vec`, `String`, `HashMap`, `throws` 함수 안의 `Ok(x)`와 `Err(e)`, 에러를 던지는 호출 뒤의 `.unwrap()`이 그렇습니다. 실수 하나에는 에러 하나입니다. `Rc::new(RefCell::new(x))`는 한 번만 보고되고, help가 Rok 형태 전체(`Cell::new(x)`)를 적어 줍니다.
 
 ## 메모리: GC, 값과 핸들
 
@@ -195,7 +195,7 @@ fn show(v: i32 | str | none) -> str {
 let u = User { name: "ada", nick: "bob" };
 println(f"{nick_len(u):?} {nick_len(none):?}");
 println(u.nick ?? "-");
-if let n: str = u.nick { println(n.to_uppercase()); }
+if let n = u.nick { println(n.to_uppercase()); }
 println(f"{show(-1)}, {show(7)}, {show("x")}, {show(none)}");
 
 enum Shape { Circle(f64), Rect { w: f64; h: f64; }, Empty }
@@ -216,11 +216,11 @@ negative, int 7, str x, nothing
 6
 ```
 
-`match`하는 enum의 variant는 그냥 이름만 씁니다(`Shape::Circle(r)`이 아니라 `Circle(r)`). `if let x: T = e`는 합 타입에서 `T`를 꺼냅니다. Rust의 `if let Some(x) = e`에 해당합니다.
+`match`하는 enum의 variant는 그냥 이름만 씁니다(`Shape::Circle(r)`이 아니라 `Circle(r)`). `if let x = e`는 `T?`에서 값을 꺼냅니다. Rust의 `if let Some(x) = e`에 해당합니다. `if let x: T = e`는 더 넓은 합 타입에서 한 멤버를 고릅니다.
 
 ## 트레이트, 제네릭, `impl`
 
-트레이트, `impl Trait for Type`, 제네릭 바운드, `where` 절, 기본 메서드, 연관 타입은 Rust와 같고, orphan rule도 같습니다. `impl`에는 트레이트나 타입 가운데 하나가 내 패키지에 있어야 합니다([E0076](../errors/E0076.html)). 다른 점은 이렇습니다.
+트레이트, `impl Trait for Type`, 제네릭 바운드, `where` 절, 기본 메서드, 연관 타입은 Rust와 같고, orphan rule도 같습니다. `impl`에는 트레이트나 타입 가운데 하나가 내 패키지에 있어야 하고, 트레이트 인자 안의 로컬 타입도 맨 타입 매개변수보다 앞에 있으면 칩니다(`impl Mul<Matrix> for f64`)([E0076](../errors/E0076.html)). 다른 점은 이렇습니다.
 
 - 트레이트는 타입이 아닙니다. `dyn Trait`은 `any Trait`이고 `Box`가 필요 없습니다. `List<any Shape>`는 `Shape`를 구현한 어떤 타입의 값이든 담습니다. 인자와 반환 자리의 `impl Trait`은 `some Trait`입니다. `fn area(s: some Shape)`는 이름 없는 제네릭 매개변수이고, `fn evens() -> some Iterator<Item = i32>`는 반환하는 타입을 숨깁니다. Rust의 `type X = impl Trait;`(type alias `impl Trait`)은 `type X = some Trait;`입니다. X의 모듈에서 `X`를 반환하는 함수가 정의하고, 다른 모듈은 바운드만 봅니다.
 - 타입을 적지 않은 매개변수는 제네릭입니다. `fn loud(x) -> str { x.to_uppercase() }`는 본문이 부르는 메서드가 있는 타입이면 무엇이든 받습니다.
@@ -294,7 +294,7 @@ println(big.pow(100));
 1267650600228229401496703205376
 ```
 
-`%%`는 내림 나머지로, 나누는 수가 양수일 때 Rust의 `rem_euclid`와 같습니다. `x.pow(n)`은 Rust처럼 메서드입니다.
+`%%`는 내림 나머지로, 나누는 수가 양수일 때 Rust의 `rem_euclid`와 같습니다. `x.pow(n)`은 Rust처럼 메서드이고, 연산자로는 `x ** n`입니다(정수 밑은 `u32` 지수를 받습니다).
 
 ## 연산자
 
@@ -302,7 +302,8 @@ println(big.pow(100));
 
 - 연쇄 비교: `0 <= i < n`.
 - 포함 여부를 보는 `in`과 `!in`: `x in xs`, `k !in dict`.
-- 리스트의 각 원소에 연산자를 적용하는 원소별 "점" 연산자 `.+`, `.*`, `.>` 등([8장](08-collections-iterators.html#advanced-broadcast-operators)).
+- 리스트나 `Array`의 각 원소에 연산자를 적용하는 원소별 "점" 연산자 `.+`, `.*`, `.>` 등과 제자리 형태 `.=`, `.+=`([8장](08-collections-iterators.html#advanced-broadcast-operators), [21장](21-arrays-and-numerics.html)).
+- 거듭제곱 `**`: `2 ** 10`, `x ** 0.5`.
 - 기본값을 주는 `??`와 `none`을 건너 체이닝하는 `?.`.
 - `Path`에 쓰는 `/`는 경로를 잇습니다: `dir / "file.txt"`.
 
@@ -475,7 +476,7 @@ println(gcd(12, 18));
 | 캡처한 지역 변수를 바꾸는 클로저 | `[ref x] \|\| { x += 1; }` |
 | `Option<T>`, `Some(x)`, `None` | `T?`, `x`, `none` |
 | `opt.unwrap_or(d)`, `opt.map(\|v\| v.f())` | `opt ?? d`, `opt?.f()` |
-| `if let Some(x) = opt` | `if let x: T = opt` |
+| `if let Some(x) = opt` | `if let x = opt` |
 | `fn f() -> Result<T, E>` | `fn f() throws -> T` |
 | `f()?`, `f().unwrap()`, `f().ok()` | `try f()`, `try! f()`, `try? f()` |
 | `Err("msg".into())`, `anyhow!("msg")` | `throw "msg"` |

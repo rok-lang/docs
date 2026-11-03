@@ -186,14 +186,16 @@ println(f"{i % len} {i %% len}");
 -1 4
 ```
 
-**Operators bind as in Rust.** `*` `/` `%` bind tighter than `+` `-`, those tighter than the shifts `<<` `>>`, then `&`, `^`, `|`, and all of them tighter than comparisons. So `1 + 2 << 3` is `(1 + 2) << 3`, and `x & mask == 0` is `(x & mask) == 0`, not C's `x & (mask == 0)`.
+**Operators bind as in Rust.** `*` `/` `%` bind tighter than `+` `-`, those tighter than the shifts `<<` `>>`, then `&`, `^`, `|`, and all of them tighter than comparisons. So `1 + 2 << 3` is `(1 + 2) << 3`, and `x & mask == 0` is `(x & mask) == 0`, not C's `x & (mask == 0)`. The power operator `**` binds tightest, tighter than a leading `-`, and groups to the right, as in Python: `-2 ** 2` is `-4`, and `2 ** 3 ** 2` is `2 ** 9`. An integer base takes a `u32` exponent.
 
 ```rok
 println(f"{1 + 2 << 3} {6 & 3 == 2}");
+println(f"{2 ** 10} {-2 ** 2} {2 ** 3 ** 2} {1.5 ** 2.0}");
 ```
 
 ```output
 24 true
+1024 -4 512 2.25
 ```
 
 **Overflow panics.** Going past the range of a fixed-width integer panics in every build, debug or `--release`, so a wrong value never slips through silently.
@@ -293,7 +295,7 @@ println(f"{grid:?} {grid[1][0]} {grid.len()}");
 [[1, 2], [3, 4]] 3 2
 ```
 
-When the element type can't be inferred from the elements, as with an empty list, write the type: `let xs: List<i32> = [];`.
+An empty list takes its element type from later uses: after `let xs = []; xs.push(1u8);`, `xs` is a `List<u8>`. When nothing in the function says, write the type: `let xs: List<i32> = [];`.
 
 ## Big integers: `int`
 

@@ -21,7 +21,7 @@ Python 프로그래머를 위한 안내입니다. 그대로 통하는 것, Rok�
 - truthiness가 없습니다. 조건은 `bool`이어야 하니 `!xs.is_empty()`, `n != 0`, `x != none`처럼 씁니다.
 - 값이 없음은 `none`이고, 그것을 담을 수 있는 타입은 `T | none`으로 씁니다.
 - 정수의 `/`는 0 쪽으로 버립니다(`7 / 2`는 `3`). 내림 나눗셈은 `n.div_floor(2)`이고, `%%`가 내림 나머지입니다. `//`는 주석의 시작입니다.
-- `i32`가 넘치면 panic이 납니다. `i64`를 쓰거나, 크기 제한이 없는 `int`를 쓰세요.
+- 정수가 자기 타입의 범위를 넘치면 panic이 납니다. 접미사 없는 정수는 쓰임이 다른 타입을 정하지 않으면 `i64`이고, 크기 제한이 없는 것은 `int`입니다.
 - 구조체는 값입니다. `let q = p;`는 복사합니다. `List`, `Dict`, `Set`은 Python처럼 공유되는 핸들입니다.
 - `str` 슬라이스는 문자가 아니라 바이트를 셉니다. 문자 단위로 다니려면 `s.chars()`를 씁니다.
 
@@ -129,12 +129,12 @@ Python의 `lambda x: x + 1`은 클로저 `|x| x + 1`입니다.
 
 ## `None` 대신 `none`
 
-아무것도 못 찾을 수 있는 함수는 `T | none`을 반환합니다. `??`는 기본값을 주고, `x == none`은 검사하고, `if let`은 값을 꺼냅니다.
+아무것도 못 찾을 수 있는 함수는 `T | none`을 반환합니다. `??`는 기본값을 주고, `x == none`은 검사하고, `if let`은 값을 꺼냅니다. `x != none` 뒤나 `if x == none { return; }` 아래에서는 `x`가 값 자체입니다.
 
 ```rok
 let xs = ["a", "b"];
 let i = xs.position(|x| x == "b");
-if let k: usize = i { println(f"found at {k}"); }
+if let k = i { println(f"found at {k}"); }
 println(xs.position(|x| x == "z") ?? 99);
 if !xs.is_empty() { println(f"{xs.len()} items"); }
 ```
@@ -335,6 +335,9 @@ ababab
 | `for i, x in enumerate(xs)` | `for (i, x) in xs.enumerate()` |
 | `for k, v in d.items()` | `for (k, v) in d` |
 | `[f(x) for x in xs if c]` | `xs.filter(\|x\| c).map(\|x\| f(x)).to_list()` |
+| `sorted(xs, key=f, reverse=True)` | `xs.sorted_by_key(f)`, `xs.sorted(reverse: true)` |
+| `d.get(k, 0)`, `defaultdict(int)`와 `d[k] += 1` | `d[k, default: 0]`, `d[k, default: 0] += 1` |
+| `print(f"{x=}")`, 값을 찍어 보는 디버깅 | `f"{x=}"`, `dbg(x)` |
 | `x ** 2`, `n // 2` | `x ** 2`, `n.div_floor(2)` |
 | `raise ValueError("m")` / `except E as e` | `throw "m"` / `catch e: E` |
 | `with open(p) as f:` | `using f = try File::open(p);` |
@@ -343,7 +346,7 @@ ababab
 | `C("h", 1)` | `C { host: "h", port: 1 }` |
 | `import m` / `from m import x` | `use m;` / `use m::x;` |
 
-이 Python 형태를 Rok에 쓰면 빌드가 에러로 멈추고, 에러의 help가 대신 쓸 Rok 형태를 보여 줍니다.
+이 Python 형태를 Rok에 쓰면 빌드가 에러 하나로 멈추고, 그 help가 대신 쓸 Rok 형태를 보여 줍니다: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, 컴프리헨션(help가 반복자 체인을 써 줍니다), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math`와 `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, 함수로 부른 내장 함수(`len(xs)`, `str(x)`, `int(s)`), `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness(`if xs:`), `self` 없는 메서드.
 
 ## Python 모듈을 Rok에서
 
@@ -353,13 +356,16 @@ ababab
 | `os`, `sys` | `rok::std::env`(`env::args()`, `env::var(..)`), `rok::std::process`(`process::exit(..)`, `process::id()`) |
 | `os.path`, `pathlib` | `rok::std::path::Path`(`Path::new("a") / "b"`), `rok::std::fs` |
 | `open`, `shutil` | `rok::std::fs`(`fs::read_to_str`, `fs::write`, `File::open`) |
-| `subprocess` | `rok::std::process::Command` |
-| `random` | `rok::std::random`(`random::range(1..7)`, `random::choice(xs)`, `random::shuffle(xs)`) |
+| `subprocess` | `rok::std::process`(출력이 필요하면 `process::run("git", ["status"])`, 파이프는 `Command`) |
+| `glob` | `fs::glob("*.txt")` |
+| `random` | `rok::std::random`(`random::range(1..7)`, `random::choice(xs)`, `random::shuffle(xs)`. 시드를 준 `Rng`는 `Xoshiro256PlusPlus::seed(42)`) |
+| `cmath`, `complex` | `Complex`와 `i` 접미사: `3.0 + 4.0i` |
+| `numpy.linspace`, `numpy.arange` | `num::linspace(0.0, 1.0, 5)`, `num::arange(0.0, 1.0, 0.25)`. n차원 데이터는 `Array`([21장](21-arrays-and-numerics.html)) |
 | `time` | `rok::core::time`(`Instant::now()`, `Duration`) |
 | `threading` | `rok::std::thread`(`thread::spawn(..)`, `join`) |
 | `asyncio` | 언어에 들어 있는 `async fn`과 `await` |
-| `collections` | 기본으로 있는 `Dict`, `Set`, `Deque`, `BinaryHeap` |
-| `itertools`, `functools` | 반복자 메서드: `zip`, `chain`, `windows`, `chunks`, `fold`, `reduce`, `scan` |
+| `collections` | 기본으로 있는 `Dict`, `Set`, `Deque`, `BinaryHeap`. `Counter`는 `xs.counts()`와 `most_common(n)`, `defaultdict`는 `d[k, default: v]` |
+| `itertools`, `functools` | 반복자 메서드: `zip`, `chain`, `windows`, `chunks`, `pairwise`, `combinations`, `permutations`, `group_by`, `fold`, `reduce`, `scan` |
 | `json` | `json` stone: `rok add json` |
 | `input()` | `try io::input("prompt")` |
 | `unittest`, `pytest` | `#[test]` 함수와 `rok test` |

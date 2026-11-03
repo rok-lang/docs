@@ -328,7 +328,7 @@ A trait whose impls promise something the compiler cannot check is declared `uns
 
 ## Automatic implementations with derive
 
-Mechanical implementations such as comparison, hashing, and debug output are generated with `#[derive(...)]`. The built-in derives are `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, and `Hash`; the standard library adds `Rokon` for ROKON serialization ([chapter 15](15-rokon.html)).
+Mechanical implementations such as comparison, hashing, and debug output are generated with `#[derive(...)]`. The built-in derives are `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, and `Hash`; the standard library adds `Error` for error types ([chapter 10](10-errors.html#your-own-error-types)) and `Rokon` for ROKON serialization ([chapter 15](15-rokon.html)). `Default` uses a field's declared default (`= value`) and the field type's `default()` for the others.
 
 ```rok
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -338,9 +338,9 @@ let vs = [Version { major: 1, minor: 2 }, Version { major: 0, minor: 9 }];
 vs.sort();
 println(f"{vs:?}");
 
-let seen: Set<Version> = Set::new();
+let seen = Set::new();
 seen.insert(vs[0].clone());
-println(f"{seen.contains(Version { major: 0, minor: 9 })}");
+println(f"{Version { major: 0, minor: 9 } in seen}");
 
 let zero: Version = Default::default();
 println(f"{zero == vs[0]}");
@@ -352,7 +352,7 @@ true
 false
 ```
 
-`Ord` compares fields in declaration order, so `sort` orders by version. `Display` cannot be derived: the type's author decides its human-readable format (see the example in the operators section below).
+`Ord` compares fields in declaration order, so `sort` orders by version. `Display` is not a derive, since the type's author decides its human-readable format: write `#[display("..")]` on the type, an f-string over `self` (`#[display("v{self.major}.{self.minor}")]`), or implement it by hand (see the operators section below).
 
 When equality is hand-written, `Hash` must be too, and it must feed the hasher exactly what equality looks at, so that equal values hash alike. A `Hash` impl does not compute a number; it writes its parts to the `Hasher` it is given. `Hasher` is not in the prelude, so the impl imports it from `rok::core::hash`:
 
@@ -408,6 +408,7 @@ impl Animal for Cat { fn sound(self) -> str { "meow" } }
 
 // 1. Open set of types: a generic with a bound (static dispatch).
 fn twice<T: Animal>(a: T) -> str { f"{a.sound()} {a.sound()}" }
+fn thrice(a: some Animal) -> str { f"{twice(a)} {a.sound()}" }
 
 // 2. Closed set of types: a sum type.
 fn loud(a: Dog | Cat) -> str {
@@ -418,15 +419,17 @@ fn loud(a: Dog | Cat) -> str {
 }
 
 println(twice(Dog));
+println(thrice(Cat));
 println(loud(Cat));
 ```
 
 ```output
 woof woof
+meow meow meow
 MEOW
 ```
 
-If the candidates are a fixed few, use a sum type; if the set is open, use generics (next chapter).
+`a: some Animal` is the same generic without naming `T`. If the candidates are a fixed few, use a sum type; if the set is open, use generics (next chapter).
 
 > [!NOTE]
 > Advanced: when one collection must mix several implementations chosen at run time, write `any Trait`, as in `let zoo: List<any Animal> = [Dog, Cat];`. Calls through it use dynamic dispatch, and the `any` in the type makes that cost visible. A method with type parameters of its own, such as `fn write<B: AsBytes>(..)`, can be called through it too ([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-constrained-any-any-trait)).
@@ -459,7 +462,7 @@ v = (11, 22)
 
 `type Output = V2;` sets the trait's **associated type**. You will see these again in the next chapter.
 
-The `Display` impl has a fixed shape you can copy: `ref f` lets `fmt` write into the caller's `Formatter`, and writing can fail, so `fmt` is `throws (FmtError)` and the call is marked with `try`. Errors are the subject of [chapter 10](10-errors.html).
+The `Display` impl has a fixed shape you can copy: `ref f` lets `fmt` write into the caller's `Formatter`, and writing can fail, so `fmt` is `throws (FmtError)` and the call is marked with `try`. Errors are the subject of [chapter 10](10-errors.html). When the output is one f-string, as here, `#[display("({self.x}, {self.y})")]` on the struct writes the same impl. Every `Display` type also has `to_str()`.
 
 ## Summary
 
@@ -467,8 +470,8 @@ The `Display` impl has a fixed shape you can copy: `ref f` lets `fmt` write into
 - A struct is a value: assignment, arguments, and `list[i]` copy it (shallowly; a `List` field stays shared). To change the caller's value, take a `ref` parameter (`f(ref x)`) or `ref self`.
 - `enum` variants come in three shapes, unit, tuple, and named, and are destructured with `match`.
 - A `trait` has required and default methods and is implemented with `impl Trait for Type`.
-- `#[derive(...)]` automatically implements `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`, and `Default` (and `Rokon`, from the standard library).
-- Traits are not types. Use a generic or a sum type (or, advanced, `any Trait`).
+- `#[derive(...)]` automatically implements `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`, and `Default` (and `Error` and `Rokon`, from the standard library); `#[display("..")]` writes `Display`.
+- Traits are not types. Use a generic (`<T: Tr>` or `x: some Tr`) or a sum type (or, advanced, `any Trait`).
 - Operators and `{x}` printing also come from implementing traits (`Add`, `Display`, and so on).
 
 ## Further reading

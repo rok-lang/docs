@@ -189,7 +189,7 @@ pub use shapes::Circle;
 pub(pkg) const PI: f64 = 3.14159;
 
 pub fn area_sum(cs: List<Circle>) -> f64 {
-    cs.iter().map(|c| c.area()).sum()
+    cs.map(|c| c.area()).sum()
 }
 ```
 

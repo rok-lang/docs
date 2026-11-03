@@ -328,7 +328,7 @@ impl이 컴파일러가 검사할 수 없는 약속을 하는 트레잇은 `unsa
 
 ## derive로 자동 구현
 
-비교, 해시, 디버그 출력처럼 기계적으로 쓸 수 있는 구현은 `#[derive(...)]`로 만듭니다. 내장 derive는 `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`이고, 표준 라이브러리가 ROKON 직렬화용 `Rokon`을 더합니다([15장](15-rokon.html)).
+비교, 해시, 디버그 출력처럼 기계적으로 쓸 수 있는 구현은 `#[derive(...)]`로 만듭니다. 내장 derive는 `Clone`, `Copy`, `Debug`, `Default`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`이고, 표준 라이브러리가 에러 타입용 `Error`([10장](10-errors.html#직접-만드는-에러-타입))와 ROKON 직렬화용 `Rokon`을 더합니다([15장](15-rokon.html)). `Default`는 필드에 선언한 기본값(`= value`)을 쓰고, 기본값이 없는 필드에만 그 타입의 `default()`를 씁니다.
 
 ```rok
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -338,9 +338,9 @@ let vs = [Version { major: 1, minor: 2 }, Version { major: 0, minor: 9 }];
 vs.sort();
 println(f"{vs:?}");
 
-let seen: Set<Version> = Set::new();
+let seen = Set::new();
 seen.insert(vs[0].clone());
-println(f"{seen.contains(Version { major: 0, minor: 9 })}");
+println(f"{Version { major: 0, minor: 9 } in seen}");
 
 let zero: Version = Default::default();
 println(f"{zero == vs[0]}");
@@ -352,7 +352,7 @@ true
 false
 ```
 
-`Ord`는 필드를 선언 순서대로 비교하므로 `sort`는 버전 순으로 정렬합니다. `Display`는 derive로 구현할 수 없습니다. 사람이 읽는 형식은 타입을 만든 사람이 정합니다(아래 연산자 절의 예 참고).
+`Ord`는 필드를 선언 순서대로 비교하므로 `sort`는 버전 순으로 정렬합니다. `Display`는 derive가 아닙니다. 사람이 읽는 형식은 타입을 만든 사람이 정하기 때문입니다. 타입에 `self`에 대한 f-string인 `#[display("..")]`를 붙이거나(`#[display("v{self.major}.{self.minor}")]`), 직접 구현합니다(아래 연산자 절 참고).
 
 같음을 직접 구현했다면 `Hash`도 직접 구현해야 합니다. 같은 값은 같은 해시를 내도록, 같음이 보는 것을 그대로 해셔에 넣어야 합니다. `Hash` impl은 숫자를 계산하지 않고, 받은 `Hasher`에 자기 부분을 씁니다. `Hasher`는 프렐류드에 없으므로 `rok::core::hash`에서 가져옵니다.
 
@@ -408,6 +408,7 @@ impl Animal for Cat { fn sound(self) -> str { "meow" } }
 
 // 1. Open set of types: a generic with a bound (static dispatch).
 fn twice<T: Animal>(a: T) -> str { f"{a.sound()} {a.sound()}" }
+fn thrice(a: some Animal) -> str { f"{twice(a)} {a.sound()}" }
 
 // 2. Closed set of types: a sum type.
 fn loud(a: Dog | Cat) -> str {
@@ -418,15 +419,17 @@ fn loud(a: Dog | Cat) -> str {
 }
 
 println(twice(Dog));
+println(thrice(Cat));
 println(loud(Cat));
 ```
 
 ```output
 woof woof
+meow meow meow
 MEOW
 ```
 
-후보가 정해진 몇 개라면 합 타입을, 후보가 열려 있다면 제네릭(다음 장)을 씁니다.
+`a: some Animal`은 `T`에 이름을 붙이지 않은 같은 제네릭입니다. 후보가 정해진 몇 개라면 합 타입을, 후보가 열려 있다면 제네릭(다음 장)을 씁니다.
 
 > [!NOTE]
 > 심화: 런타임에 고른 여러 구현을 한 컬렉션에 섞어야 하면 `let zoo: List<any Animal> = [Dog, Cat];`처럼 `any Trait`을 씁니다. 이렇게 담은 값의 메서드는 동적 디스패치로 호출합니다. 타입에 적힌 `any`가 그 비용을 드러냅니다. `fn write<B: AsBytes>(..)`처럼 자기 타입 매개변수가 있는 메서드도 이렇게 부를 수 있습니다([`any Trait`](../spec/refs-lang/002-types/202-any-slot.html#2210-제약-붙은-any-any-trait)).
@@ -459,7 +462,7 @@ v = (11, 22)
 
 `type Output = V2;`는 트레잇의 **연관 타입**을 정합니다. 다음 장에서 다시 봅니다.
 
-`Display` 구현은 모양이 정해져 있으므로 그대로 복사해 쓰면 됩니다. 매개변수가 `ref f`이므로 `fmt`는 호출한 쪽의 `Formatter`에 씁니다. 쓰기는 실패할 수 있으므로 `fmt`는 `throws (FmtError)`이고, 호출에는 `try`를 붙입니다. 에러는 [10장](10-errors.html)에서 다룹니다.
+`Display` 구현은 모양이 정해져 있으므로 그대로 복사해 쓰면 됩니다. 매개변수가 `ref f`이므로 `fmt`는 호출한 쪽의 `Formatter`에 씁니다. 쓰기는 실패할 수 있으므로 `fmt`는 `throws (FmtError)`이고, 호출에는 `try`를 붙입니다. 에러는 [10장](10-errors.html)에서 다룹니다. 여기처럼 출력이 f-string 하나라면 struct에 `#[display("({self.x}, {self.y})")]`를 붙여 같은 구현을 얻습니다. `Display` 타입에는 모두 `to_str()`도 있습니다.
 
 ## 정리
 
@@ -467,8 +470,8 @@ v = (11, 22)
 - struct는 값입니다. 대입, 인자 전달, `list[i]`는 사본을 만듭니다. 얕은 복사이므로 `List` 필드는 공유됩니다. 호출한 쪽의 값을 바꾸려면 `ref` 매개변수(`f(ref x)`)나 `ref self`를 받습니다.
 - `enum` 변형에는 unit, 튜플, 이름 있는 필드의 세 모양이 있고 `match`로 분해합니다.
 - `trait`에는 필수 메서드와 기본 메서드가 있고, `impl Trait for Type`으로 구현합니다.
-- `#[derive(...)]`는 `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`, `Default`(그리고 표준 라이브러리의 `Rokon`)를 자동으로 구현합니다.
-- 트레잇은 타입이 아닙니다. 제네릭이나 합 타입(또는 심화로 `any Trait`)을 씁니다.
+- `#[derive(...)]`는 `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `Hash`, `Default`(그리고 표준 라이브러리의 `Error`, `Rokon`)를 자동으로 구현합니다. `#[display("..")]`는 `Display`를 씁니다.
+- 트레잇은 타입이 아닙니다. 제네릭(`<T: Tr>`이나 `x: some Tr`)이나 합 타입(또는 심화로 `any Trait`)을 씁니다.
 - 연산자와 `{x}` 출력도 트레잇 구현(`Add`, `Display` 등)으로 동작합니다.
 
 ## 더 읽을거리

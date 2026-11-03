@@ -19,10 +19,10 @@ println(f"{2.0 ** -1} {2.0 ** 0.5}");
 0.5 1.4142135623730951
 ```
 
-An integer base takes a `u32` exponent and gives an integer of its own type; overflow panics like `*` does. A float base takes a float exponent, or an `i32` one, which uses repeated multiplication. The exponent does not have to be the base's type: `n ** 2` with `n: i64` is fine, and the literal becomes a `u32`. `2 ** -1` is a compile error, since the answer is a fraction; the error says to write `2.0 ** -1.0`. `**=` raises in place, and `.**` is the element-wise form.
+An integer base takes a `u32` exponent and gives an integer of its own type; overflow panics like `*` does. A float base takes a float exponent, or an `i32` one, which uses repeated multiplication. The exponent does not have to be the base's type: `n ** 2` with an `i64` `n` is fine, and the literal becomes a `u32`. `2 ** -1` is a compile error, since the answer is a fraction; the error says to write `2.0 ** -1.0`. `**=` raises in place, and `.**` is the element-wise form.
 
 ```rok
-let n: i64 = 7;
+let n = 7;
 let k: u32 = 3;
 let y = 1.5;
 y **= 2;
@@ -272,7 +272,7 @@ use rok::core::array::Array;
 let a: Array<i64, 2> = [[1, 2], [3, 4]];
 let total = a.sum();
 let sq = a.map(|x: i64| -> i64 { x * x });
-let parts: List<str> = [];
+let parts = [];
 for x in a.t() {
     parts.push(f"{x}");
 }
@@ -281,6 +281,55 @@ println(f"{total} {sq:?} {parts.join(" ")}");
 
 ```output
 10 [[1, 4], [9, 16]] 1 3 2 4
+```
+
+## Floats, complex numbers and random numbers
+
+`num::FloatingPoint` is the bound for code over both `f32` and `f64`: their constants (`T::NAN`, `T::PI`) and math (`sqrt`, `exp`, `sin`, ...) as one trait. `num::Num` is the wider bound every integer and float type meets: `+ - * /`, `0`, `1` and comparison. Float lists and iterators have `min`, `max` and `sum`; a NaN among the items makes `min` and `max` NaN, and `sum` adds pairwise in a fixed order, so the result does not depend on the platform. Floats are only partly ordered, so sort them with `total_cmp`. `num::linspace(a, b, n)` gives `n` evenly spaced values from `a` to `b`, and `num::arange(a, b, step)` steps from `a` up to, not including, `b`.
+
+```rok
+fn hypot<T: num::FloatingPoint>(a: T, b: T) -> T { (a * a + b * b).sqrt() }
+println(f"{hypot(3.0, 4.0)} {hypot(5.0f32, 12.0f32)}");
+
+let xs = [2.5, -1.0, 7.0, 0.5];
+println(f"{xs.max() ?? 0.0} {xs.sum()} {xs.sorted_by(|a, b| a.total_cmp(b)):?}");
+println(f"{num::linspace(0.0, 1.0, 5):?}");
+```
+
+```output
+5 13
+7 9 [-1.0, 0.5, 2.5, 7.0]
+[0.0, 0.25, 0.5, 0.75, 1.0]
+```
+
+`num::Complex<T>` is a complex number over `f32` or `f64`, and the `i` suffix writes the imaginary part: `3.0 + 4.0i`. It has the arithmetic operators, with a real number on either side, and `abs`, `arg`, `conj`, `exp`, `ln`, `sqrt` and `pow`.
+
+```rok
+let z = 3.0 + 4.0i;
+println(f"{z} {z.abs()} {z * 2i} {z.conj()}");
+```
+
+```output
+3+4i 5 -8+6i 3-4i
+```
+
+`rok::std::random` has one-call forms (`random::range(1..7)`, `random::f64()`, `random::choice(xs)`, `random::shuffle(xs)`) drawn from a generator seeded by the operating system. For a run you can repeat, make a `Xoshiro256PlusPlus` with `seed`: the same seed gives the same numbers on every target and release. Its methods come from the `Rng` trait (`range`, `uniform`, `normal`, `choice`, `sample`, `shuffle`), and `split()` makes an independent generator for another thread. `OsRng` draws every number from the operating system, for keys and tokens.
+
+```rok
+use rok::std::random;
+use rok::std::random::{Rng, Xoshiro256PlusPlus};
+
+let a = Xoshiro256PlusPlus::seed(7);
+let b = Xoshiro256PlusPlus::seed(7);
+println(a.range(1..7) == b.range(1..7));
+println(0.0 <= a.uniform(0.0, 1.0) < 1.0);
+println(random::range(1..7) in 1..7);
+```
+
+```output
+true
+true
+true
 ```
 
 ## Memory and speed

@@ -21,7 +21,7 @@ A map for Python programmers: what carries over, what Rok writes differently, an
 - There is no truthiness: a condition is a `bool`. Write `!xs.is_empty()`, `n != 0`, or `x != none`.
 - A missing value is `none`, and a type that may hold it is written `T | none`.
 - `/` on integers rounds toward zero (`7 / 2` is `3`); floor division is `n.div_floor(2)` and `%%` is the floored remainder. `//` starts a comment.
-- An `i32` that overflows panics; use `i64`, or `int` for any size.
+- An integer that overflows its type panics. An unsuffixed integer is an `i64` unless its uses give it another type; `int` holds any size.
 - Structs are values: `let q = p;` copies. `List`, `Dict` and `Set` are shared handles, as in Python.
 - `str` slices count bytes, not characters; walk characters with `s.chars()`.
 
@@ -129,12 +129,12 @@ Closures are written `|x| x + 1` where Python writes `lambda x: x + 1`.
 
 ## `none` instead of `None`
 
-A function that may find nothing returns `T | none`. `??` gives a default, `x == none` tests, and `if let` takes the value out.
+A function that may find nothing returns `T | none`. `??` gives a default, `x == none` tests, and `if let` takes the value out. After `x != none`, or below `if x == none { return; }`, `x` is the value itself.
 
 ```rok
 let xs = ["a", "b"];
 let i = xs.position(|x| x == "b");
-if let k: usize = i { println(f"found at {k}"); }
+if let k = i { println(f"found at {k}"); }
 println(xs.position(|x| x == "z") ?? 99);
 if !xs.is_empty() { println(f"{xs.len()} items"); }
 ```
@@ -335,6 +335,9 @@ ababab
 | `for i, x in enumerate(xs)` | `for (i, x) in xs.enumerate()` |
 | `for k, v in d.items()` | `for (k, v) in d` |
 | `[f(x) for x in xs if c]` | `xs.filter(\|x\| c).map(\|x\| f(x)).to_list()` |
+| `sorted(xs, key=f, reverse=True)` | `xs.sorted_by_key(f)`, `xs.sorted(reverse: true)` |
+| `d.get(k, 0)`, `defaultdict(int)` and `d[k] += 1` | `d[k, default: 0]`, `d[k, default: 0] += 1` |
+| `print(f"{x=}")`, `breakpoint()`-style dumps | `f"{x=}"`, `dbg(x)` |
 | `x ** 2`, `n // 2` | `x ** 2`, `n.div_floor(2)` |
 | `raise ValueError("m")` / `except E as e` | `throw "m"` / `catch e: E` |
 | `with open(p) as f:` | `using f = try File::open(p);` |
@@ -343,7 +346,7 @@ ababab
 | `C("h", 1)` | `C { host: "h", port: 1 }` |
 | `import m` / `from m import x` | `use m;` / `use m::x;` |
 
-Each of these Python forms, typed in Rok, stops the build with an error whose help shows the Rok form to write.
+Each of these Python forms, typed in Rok, stops the build with one error whose help shows the Rok form to write: `and` / `or` / `not`, `is not`, `a if c else b`, `lambda`, comprehensions (the help writes the iterator chain), `elif`, `except T as e`, `with open(..) as f`, `assert c, m`, `for i, x in ..`, `""".."""`, `import math` and `from m import x`, `pass`, `f(end="")`, `f"{x!r}"`, builtins called as functions (`len(xs)`, `str(x)`, `int(s)`), `C("h", 1)`, `", ".join(xs)`, `s * 3`, truthiness (`if xs:`) and a method without `self`.
 
 ## Python modules in Rok
 
@@ -353,13 +356,16 @@ Each of these Python forms, typed in Rok, stops the build with an error whose he
 | `os`, `sys` | `rok::std::env` (`env::args()`, `env::var(..)`), `rok::std::process` (`process::exit(..)`, `process::id()`) |
 | `os.path`, `pathlib` | `rok::std::path::Path` (`Path::new("a") / "b"`), `rok::std::fs` |
 | `open`, `shutil` | `rok::std::fs` (`fs::read_to_str`, `fs::write`, `File::open`) |
-| `subprocess` | `rok::std::process::Command` |
-| `random` | `rok::std::random` (`random::range(1..7)`, `random::choice(xs)`, `random::shuffle(xs)`) |
+| `subprocess` | `rok::std::process` (`process::run("git", ["status"])` for the output, `Command` for pipes) |
+| `glob` | `fs::glob("*.txt")` |
+| `random` | `rok::std::random` (`random::range(1..7)`, `random::choice(xs)`, `random::shuffle(xs)`; `Xoshiro256PlusPlus::seed(42)` for a seeded `Rng`) |
+| `cmath`, `complex` | `Complex` and the `i` suffix: `3.0 + 4.0i` |
+| `numpy.linspace`, `numpy.arange` | `num::linspace(0.0, 1.0, 5)`, `num::arange(0.0, 1.0, 0.25)`; `Array` for n-d data ([chapter 21](21-arrays-and-numerics.html)) |
 | `time` | `rok::core::time` (`Instant::now()`, `Duration`) |
 | `threading` | `rok::std::thread` (`thread::spawn(..)`, `join`) |
 | `asyncio` | `async fn` and `await`, built in |
-| `collections` | `Dict`, `Set`, `Deque`, `BinaryHeap`, built in |
-| `itertools`, `functools` | iterator methods: `zip`, `chain`, `windows`, `chunks`, `fold`, `reduce`, `scan` |
+| `collections` | `Dict`, `Set`, `Deque`, `BinaryHeap`, built in; `Counter` is `xs.counts()` with `most_common(n)`, `defaultdict` is `d[k, default: v]` |
+| `itertools`, `functools` | iterator methods: `zip`, `chain`, `windows`, `chunks`, `pairwise`, `combinations`, `permutations`, `group_by`, `fold`, `reduce`, `scan` |
 | `json` | the `json` stone: `rok add json` |
 | `input()` | `try io::input("prompt")` |
 | `unittest`, `pytest` | `#[test]` functions and `rok test` |

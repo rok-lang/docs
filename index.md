@@ -8,7 +8,7 @@
 </div>
 
 <div class="cards">
-<a class="card" href="learn/index.html"><span class="tag">learn/</span><h3>Learn Rok</h3><p>Twenty chapters, from installation to concurrency, FFI, stones, and a cookbook. Every code sample is checked when the site is built.</p></a>
+<a class="card" href="learn/index.html"><span class="tag">learn/</span><h3>Learn Rok</h3><p>Twenty-one chapters, from installation to concurrency, FFI, stones, arrays, and a cookbook. Every code sample is checked when the site is built.</p></a>
 <a class="card" href="examples/index.html"><span class="tag">examples/</span><h3>Examples</h3><p>Small complete programs: CLI tools, file processing, a TCP echo server, parallel map, an interpreter, and more.</p></a>
 <a class="card" href="spec/refs-lang/index.html"><span class="tag">spec/</span><h3>Language reference</h3><p>Ten chapters, from lexical structure through types, expressions, modules, the meta system, the runtime, and the ABI.</p></a>
 <a class="card" href="spec/refs-standard-libraries/index.html"><span class="tag">std/</span><h3>Standard library</h3><p>The specification of the three tiers <code>bare</code> / <code>core</code> / <code>std</code>.</p></a>

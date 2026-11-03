@@ -52,7 +52,7 @@ println(f"{count} lines");
 use rok::std::env;
 
 let args = env::args();
-for name in args.iter().skip(1) {
+for name in args.skip(1) {
     println(f"hello, {name}");
 }
 println(f"{args.len() - 1} arguments");
@@ -117,7 +117,7 @@ println(f"{items:?}");
 
 ## 스레드 사이에서 카운터나 리스트 공유하기
 
-숫자에는 `Atomic`을, 그 밖의 것에는 `Mutex`를 씁니다. 잠금 가드는 `using`으로 바인딩하고, 블록 끝에서 잠금이 풀립니다. 여기서 `[ref x]` 캡처를 쓰면 스레드 사이에서 안전하지 않으므로 컴파일되지 않습니다([12장](12-concurrency.html#mutex와-atomic)).
+숫자에는 `Atomic`을, 그 밖의 것에는 `Mutex`를 씁니다. `m.with(|v| ..)`는 호출 한 번 동안 잠금을 잡습니다. 더 길게 잡으려면 가드를 `using`으로 바인딩하고, 블록 끝에서 잠금이 풀립니다. 여기서 `[ref x]` 캡처를 쓰면 스레드 사이에서 안전하지 않으므로 컴파일되지 않습니다([12장](12-concurrency.html#mutex와-atomic)).
 
 ```rok
 use rok::std::thread;
@@ -125,16 +125,16 @@ use rok::std::thread;
 let hits = Atomic::new(0);
 let seen = Mutex::new([]);
 
-let hs: List<thread::JoinHandle<()>> = [];
+let hs = [];
 for i in 1..=4 {
     hs.push(thread::spawn(|| {
         hits.fetch_add(1);
-        using g = seen.lock() { g.get().push(i); }
+        seen.with(|v| v.push(i));
     }));
 }
 for h in hs { try h.join(); }
 
-let all = using g = seen.lock() { g.get_clone() };
+let all = seen.with(|v| v.clone());
 all.sort();
 println(f"{hits.load()} {all:?}");
 ```

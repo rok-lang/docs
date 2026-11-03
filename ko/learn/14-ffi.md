@@ -94,7 +94,7 @@ extern "C" {
 // Copy a NUL-terminated C string into a rok str.
 unsafe fn from_c(p: ConstPtr<c_char>) -> str {
     let sb = StrBuf::new();
-    let i: usize = 0;
+    let i = 0;
     loop {
         let b = p.add(i).read();
         if b == c'\0' { break; }
@@ -245,7 +245,7 @@ for i in 0..xs.len() { unsafe { p.add(i).write(xs[i]) }; }
 
 unsafe { qsort(p.cast::<u8>(), xs.len(), size_of::<i32>(), by_value) };
 
-let sorted: List<i32> = [];
+let sorted = [];
 for i in 0..xs.len() { sorted.push(unsafe { p.add(i).read() }); }
 unsafe { alloc::dealloc_array(p, xs.len()) };
 println(f"{sorted:?}");

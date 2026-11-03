@@ -101,7 +101,7 @@ for k in 0..10 {
 }
 println("");
 
-for (idx, name) in ["ada", "grace"].iter().enumerate() {
+for (idx, name) in ["ada", "grace"].enumerate() {
     println(f"{idx}: {name}");
 }
 ```
@@ -221,7 +221,7 @@ println(f"{xs:?}");
 - `if`, `match`, `loop`, 블록은 값을 내는 표현식입니다. 분기의 타입은 같아야 합니다.
 - `match`에는 리터럴, `|`, 범위, `@` 바인딩, 가드를 쓸 수 있고, 컴파일러는 모든 경우를 처리했는지 검사합니다.
 - `while let`은 패턴이 맞는 동안 반복합니다.
-- `for x in a..b` / `a..=b`는 범위를 돌고, `.iter().enumerate()`는 인덱스와 함께 돌며, `x in a..b`는 범위에 드는지 검사합니다.
+- `for x in a..b` / `a..=b`는 범위를 돌고, `xs.enumerate()`는 인덱스와 함께 돌며, `x in a..b`는 범위에 드는지 검사합니다.
 - `(a, b) = (b, a + b)`는 오른쪽을 평가한 뒤 여러 자리에 한 번에 대입합니다.
 - `break value`와 `'label:`로 중첩 루프를 빠져나오면서 결과를 돌려줄 수 있습니다.
 

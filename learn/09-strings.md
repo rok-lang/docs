@@ -71,9 +71,11 @@ if let (k, v) = t.split_once(" = ") {
     println(f"key={k} value={v}");
 }
 
-let parts: List<str> = "a,b,,c".split(",").collect();
+let parts = "a,b,,c".split(",").to_list();
 println(f"{parts:?}");
 println(f"{"ab".repeat(3)} {t.to_uppercase()} {t.replace("rok", "ROK")}");
+println(f"{"stressed".reversed()} {"banana".count("an")} {"a-b-c".replacen("-", "+", 1)} {"hello rok".to_titlecase()}");
+println(42.to_str() + "px");
 
 let n: i32 = try! "42".parse();
 println(f"{n + 1}");
@@ -85,10 +87,12 @@ true true 7
 key=name value=rok
 ["a", "b", "", "c"]
 ababab NAME = ROK name = ROK
+desserts 2 a+b-c Hello Rok
+42px
 43
 ```
 
-`parse` is a function that throws an error on failure, so the example adds `try!`. Errors are covered in the [next chapter](10-errors.html). Other methods include `lines()`, `split_whitespace()`, `strip_prefix()`, and `trim_start()` ([`str` API](../std/core/str.html#impl.str)).
+`reversed` reverses the characters, `count` counts non-overlapping matches, and `replacen` replaces only the first `n`. `to_str()` works on every `Display` value, as Python's `str(x)` does. `parse` is a function that throws an error on failure, so the example adds `try!`. Errors are covered in the [next chapter](10-errors.html). Other methods include `lines()`, `split_whitespace()`, `strip_prefix()`, and `trim_start()` ([`str` API](../std/core/str.html#impl.str)).
 
 ## `StrBuf`: building piece by piece
 
@@ -169,7 +173,7 @@ A non-ASCII character written directly in a byte string, or an escape above `\xF
 A single byte is written `b'0'`: a `u8` with the same rules (`b'\n'`, `b'\xFF'`), handy where a parser compares bytes.
 
 ```rok
-let digits = "a1b22".as_bytes().iter().filter(|c| b'0' <= c <= b'9').count();
+let digits = "a1b22".as_bytes().filter(|c| b'0' <= c <= b'9').count();
 println(f"{b'0'} {digits}");
 ```
 
@@ -220,7 +224,7 @@ Inside a hole you do not use escapes like `\"`; just write the quotes as they ar
 
 ## Format specifiers
 
-Put a `:` after the expression in a hole to specify a format. The syntax is `[fill][align][sign][#][0][width][.precision][type]`.
+Put a `:` after the expression in a hole to specify a format. The syntax is `[fill][align][sign][#][0][width][grouping][.precision][type]`.
 
 ```rok
 let pi = 3.14159;
@@ -237,6 +241,18 @@ println(f"{"hi":?} {[1, 2]:?}");
 [ab   ] [   ab] [007] [+5]
 ff 0xFF 101 ff
 "hi" [1, 2]
+```
+
+`{x=}` prints the expression's text, then `=`, then its value (`{x = }` keeps the spaces), as Python's does. `,` or `_` after the width groups an integer's digits in threes (`{1234567:,}` is `1,234,567`), and the type `%` multiplies by 100 and adds a percent sign (`{0.256:.1%}` is `25.6%`).
+
+```rok
+let n = 1234567;
+let rate = 0.256;
+println(f"{n=} {n:,} {n:_} {rate:.1%} {n + 1 = }");
+```
+
+```output
+n=1234567 1,234,567 1_234_567 25.6% n + 1 = 1234568
 ```
 
 Without an explicit alignment, numbers are right-aligned and everything else is left-aligned. `?` selects the `Debug` format, which shows strings with their quotes and escapes. Specifiers are checked against the hole's type at compile time, so a mistake like `{s:x}` (with `s: str`) is an immediate error.
@@ -288,7 +304,7 @@ println(f"{Shape::Circle(1.5):?} {Shape::Rect { w: 2.5, h: 3.0 }:?}");
 Circle(1.5) Rect { w: 2.5, h: 3.0 }
 ```
 
-Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once you implement `Display`, you can put the type directly anywhere in an f-string, and with `Debug`, a `List` or `Dict` holding that type also prints with `{:?}`. `{3.0}` prints `3` because the default float output is "the shortest representation that reads back as the same value"; `Debug` adds `.0` to a whole number, so `h: 3.0` still reads as a float. `{p:#?}` prints a struct or collection one field or element a line, indented.
+When the output is a single f-string over the fields, `#[display("({self.x}, {self.y})")]` on the type writes the same `impl Display`; on an enum, each variant takes its own, with its fields by name (`{w}`) or position (`{_0}`). Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once you implement `Display`, you can put the type directly anywhere in an f-string, and with `Debug`, a `List` or `Dict` holding that type also prints with `{:?}`. `{3.0}` prints `3` because the default float output is "the shortest representation that reads back as the same value"; `Debug` adds `.0` to a whole number, so `h: 3.0` still reads as a float. `{p:#?}` prints a struct or collection one field or element a line, indented.
 
 ## Summary
 
@@ -298,7 +314,7 @@ Width and alignment (`{p:>10}`) apply to the whole output written by `fmt`. Once
 - `b"..."` is a `[u8; N]` (or a `Slice<u8>` where one is expected). `include_str!` / `include_bytes!` embed a file at compile time.
 - An f-string hole takes any expression, including the same quote character as is. `{{` and `}}` are literal braces.
 - Specifiers such as `:.2`, `:>8`, `:x`, and `:?` set the format, and `${..}` makes them dynamic.
-- Implement `Display` for your own types and derive `Debug`.
+- Implement `Display` for your own types (or write `#[display("..")]`) and derive `Debug`. `{x=}` shows a name with its value, `{n:,}` groups digits, and `to_str()` turns any `Display` value into a `str`.
 
 ## Further reading
 

@@ -52,7 +52,7 @@ Run it as `printf 'a\nb\n' | rok run lines.rok` to see it number the lines.
 use rok::std::env;
 
 let args = env::args();
-for name in args.iter().skip(1) {
+for name in args.skip(1) {
     println(f"hello, {name}");
 }
 println(f"{args.len() - 1} arguments");
@@ -117,7 +117,7 @@ println(f"{items:?}");
 
 ## Share a counter or a list across threads
 
-Use `Atomic` for a number and `Mutex` for anything else. A lock guard is bound with `using`, which releases it at the end of the block. A `[ref x]` capture won't compile here, because it isn't safe across threads ([chapter 12](12-concurrency.html#mutex-and-atomic)).
+Use `Atomic` for a number and `Mutex` for anything else. `m.with(|v| ..)` holds the lock for one call; for a longer stretch, bind the guard with `using`, which releases it at the end of the block. A `[ref x]` capture won't compile here, because it isn't safe across threads ([chapter 12](12-concurrency.html#mutex-and-atomic)).
 
 ```rok
 use rok::std::thread;
@@ -125,16 +125,16 @@ use rok::std::thread;
 let hits = Atomic::new(0);
 let seen = Mutex::new([]);
 
-let hs: List<thread::JoinHandle<()>> = [];
+let hs = [];
 for i in 1..=4 {
     hs.push(thread::spawn(|| {
         hits.fetch_add(1);
-        using g = seen.lock() { g.get().push(i); }
+        seen.with(|v| v.push(i));
     }));
 }
 for h in hs { try h.join(); }
 
-let all = using g = seen.lock() { g.get_clone() };
+let all = seen.with(|v| v.clone());
 all.sort();
 println(f"{hits.load()} {all:?}");
 ```

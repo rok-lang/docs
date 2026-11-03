@@ -1,12 +1,12 @@
 # Child processes
 
-Run external programs such as `echo`, a shell pipeline and `tr` with `rok::std::process::Command`, and work with their output, exit codes, environment variables and standard input.
+Run external programs such as `echo`, a shell pipeline and `tr` with `process::run` and `rok::std::process::Command`, and work with their output, exit codes, environment variables and standard input.
 
 ## Code
 
 ```rok
+use rok::std::process;
 use rok::std::process::{Command, Stdio, Output};
-use rok::core::io::IoError;
 
 // Captured bytes as trimmed text.
 fn text(bytes: List<u8>) -> str {
@@ -17,9 +17,10 @@ fn show(label: str, out: Output) {
     println(f"{label}: [{text(out.stdout)}] ({out.status})");
 }
 
-fn main() throws (IoError) {
-    // 1. Run a program and capture what it prints.
-    show("echo", try Command::new("echo").args(["hello", "from", "a child"]).output());
+fn main() {
+    // 1. Run a program and take what it prints as text.
+    let said = try process::run("echo", ["hello", "from", "a child"]);
+    println(f"echo: [{said.trim()}]");
 
     // 2. A shell pipeline: the shell does the piping for us.
     let sorted = try Command::new("sh")
@@ -79,7 +80,7 @@ fn main() throws (IoError) {
 ```
 
 ```output
-echo: [hello from a child] (exit status: 0)
+echo: [hello from a child]
 word counts:
   2 apple
   1 pear
@@ -98,6 +99,7 @@ ok=false
 
 ## Walkthrough
 
+- `process::run(program, args)` runs a program to the end and returns its stdout as text; a failing exit status throws an `ExitStatusError` that carries stderr ([`process::run`](../std/std/process.html#fn.run)). `main` declares no `throws`: an error it lets through is printed and the program exits with status 1.
 - [`Command`](../std/std/process.html#struct.Command) is a builder. Methods such as `args`, `env`, `current_dir` and `stdin` return the updated command, so calls chain on one line, ending with one of `output()`, `status()` or `spawn()` ([3.7.1 `Command` builder](../spec/refs-standard-libraries/300-std/307-process.html#371-command-builder)).
 - `output()` waits for the child to finish and collects both stdout and stderr into an [`Output`](../std/std/process.html#struct.Output). It drains both pipes together, so the child never stalls on a full pipe. `str::from_utf8` turns the bytes into a string.
 - The pipe (`|`) is handled by `sh -c`, not by rok. It is the simplest option when you need shell syntax.

@@ -27,10 +27,7 @@ fn derive(shared: Secret) -> Secret {
 }
 
 fn signed_part(s: Sealed) -> List<u8> {
-    let all: List<u8> = [];
-    all.extend(s.sender_key.to_bytes().iter());
-    for part in [s.nonce, s.body] { all.extend(part); }
-    all
+    s.sender_key.to_bytes().to_list() + s.nonce + s.body
 }
 
 fn seal(to: x25519::PublicKey, signer: ed25519::SigningKey, text: str) -> Sealed {
@@ -63,7 +60,7 @@ println(f"bob reads: {open(msg, bob, alice_public) ?? "(rejected)"}");
 let eve = try! x25519::PrivateKey::from_bytes(random::secret(32));
 println(f"eve reads: {open(msg, eve, alice_public) ?? "(rejected)"}");
 
-msg.body[0] = msg.body[0] ^ 1u8;
+msg.body[0] ^= 1;
 println(f"tampered: {open(msg, bob, alice_public) ?? "(rejected)"}");
 ```
 

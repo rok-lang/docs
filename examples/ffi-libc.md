@@ -20,7 +20,7 @@ extern "C" {
 // A C string (NUL-terminated chars) copied into a rok `str`.
 unsafe fn from_c(p: ConstPtr<c_char>) -> str {
     let bytes: List<u8> = [];
-    let i = 0usize;
+    let i = 0;
     loop {
         let b = p.add(i).read();
         if b == c'\0' { break; }
@@ -66,7 +66,7 @@ fn main() throws (LayoutError) {
     let layout = try Layout::array::<i32>(values.len());
     let base: Ptr<u8> = unsafe { alloc(layout) }.as_ptr() ?? panic("out of memory");
     let arr: ManyPtr<i32> = base.cast::<i32>().as_many();
-    for (i, v) in values.iter().enumerate() { unsafe { arr.write(i, v) }; }
+    for (i, v) in values.enumerate() { unsafe { arr.write(i, v) }; }
     unsafe { qsort(base, values.len(), 4, descending) };
     let sorted: List<i32> = [];
     for i in 0..values.len() { sorted.push(unsafe { arr.read(i) }); }

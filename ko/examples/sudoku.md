@@ -13,10 +13,10 @@ struct Board {
 impl Board {
     fn parse(text: str) -> Board {
         let cells = [[0u8; 9]; 9];
-        let i = 0usize;
+        let i = 0;
         for c in text.chars() {
             if c == '.' || c.is_ascii_digit() {
-                cells[i / 9][i % 9] = if c == '.' { 0u8 } else { (c as u32 - '0' as u32) as u8 };
+                cells[i / 9][i % 9] = if c == '.' { 0 } else { (c as u32 - '0' as u32) as u8 };
                 i += 1;
             }
         }
@@ -42,7 +42,7 @@ impl Board {
         for r in 0..9 {
             for c in 0..9 {
                 if self.cells[r][c] != 0 { continue; }
-                for d in 1u8..=9 {
+                for d in 1..=9 {
                     if self.allowed(r, c, d) {
                         self.cells[r][c] = d;
                         steps += 1;
@@ -78,7 +78,7 @@ let board = Board::parse("
 ");
 println(f"puzzle:\n{board}");
 
-let steps = 0u64;
+let steps = 0;
 if board.solve(ref steps) {
     println(f"solved after {steps} placements:\n{board}");
 } else {

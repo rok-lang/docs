@@ -16,7 +16,7 @@ struct Grid {
 impl Grid {
     fn parse(rows: List<str>) -> Grid {
         let cells = [[false; W]; H];
-        for (y, row) in rows.iter().enumerate() {
+        for (y, row) in rows.enumerate() {
             for (x, c) in row.chars().enumerate() {
                 cells[y][x] = c == '#';
             }
@@ -27,7 +27,7 @@ impl Grid {
     fn alive(self, x: usize, y: usize) -> bool { self.cells[y][x] }
 
     fn neighbors(self, x: usize, y: usize) -> usize {
-        let n = 0usize;
+        let n = 0;
         for dy in [H - 1, 0, 1] {
             for dx in [W - 1, 0, 1] {
                 if dx == 0 && dy == 0 { continue; }
@@ -53,7 +53,7 @@ impl Grid {
     }
 
     fn population(self) -> usize {
-        let n = 0usize;
+        let n = 0;
         for row in self.cells {
             for c in row { if c { n += 1; } }
         }

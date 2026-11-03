@@ -24,9 +24,7 @@ impl Debug for LispError { fn fmt(self, ref f: Formatter) throws (FmtError) { tr
 impl Error for LispError {}
 fn err(msg: str) -> LispError { LispError { msg: msg } }
 fn tokenize(src: str) -> List<str> {
-    let tokens: List<str> = [];
-    for t in src.replace("(", " ( ").replace(")", " ) ").split_whitespace() { tokens.push(t); }
-    tokens
+    src.replace("(", " ( ").replace(")", " ) ").split_whitespace().to_list()
 }
 
 fn parse(tokens: List<str>, ref pos: usize) throws (LispError) -> Value {
@@ -86,7 +84,7 @@ fn eval(x: Value, env: Env) throws (LispError) -> Value {
     }
     let args: List<Value> = [];
     for i in 1..items.len() { args.push(try eval(items[i], env)); }
-    if head == "+" || head == "-" || head == "*" || head == "/" || head == "<" || head == "=" {
+    if head in ["+", "-", "*", "/", "<", "="] {
         return try arith(head, args);
     }
     try apply(try eval(items[0], env), args)
@@ -110,12 +108,9 @@ fn arith(op: str, args: List<Value>) throws (LispError) -> Value {
 fn apply(f: Value, args: List<Value>) throws (LispError) -> Value {
     let Value::Lambda(params, body, captured) = f else { throw err(f"{show(f)} is not a function"); };
     if params.len() != args.len() { throw err(f"expected {params.len()} arguments, got {args.len()}"); }
-    let frame: Dict<str, Value> = Dict::new();   // on top of the captured scopes
-    for i in 0..params.len() { frame.insert(params[i], args[i]); }
-    let frames: List<Dict<str, Value>> = [];
-    for fr in captured.frames { frames.push(fr); }
-    frames.push(frame);
-    try eval(body[0], Env { frames: frames })
+    let frame = Dict::new();   // on top of the captured scopes
+    for (p, a) in params.zip(args.iter()) { frame[p] = a; }
+    try eval(body[0], Env { frames: captured.frames + [frame] })
 }
 
 fn show(v: Value) -> str {
@@ -144,7 +139,7 @@ let program = [
 ];
 
 for src in program {
-    let pos = 0usize;
+    let pos = 0;
     let result = try {
         show(try eval(try parse(tokenize(src), ref pos), global))
     } catch e: LispError {

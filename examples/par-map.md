@@ -34,8 +34,8 @@ fn main() {
     let starts: List<i64> = [];
     let s = 0;
     while s < limit { starts.push(s); s += block; }
-    let counts: List<i64> = par::map(starts, |lo: i64| count_primes(lo, lo + block));
-    for (i, c) in counts.iter().enumerate() {
+    let counts = par::map(starts, |lo| count_primes(lo, lo + block));
+    for (i, c) in counts.enumerate() {
         let lo = starts[i];
         println(f"[{lo:>7}, {lo + block:>7})  {c:>6} primes");
     }
@@ -45,9 +45,7 @@ fn main() {
     println(f"total below {limit}: {total}");
 
     // 3. filter: keep the primes of a smaller range, in order.
-    let nums: List<i64> = [];
-    for n in 999900..1000100 { nums.push(n); }
-    let near: List<i64> = par::filter(nums, |n: i64| is_prime(n));
+    let near = par::filter((999900..1000100).to_list(), is_prime);
     println(f"primes around one million: {near:?}");
 
     // 4. join: two independent computations at once.

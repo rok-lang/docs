@@ -36,7 +36,7 @@ impl Parser {
 
     fn value(ref self) throws (ParseError) -> Json {
         self.skip_ws();
-        let c: char = self.peek() else { throw self.fail("unexpected end of input"); };
+        let c = self.peek() else { throw self.fail("unexpected end of input"); };
         match c {
             'n' => try self.word("null", Json::Null),
             't' => try self.word("true", Json::Bool(true)),
@@ -73,11 +73,11 @@ impl Parser {
         self.pos += 1; // opening quote
         let sb = StrBuf::new();
         loop {
-            let c: char = self.peek() else { throw self.fail("unterminated string"); };
+            let c = self.peek() else { throw self.fail("unterminated string"); };
             self.pos += 1;
             if c == '"' { break; }
             if c != '\\' { sb.push(c); continue; }
-            let e: char = self.peek() else { throw self.fail("unterminated string"); };
+            let e = self.peek() else { throw self.fail("unterminated string"); };
             self.pos += 1;
             match e {
                 'n' => sb.push('\n'),
@@ -117,12 +117,10 @@ impl Parser {
 }
 
 fn parse(text: str) throws (ParseError) -> Json {
-    let cs: List<char> = [];
-    for c in text.chars() { cs.push(c); }
-    let p = Parser { cs: cs };
+    let p = Parser { cs: text.chars().to_list() };
     let v = try p.value();
     p.skip_ws();
-    if p.pos < cs.len() { throw p.fail("trailing characters"); }
+    if p.pos < p.cs.len() { throw p.fail("trailing characters"); }
     v
 }
 
@@ -131,7 +129,7 @@ fn block(open: str, close: str, parts: List<str>, depth: usize) -> str {
     if parts.is_empty() { return f"{open}{close}"; }
     let sb = StrBuf::new();
     sb.push_str(open);
-    for (i, p) in parts.iter().enumerate() {
+    for (i, p) in parts.enumerate() {
         let comma = if i + 1 < parts.len() { "," } else { "" };
         sb.push_str(f"\n{"  ".repeat(depth + 1)}{p}{comma}");
     }
@@ -145,16 +143,8 @@ fn pretty(v: Json, depth: usize) -> str {
         Json::Bool(b) => f"{b}",
         Json::Num(n) => f"{n}",
         Json::Str(s) => f"{s:?}",
-        Json::Arr(items) => {
-            let parts: List<str> = [];
-            for x in items { parts.push(pretty(x, depth + 1)); }
-            block("[", "]", parts, depth)
-        },
-        Json::Obj(fields) => {
-            let parts: List<str> = [];
-            for (k, x) in fields.iter() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
-            block("{", "}", parts, depth)
-        },
+        Json::Arr(items) => block("[", "]", items.map(|x| pretty(x, depth + 1)).to_list(), depth),
+        Json::Obj(fields) => block("{", "}", fields.map(|(k, x)| f"{k:?}: {pretty(x, depth + 1)}").to_list(), depth),
     }
 }
 
@@ -196,6 +186,6 @@ fn main() {
 
 - A JSON value is the six-variant enum `Json`. Arrays and objects hold themselves recursively as `List<Json>` and `Dict<str, Json>`; a `Dict` keeps key order ([Sum types](../learn/05-sum-types.html), [Structs, enums and traits](../learn/06-structs-enums-traits.html)).
 - The parser is a struct holding the position `pos`, and the methods that advance it take `ref self`. When such a method returns (or throws), the updated `self` is written back to the caller ([4.7.5 method receivers](../spec/refs-lang/004-functions/407-ref-keyword.html#475-exception-for-method-receivers)).
-- End of input is checked with `let c: char = self.peek() else { throw ...; };`. `peek()` returns `char | none`, so `let-else` leaves on `none`, and below it `c` is a `char` ([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-form)).
+- End of input is checked with `let c = self.peek() else { throw ...; };`. `peek()` returns `char | none`, so `let-else` leaves on `none`, and below it `c` is a `char` ([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-form)).
 - Every error is a single `ParseError` carrying a message and a position. Errors thrown by the standard library, such as a failed number parse, are turned into positioned errors with `catch _ { throw ParseError { ... }; }` ([Errors](../learn/10-errors.html)).
 - Output is built by the recursive function `pretty`, which returns a string. For arrays and objects each element is rendered first, then `block` adds indentation and commas; string values use `{s:?}` (Debug) for quotes and escapes ([Strings](../learn/09-strings.html)).

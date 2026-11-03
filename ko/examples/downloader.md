@@ -27,7 +27,7 @@ const DEADLINE_MS: i64 = 250;
 
 // Pretend to download `url`: latency and size are derived from the name.
 async fn fetch(url: str) throws (FetchError) -> usize {
-    let latency = if url.contains("slow") { 5000 } else { (url.len() * 7 % 40) as i64 };
+    let latency = if "slow" in url { 5000 } else { (url.len() * 7 % 40) as i64 };
     await task::sleep(Duration::ms(latency));
     if url.ends_with(".missing") { throw FetchError::NotFound; }
     url.len() * 1024
@@ -75,10 +75,10 @@ async fn main() {
     // Collect until every worker has closed its `done` sender.
     let results: List<Outcome> = [];
     for await r in done_rx { results.push(r); }
-    results.sort_by(|a: Outcome, b: Outcome| a.url.cmp(b.url));
+    results.sort_by_key(|r| r.url);
 
     let ok = 0;
-    let bytes: usize = 0;
+    let bytes = 0;
     for r in results {
         let name = r.url.strip_prefix("https://example.org/") ?? r.url;
         match r.status {

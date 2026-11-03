@@ -40,8 +40,7 @@ enum RowError {
 }
 
 fn parse_row(line: str) throws (RowError) -> Sale {
-    let f: List<str> = [];
-    for part in line.split(",") { f.push(part.trim()); }
+    let f = line.split(",").map(|part| part.trim()).to_list();
     if f.len() != 5 { throw RowError::Fields(f.len()); }
     let units = try f[3].parse::<i64>() catch _ { throw RowError::Number(f[3]); };
     let price = try f[4].parse::<f64>() catch _ { throw RowError::Number(f[4]); };
@@ -56,9 +55,9 @@ fn write_csv(path: str) throws (IoError) {
 }
 
 fn summarize(path: str) throws (IoError) -> Dict<str, Group> {
-    let groups: Dict<str, Group> = Dict::new();
+    let groups = Dict::new();
     using r = BufReader::new(try File::open(path)) {
-        let n: usize = 0;
+        let n = 0;
         try for line in r.lines() {
             n += 1;
             if n == 1 || line.is_empty() { continue; } // header
@@ -69,20 +68,16 @@ fn summarize(path: str) throws (IoError) -> Dict<str, Group> {
                 }
                 continue;
             };
-            let g = groups.get(sale.region) ?? Group {};
-            g.orders += 1;
-            g.units += sale.units;
-            g.revenue += sale.units as f64 * sale.price;
-            groups[sale.region] = g;
+            groups[sale.region, default: Group {}].orders += 1;
+            groups[sale.region].units += sale.units;
+            groups[sale.region].revenue += sale.units as f64 * sale.price;
         }
     }
     groups
 }
 
 fn print_report(groups: Dict<str, Group>) {
-    let regions: List<str> = [];
-    for k in groups.keys() { regions.push(k); }
-    regions.sort();
+    let regions = groups.keys().sorted();
 
     println(f"{"region":<8}|{"orders":>7}|{"units":>6}|{"revenue":>9}|{"avg":>7}");
     println(f"{"":-<8}+{"":-<7}+{"":-<6}+{"":-<9}+{"":-<7}");
@@ -122,5 +117,5 @@ total   |      7|    70|   267.46|
 - 파일은 `env::temp_dir()` 아래에 만들고 `main`의 `finally`에서 지웁니다. 그래서 요약 도중 실패해도 임시 파일이 남지 않습니다([파일과 I/O](../learn/13-io.html), [`env::temp_dir`](../../std/std/env.html#fn.temp_dir)).
 - 쓰기는 `BufWriter`를, 읽기는 `BufReader`를 거치고, 둘 다 `using`으로 묶습니다([`using`](../learn/10-errors.html)). `write_csv`의 문장 `using w = ..;`는 함수 블록이 끝날 때, `summarize`의 블록 형태는 그 블록이 끝날 때 파일을 닫고, writer는 그 전에 남은 내용을 쓰므로 실패한 쓰기를 잃지 않습니다. `r.lines()`는 실패할 수 있는 반복자라서 `try for`가 줄을 하나씩 꺼내고 읽기 에러는 전파합니다([`BufReader`](../../std/core/io.html#struct.BufReader), [`fs`](../../std/std/fs.html)).
 - `parse_row`는 형식이 잘못된 행에서 `RowError`를 던집니다. 호출한 쪽은 `catch` 블록에서 경고를 출력하고 `continue`로 넘어갑니다. 잘못된 줄 하나 때문에 보고서 전체가 실패하지 않습니다([에러 처리](../learn/10-errors.html)).
-- 합계는 `Dict<str, Group>`입니다. `groups.get(region) ?? Group {}`는 항목을 가져오거나 새로 시작하고, `groups[region] = g`는 갱신한 값을 다시 저장합니다. `Group`의 모든 필드에 기본값이 있으므로 `Group {}`만으로 0에서 시작합니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
+- 합계는 `Dict<str, Group>`이며, 타입은 `summarize`의 반환 타입에서 정해집니다. `groups[region, default: Group {}].orders += 1`은 지역이 없으면 새 항목을 시작하고, 그 뒤의 줄들은 저장된 항목에 그 자리에서 더합니다. `Group`의 모든 필드에 기본값이 있으므로 `Group {}`만으로 0에서 시작합니다([컬렉션과 반복자](../learn/08-collections-iterators.html)).
 - 포맷 지정자로 표를 정렬합니다. `{name:<8}`은 왼쪽 정렬, `{g.revenue:>9.2}`는 폭 9와 소수 둘째 자리, `{"":-<8}`은 빈 문자열을 `-`로 채워 구분선을 그립니다([2.10.8 정렬과 폭](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

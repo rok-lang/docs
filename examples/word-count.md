@@ -62,11 +62,9 @@ fn main() {
 
     let counts = frequencies(TEXT);
     println(f"\n{counts.len()} distinct words, top 5:");
-    let rank = 1;
-    for (w, c) in top(counts, 5) {
+    for (rank, (w, c)) in top(counts, 5).enumerate(start: 1) {
         let bar = "#".repeat(c as usize);
         println(f"{rank}. {w:<6} {c:>2} {bar}");
-        rank += 1;
     }
 }
 ```
@@ -88,6 +86,6 @@ chars  147
 
 - Iterators on `str` do the counting. `lines()` yields lines, `split_whitespace()` yields words, and `count()` counts them. The character count is `char_count()`, not the byte length `len()` ([Strings](../learn/09-strings.html), [`str` methods](../std/core/str.html)).
 - `normalize` builds the word in a `StrBuf` one character at a time, dropping punctuation and lowercasing, so `"Dog,"` and `"dog."` count as the same word ([`StrBuf`](../std/core/str.html#struct.StrBuf)).
-- The frequency table is a `Dict<str, i32>`. `counts.get(w)` returns `none` for a missing key, so `?? 0` supplies the default before `counts[w] = ...` writes the new count ([Collections and iterators](../learn/08-collections-iterators.html), [`Dict`](../std/core/collections/dict.html#struct.Dict)).
-- Sorting by count needs a list, so the pairs are copied into a list of `(word, count)` tuples and sorted with `sort_by`. Ties are broken alphabetically, so the output is always the same ([`List::sort_by`](../std/core/collections/list.html#method.List.sort_by)).
+- The frequency table is a `Dict<str, i32>`. `counts[w, default: 0] += 1` stores `0` first when `w` is missing, then adds one ([Collections and iterators](../learn/08-collections-iterators.html), [`Dict`](../std/core/collections/dict.html#struct.Dict)).
+- `sorted_by_key` on the dictionary gives its `(word, count)` pairs as a sorted list. The key `(-c, w)` puts the highest count first and breaks ties alphabetically, so the output is always the same; `take(n).to_list()` keeps the first `n`. `enumerate(start: 1)` numbers the ranks from 1 ([Collections and iterators](../learn/08-collections-iterators.html)).
 - The table is aligned with f-string format specs: `{w:<6}` left-aligns, `{c:>2}` right-aligns ([2.10.8 align and width](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

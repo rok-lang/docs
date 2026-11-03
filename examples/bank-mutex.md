@@ -6,22 +6,12 @@ Several threads move money between accounts guarded by `Mutex`, collect statisti
 
 ```rok
 // Threads move money between accounts; locks keep the total constant.
-use rok::std::thread;
+use rok::std::{random, thread};
 
 const ACCOUNTS: usize = 5;
 const THREADS: i32 = 4;
 const TRANSFERS: i32 = 20000;
 const START: i64 = 1000;
-
-// A tiny deterministic pseudo-random generator (one per thread).
-struct Rng { state: u64; }
-
-impl Rng {
-    fn next(ref self, bound: u64) -> u64 {
-        self.state = self.state.wrapping_mul(6364136223846793005u64).wrapping_add(1442695040888963407u64);
-        (self.state >> 33u64) % bound
-    }
-}
 
 struct Bank {
     // A fixed array, not a List: a List is a shared mutable handle and is
@@ -65,7 +55,7 @@ impl Bank {
     fn total(self) -> i64 {
         let sum = 0;
         for m in self.accounts {
-            using g = m.lock() { sum += g.get(); }
+            sum += m.with(|v| v);
         }
         sum
     }
@@ -78,11 +68,11 @@ fn main() {
     let handles: List<thread::JoinHandle<i32>> = [];
     for t in 0..THREADS {
         handles.push(thread::spawn(|| {
-            let rng = Rng { state: t as u64 + 1u64 };
+            let rng = random::Xoshiro256PlusPlus::seed(t as u64 + 1);
             for _ in 0..TRANSFERS {
-                let from = rng.next(ACCOUNTS as u64) as usize;
-                let to = rng.next(ACCOUNTS as u64) as usize;
-                bank.transfer(from, to, rng.next(300u64) as i64 + 1);
+                let from = rng.below(ACCOUNTS as u64) as usize;
+                let to = rng.below(ACCOUNTS as u64) as usize;
+                bank.transfer(from, to, rng.range(1..301));
             }
             TRANSFERS
         }));
@@ -116,8 +106,8 @@ total before 5000, after 5000, invariant holds: true
 
 ## Walkthrough
 
-- Each account is its own `Mutex<i64>`, kept in a fixed array. A `List` would not compile here: lists are shared mutable handles and are not `Sync`, so a thread closure may not capture one ([4.6.9](../spec/refs-lang/004-functions/406-capture-semantics.html)). The lock is taken with `using g = m.lock() { ... }` and released when the block ends; the guarded value is read and written with `get()` / `set()` ([Concurrency](../learn/12-concurrency.html), [3.17 `using`](../spec/refs-lang/003-expressions/317-using-expression.html), [`Mutex`](../std/core/sync.html#struct.Mutex)).
+- Each account is its own `Mutex<i64>`, kept in a fixed array. A `List` would not compile here: lists are shared mutable handles and are not `Sync`, so a thread closure may not capture one ([4.6.9](../spec/refs-lang/004-functions/406-capture-semantics.html)). The lock is taken with `using g = m.lock() { ... }` and released when the block ends; the guarded value is read and written with `get()` / `set()`. To only read it, `m.with(|v| v)` takes the lock for one call, as `total` does ([Concurrency](../learn/12-concurrency.html), [3.17 `using`](../spec/refs-lang/003-expressions/317-using-expression.html), [`Mutex`](../std/core/sync.html#struct.Mutex)).
 - A transfer must lock both accounts. If two threads ran A→B and B→A at the same time and locked in opposite order, they could wait for each other forever, so the lower-numbered account is always locked first.
 - Independent counters, such as the amount moved and the number of rejections, are counted without a lock using `fetch_add` on `Atomic<i64>` ([`Atomic`](../std/core/sync.html#struct.Atomic), [2.16 sync](../spec/refs-standard-libraries/200-core/216-sync.html)).
-- Each thread uses a tiny pseudo-random generator with its own seed; `wrapping_mul` / `wrapping_add` keep multiplication overflow from panicking.
+- Each thread draws from its own seeded generator, `random::Xoshiro256PlusPlus::seed(..)`: `below(n)` gives a value in `0..n` and `range(1..301)` an amount, the same sequence on every run for the same seed ([`random`](../std/std/random.html)).
 - The balance of each account depends on how the threads interleave, but if transfers are atomic the total is always the same. The output contains only facts that do not depend on that order.

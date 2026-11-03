@@ -36,7 +36,7 @@ impl Parser {
 
     fn value(ref self) throws (ParseError) -> Json {
         self.skip_ws();
-        let c: char = self.peek() else { throw self.fail("unexpected end of input"); };
+        let c = self.peek() else { throw self.fail("unexpected end of input"); };
         match c {
             'n' => try self.word("null", Json::Null),
             't' => try self.word("true", Json::Bool(true)),
@@ -73,11 +73,11 @@ impl Parser {
         self.pos += 1; // opening quote
         let sb = StrBuf::new();
         loop {
-            let c: char = self.peek() else { throw self.fail("unterminated string"); };
+            let c = self.peek() else { throw self.fail("unterminated string"); };
             self.pos += 1;
             if c == '"' { break; }
             if c != '\\' { sb.push(c); continue; }
-            let e: char = self.peek() else { throw self.fail("unterminated string"); };
+            let e = self.peek() else { throw self.fail("unterminated string"); };
             self.pos += 1;
             match e {
                 'n' => sb.push('\n'),
@@ -117,12 +117,10 @@ impl Parser {
 }
 
 fn parse(text: str) throws (ParseError) -> Json {
-    let cs: List<char> = [];
-    for c in text.chars() { cs.push(c); }
-    let p = Parser { cs: cs };
+    let p = Parser { cs: text.chars().to_list() };
     let v = try p.value();
     p.skip_ws();
-    if p.pos < cs.len() { throw p.fail("trailing characters"); }
+    if p.pos < p.cs.len() { throw p.fail("trailing characters"); }
     v
 }
 
@@ -131,7 +129,7 @@ fn block(open: str, close: str, parts: List<str>, depth: usize) -> str {
     if parts.is_empty() { return f"{open}{close}"; }
     let sb = StrBuf::new();
     sb.push_str(open);
-    for (i, p) in parts.iter().enumerate() {
+    for (i, p) in parts.enumerate() {
         let comma = if i + 1 < parts.len() { "," } else { "" };
         sb.push_str(f"\n{"  ".repeat(depth + 1)}{p}{comma}");
     }
@@ -145,16 +143,8 @@ fn pretty(v: Json, depth: usize) -> str {
         Json::Bool(b) => f"{b}",
         Json::Num(n) => f"{n}",
         Json::Str(s) => f"{s:?}",
-        Json::Arr(items) => {
-            let parts: List<str> = [];
-            for x in items { parts.push(pretty(x, depth + 1)); }
-            block("[", "]", parts, depth)
-        },
-        Json::Obj(fields) => {
-            let parts: List<str> = [];
-            for (k, x) in fields.iter() { parts.push(f"{k:?}: {pretty(x, depth + 1)}"); }
-            block("{", "}", parts, depth)
-        },
+        Json::Arr(items) => block("[", "]", items.map(|x| pretty(x, depth + 1)).to_list(), depth),
+        Json::Obj(fields) => block("{", "}", fields.map(|(k, x)| f"{k:?}: {pretty(x, depth + 1)}").to_list(), depth),
     }
 }
 
@@ -196,6 +186,6 @@ fn main() {
 
 - JSON 값은 변형이 여섯인 enum `Json`입니다. 배열과 객체는 `List<Json>`과 `Dict<str, Json>`으로 자기 자신을 재귀적으로 담습니다. `Dict`는 키 순서를 지킵니다([합 타입](../learn/05-sum-types.html), [struct, enum, 트레잇](../learn/06-structs-enums-traits.html)).
 - 파서는 위치 `pos`를 담은 struct이고, 위치를 옮기는 메서드는 `ref self`를 받습니다. 그런 메서드가 반환하거나 에러를 던지면 갱신된 `self`가 호출한 쪽에 다시 기록됩니다([4.7.5 메서드 receiver](../spec/refs-lang/004-functions/407-ref-keyword.html#475-메서드-수신자의-예외)).
-- 입력의 끝은 `let c: char = self.peek() else { throw ...; };`로 확인합니다. `peek()`는 `char | none`을 돌려주므로 `let-else`는 `none`이면 빠져나가고, 그 아래에서 `c`는 `char`입니다([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-형태)).
+- 입력의 끝은 `let c = self.peek() else { throw ...; };`로 확인합니다. `peek()`는 `char | none`을 돌려주므로 `let-else`는 `none`이면 빠져나가고, 그 아래에서 `c`는 `char`입니다([3.16 `let-else`](../spec/refs-lang/003-expressions/316-let-else.html#3161-형태)).
 - 모든 에러는 메시지와 위치를 담은 `ParseError` 하나입니다. 숫자 파싱 실패처럼 표준 라이브러리가 던지는 에러는 `catch _ { throw ParseError { ... }; }`로 위치가 붙은 에러로 바꿉니다([에러 처리](../learn/10-errors.html)).
 - 출력은 문자열을 돌려주는 재귀 함수 `pretty`가 만듭니다. 배열과 객체는 원소를 먼저 하나씩 문자열로 만든 뒤 `block`이 들여쓰기와 쉼표를 붙입니다. 문자열 값은 따옴표와 이스케이프를 붙이려고 `{s:?}`(Debug)를 씁니다([문자열](../learn/09-strings.html)).

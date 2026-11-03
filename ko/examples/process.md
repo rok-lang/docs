@@ -1,12 +1,12 @@
 # 자식 프로세스
 
-`rok::std::process::Command`로 `echo`, 셸 파이프라인, `tr` 같은 외부 프로그램을 실행합니다. 출력, 종료 코드, 환경 변수, 표준 입력을 다루는 방법을 보여 줍니다.
+`process::run`과 `rok::std::process::Command`로 `echo`, 셸 파이프라인, `tr` 같은 외부 프로그램을 실행합니다. 출력, 종료 코드, 환경 변수, 표준 입력을 다루는 방법을 보여 줍니다.
 
 ## 코드
 
 ```rok
+use rok::std::process;
 use rok::std::process::{Command, Stdio, Output};
-use rok::core::io::IoError;
 
 // Captured bytes as trimmed text.
 fn text(bytes: List<u8>) -> str {
@@ -17,9 +17,10 @@ fn show(label: str, out: Output) {
     println(f"{label}: [{text(out.stdout)}] ({out.status})");
 }
 
-fn main() throws (IoError) {
-    // 1. Run a program and capture what it prints.
-    show("echo", try Command::new("echo").args(["hello", "from", "a child"]).output());
+fn main() {
+    // 1. Run a program and take what it prints as text.
+    let said = try process::run("echo", ["hello", "from", "a child"]);
+    println(f"echo: [{said.trim()}]");
 
     // 2. A shell pipeline: the shell does the piping for us.
     let sorted = try Command::new("sh")
@@ -79,7 +80,7 @@ fn main() throws (IoError) {
 ```
 
 ```output
-echo: [hello from a child] (exit status: 0)
+echo: [hello from a child]
 word counts:
   2 apple
   1 pear
@@ -98,6 +99,7 @@ ok=false
 
 ## 설명
 
+- `process::run(program, args)`는 프로그램을 끝까지 실행하고 그 stdout을 텍스트로 돌려줍니다. 종료 상태가 실패면 stderr를 담은 `ExitStatusError`를 던집니다([`process::run`](../../std/std/process.html#fn.run)). `main`은 `throws`를 적지 않습니다. 그대로 내보낸 오류는 출력되고 프로그램은 상태 1로 끝납니다.
 - [`Command`](../../std/std/process.html#struct.Command)는 빌더입니다. `args`, `env`, `current_dir`, `stdin` 같은 메서드는 갱신된 명령을 돌려주므로 호출을 한 줄로 이어 갑니다. 마지막에는 `output()`, `status()`, `spawn()` 중 하나로 끝냅니다([3.7.1 `Command` 빌더](../spec/refs-standard-libraries/300-std/307-process.html#371-command-빌더)).
 - `output()`는 자식이 끝나기를 기다리고 stdout과 stderr를 모두 [`Output`](../../std/std/process.html#struct.Output)에 모읍니다. 두 파이프를 함께 비우므로 자식이 가득 찬 파이프에 막혀 멈추는 일이 없습니다. `str::from_utf8`은 바이트를 문자열로 바꿉니다.
 - 파이프(`|`)는 Rok이 아니라 `sh -c`가 처리합니다. 셸 문법이 필요할 때 가장 간단한 방법입니다.

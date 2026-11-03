@@ -24,11 +24,7 @@ fn factorial_i64(n: i64) -> i64 | none {
 fn fib(n: i64) -> int {
     let a: int = 0;
     let b: int = 1;
-    for _ in 0..n {
-        let next = a + b;
-        a = b;
-        b = next;
-    }
+    for _ in 0..n { (a, b) = (b, a + b); }
     a
 }
 

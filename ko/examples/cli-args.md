@@ -54,7 +54,7 @@ struct Options {
 fn parse_args(args: List<str>) throws (ArgError) -> Options {
     let opts = Options { pattern: "" };
     let have_pattern = false;
-    let i: usize = 0;
+    let i = 0;
     while i < args.len() {
         let a = args[i];
         match a {
@@ -80,12 +80,10 @@ fn parse_args(args: List<str>) throws (ArgError) -> Options {
 
 fn search(opts: Options, name: str, text: str) {
     let needle = if opts.ignore_case { opts.pattern.to_lowercase() } else { opts.pattern };
-    let hits: usize = 0;
-    let n: usize = 0;
-    for line in text.lines() {
-        n += 1;
+    let hits = 0;
+    for (n, line) in text.lines().enumerate(start: 1) {
         let hay = if opts.ignore_case { line.to_lowercase() } else { line };
-        if !hay.contains(needle) { continue; }
+        if needle !in hay { continue; }
         hits += 1;
         if !opts.count_only {
             let prefix = if opts.files.len() > 1 { f"{name}:" } else { "" };
@@ -106,23 +104,16 @@ fn run(args: List<str>) throws (ArgError | IoError) {
 }
 
 fn main() -> i32 {
-    let argv = env::args();
-    let args: List<str> = [];
-    for i in 1..argv.len() { args.push(argv[i]); }
+    let args = env::args().skip(1).to_list();
     // No arguments: demonstrate a few invocations on the built-in sample.
-    let runs: List<List<str>> = if args.is_empty() {
+    let runs = if args.is_empty() {
         [["--help"], ["-n", "are"], ["-i", "-c", "ROK"], ["-m", "1", "are"], ["-x", "are"], ["--max"]]
     } else {
         [args]
     };
     let status = 0;
     for r in runs {
-        if args.is_empty() {
-            let line = StrBuf::new();
-            line.push_str("$ mgrep");
-            for a in r { line.push_str(f" {a}"); }
-            println(line.to_str());
-        }
+        if args.is_empty() { println(f"$ mgrep {r.join(" ")}"); }
         try run(r)
         catch e: ArgError { println(f"mgrep: {e}\n(try --help)"); status = 2; }
         catch e: IoError { println(f"mgrep: {e}"); status = 1; };
@@ -159,7 +150,7 @@ mgrep: option '--max' needs a value
 
 ## 설명
 
-- `env::args()`는 `[0]`에 프로그램 이름이 들어 있는 `List<str>`이므로 `1..argv.len()`만 복사합니다([`env::args`](../../std/std/env.html#fn.args)).
+- `env::args()`는 `[0]`에 프로그램 이름이 들어 있는 `List<str>`이므로 `skip(1).to_list()`로 나머지만 남깁니다([`env::args`](../../std/std/env.html#fn.args)).
 - 옵션은 `Options` struct에 담깁니다. 필드마다 기본값이 있습니다. 기본값이 있는 필드는 `Options { pattern: "" }`처럼 생략할 수 있습니다([struct, enum, 트레잇](../learn/06-structs-enums-traits.html), [2.3.3 필드 기본값](../spec/refs-lang/002-types/203-struct.html#233-필드-기본값)).
 - `match a { "-i" | "--ignore-case" => ... }`처럼 문자열 리터럴 패턴을 `|`로 이으면 짧은 형태와 긴 형태를 한 번에 받습니다. 대입은 표현식이 아니라 문장이므로 그 가지의 본체는 `{ ...; }` 블록으로 감쌉니다([제어 흐름](../learn/04-control-flow.html)).
 - 잘못된 인자는 `ArgError` enum으로 던집니다. `run`은 `throws (ArgError | IoError)`를 선언하고, `main`은 타입마다 `catch`를 하나씩 두어 종료 코드(2 또는 1)를 고릅니다([에러 처리](../learn/10-errors.html), [3.14.4 `catch`](../spec/refs-lang/003-expressions/314-error-control-flow.html#3144-catch-후위-처리-식)).

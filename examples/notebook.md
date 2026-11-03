@@ -8,24 +8,18 @@ In a notebook you work step by step: one cell loads the data, another defines fu
 
 ```rok
 // Daily high temperatures (°C) for four weeks.
-let temps: List<f64> = [
+let temps = [
     12.5, 14.0, 13.2, 15.8, 17.1, 16.4, 18.9,
     19.5, 21.0, 20.2, 22.7, 24.1, 23.3, 22.0,
     20.8, 19.4, 21.6, 23.9, 25.2, 26.0, 24.4,
     22.1, 20.5, 18.7, 17.9, 19.2, 21.3, 22.8,
 ];
 
-fn mean(xs: List<f64>) -> f64 {
-    let sum = 0.0;
-    for x in xs { sum += x; }
-    sum / xs.len() as f64
-}
+fn mean(xs: List<f64>) -> f64 { xs.sum() / xs.len() as f64 }
 
 fn std_dev(xs: List<f64>) -> f64 {
     let m = mean(xs);
-    let sq = 0.0;
-    for x in xs { sq += (x - m) * (x - m); }
-    (sq / xs.len() as f64).sqrt()
+    (xs.map(|x| (x - m) ** 2).sum() / xs.len() as f64).sqrt()
 }
 
 fn median(xs: List<f64>) -> f64 {
@@ -45,22 +39,19 @@ println(f"range  = {lo:.1} .. {hi:.1}");
 
 // Weekly averages.
 for week in 0..4 {
-    let days = temps[week * 7:(week + 1) * 7];
-    let w: List<f64> = days.iter().collect();
-    println(f"week {week + 1}: {mean(w):5.2}");
+    let days = temps[week * 7:(week + 1) * 7].to_list();
+    println(f"week {week + 1}: {mean(days):5.2}");
 }
 
 // An ASCII histogram with 2-degree buckets.
 let start = 12.0;
 let width = 2.0;
-let counts: List<usize> = [];
-for _ in 0..8 { counts.push(0); }
+let counts = List::filled(8, 0);
 for t in temps {
-    let b = ((t - start) / width) as usize;
-    counts[b] = counts[b] + 1;
+    counts[((t - start) / width) as usize] += 1;
 }
 println("histogram:");
-for (i, c) in counts.iter().enumerate() {
+for (i, c) in counts.enumerate() {
     let from = start + width * i as f64;
     println(f"  {from:4.1}-{from + width:4.1} | {"#".repeat(c)} {c}");
 }
@@ -92,7 +83,7 @@ histogram:
 - Top-level `let`s and `fn`s in a notebook cell persist for the whole session. A cell may `let` the same name again, as a source file may, so you can re-run a cell with different data ([5.1.4 Redeclaration in the same scope](../spec/refs-lang/005-modules/501-variable-declaration.html#514-redeclaration-in-the-same-scope)).
 - `f64` has no `Ord` (NaN is unordered), so the median sorts by the IEEE total order, `sorted_by(f64::total_cmp)` ([Collections and iterators](../learn/08-collections-iterators.html)).
 - `temps.min()` / `temps.max()` work on floats (a NaN would win, as in NumPy); `?? f64::NAN` covers an empty list ([`Iterator`](../std/core/iter.html#trait.Iterator)).
-- `temps[week * 7:(week + 1) * 7]` takes one range of the list as a slice ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
+- `temps[week * 7:(week + 1) * 7]` takes one range of the list as a slice, and `to_list()` copies it into the `List` that `mean` takes. `sum()` adds a whole list, and `(x - m) ** 2` squares ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
 - Histogram bars come from `"#".repeat(c)` and the bucket labels are aligned with format specs such as `{from:4.1}`. An `f64` printed with `{}` uses the shortest digits that read back as the same value, so `26.0` prints as `26`; write a precision such as `{hi:.1}` when you want fixed digits ([Strings](../learn/09-strings.html)).
 
 ## Running it
@@ -109,26 +100,21 @@ To keep a separate kernel per environment, install with `rok jupyter install --e
 In the notebook, the program above runs split into a few cells. The last expression of a cell is its result and is shown with `Display`; end it with `?` to see the `Debug` form.
 
 ```text
-In [1]:  let temps: List<f64> = [12.5, 14.0, 13.2, 15.8, 17.1, 16.4, 18.9,
-                                 19.5, 21.0, 20.2, 22.7, 24.1, 23.3, 22.0,
-                                 20.8, 19.4, 21.6, 23.9, 25.2, 26.0, 24.4,
-                                 22.1, 20.5, 18.7, 17.9, 19.2, 21.3, 22.8];
+In [1]:  let temps = [12.5, 14.0, 13.2, 15.8, 17.1, 16.4, 18.9,
+                      19.5, 21.0, 20.2, 22.7, 24.1, 23.3, 22.0,
+                      20.8, 19.4, 21.6, 23.9, 25.2, 26.0, 24.4,
+                      22.1, 20.5, 18.7, 17.9, 19.2, 21.3, 22.8];
          temps.len()
 Out[1]:  28
 
-In [2]:  fn mean(xs: List<f64>) -> f64 {
-             let sum = 0.0;
-             for x in xs { sum += x; }
-             sum / xs.len() as f64
-         }
+In [2]:  fn mean(xs: List<f64>) -> f64 { xs.sum() / xs.len() as f64 }
          mean(temps)
 Out[2]:  20.16071428571428
 
 In [3]:  temps[0:7]?
 Out[3]:  [12.5, 14, 13.2, 15.8, 17.1, 16.4, 18.9]
 
-In [4]:  let week1: List<f64> = temps[0:7].iter().collect();
-         mean(week1)
+In [4]:  mean(temps[0:7].to_list())
 Out[4]:  15.414285714285715
 ```
 

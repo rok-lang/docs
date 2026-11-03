@@ -57,18 +57,17 @@ Config {
 
 fn validate(c: Config) -> List<str> {
     let problems: List<str> = [];
-    if c.listen.port == 0u16 { problems.push("listen.port must not be 0"); }
+    if c.listen.port == 0 { problems.push("listen.port must not be 0"); }
     if c.workers < 1 || c.workers > 64 { problems.push(f"workers must be 1..=64, got {c.workers}"); }
     for r in c.routes {
         if !r.path.starts_with("/") { problems.push(f"route '{r.path}' must start with '/'"); }
     }
-    if c.log == Level::Debug && !(c.tls is none) { problems.push("debug logging with TLS leaks secrets"); }
+    if c.log == Level::Debug && c.tls is Tls { problems.push("debug logging with TLS leaks secrets"); }
     problems
 }
 
 fn load(text: str) throws (RokonError) -> Config {
-    let c: Config = try rokon::from_str(text);
-    c
+    try rokon::from_str(text)
 }
 
 fn report(label: str, text: str) {
@@ -98,7 +97,7 @@ fn main() throws (RokonError) {
     c.log = Level::Warn;
     c.workers = 8;
     c.tls = Tls { cert: "/etc/gw/cert.pem", key: "/etc/gw/key.pem" };
-    c.routes.push(Route { path: "/health", target: "internal:health", timeout_ms: 100u32 });
+    c.routes.push(Route { path: "/health", target: "internal:health", timeout_ms: 100 });
     let out = try rokon::to_str(c);
     println(out);
 

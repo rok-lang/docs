@@ -7,13 +7,10 @@ Write the Fibonacci sequence, a prime stream, a hand-made `take_while` adapter a
 ```rok
 // An endless Fibonacci stream.
 yield fn fibonacci() -> i64 {
-    let a = 0;
-    let b = 1;
+    let (a, b) = (0, 1);
     loop {
         yield a;
-        let next = a + b;
-        a = b;
-        b = next;
+        (a, b) = (b, a + b);
     }
 }
 
@@ -58,10 +55,10 @@ yield fn leaves(t: Tree) -> str {
     }
 }
 
-let first: List<i64> = fibonacci().take(12).collect();
+let first = fibonacci().take(12).to_list();
 println(f"fib: {first:?}");
 
-let small: List<i64> = take_while(primes(), |p| p < 50).collect();
+let small = take_while(primes(), |p| p < 50).to_list();
 println(f"primes < 50: {small:?}");
 
 let even_fib_sum = take_while(fibonacci(), |x| x < 4_000_000)
@@ -76,14 +73,14 @@ println(f"1000th prime: {primes().nth(999) ?? -1}");
 let squares = yield {
     for i in 1..=5 { yield i * i; }
 };
-println(f"squares: {squares.collect::<List<i64>>():?}");
+println(f"squares: {squares.to_list():?}");
 
 let tree = Tree::Branch([
     Tree::Leaf("a"),
     Tree::Branch([Tree::Leaf("b"), Tree::Branch([Tree::Leaf("c")]), Tree::Leaf("d")]),
     Tree::Leaf("e"),
 ]);
-let names: List<str> = leaves(tree).collect();
+let names = leaves(tree).to_list();
 println(f"leaves: {names:?}");
 ```
 
@@ -100,7 +97,7 @@ leaves: ["a", "b", "c", "d", "e"]
 
 - Calling a `yield fn` doesn't run its body right away; it returns an iterator, `GenIter<T>`. The `-> i64` is not a return value but the type of the yielded items ([4.11.3 named generator functions](../spec/refs-lang/004-functions/411-generators.html#4113-named-generator-functions)).
 - `fibonacci()` and `primes()` are infinite generators. Their locals (`a`, `b`, `found`) are preserved between `yield`s, and the consumer pulls only as many items as it needs with `take`, `nth` and the like ([4.11.9 infinite generators](../spec/refs-lang/004-functions/411-generators.html#4119-infinite-generators)).
-- Generators implement [`Iterator`](../std/core/iter.html#trait.Iterator), so they combine with adapters such as `filter`, `sum` and `collect`. A `take_while`, which the standard iterator lacks, is a single generic `yield fn` that ends iteration with `return;` ([Collections and iterators](../learn/08-collections-iterators.html), [Generics](../learn/07-generics.html)).
+- Generators implement [`Iterator`](../std/core/iter.html#trait.Iterator), so they combine with adapters such as `filter`, `sum` and `to_list`. Written by hand, `take_while` (the standard iterator has one too) is a single generic `yield fn` that ends iteration with `return;` ([Collections and iterators](../learn/08-collections-iterators.html), [Generics](../learn/07-generics.html)).
 - `yield { ... }` is an inline generator block that builds an iterator right where an expression is expected ([4.11.4](../spec/refs-lang/004-functions/411-generators.html#4114-inline-yield-blocks-values)).
 - `leaves` calls itself and re-yields the values of each subtree. Recursive generators are a common way to flatten nested structures ([Sum types](../learn/05-sum-types.html)).
 

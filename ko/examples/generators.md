@@ -7,13 +7,10 @@
 ```rok
 // An endless Fibonacci stream.
 yield fn fibonacci() -> i64 {
-    let a = 0;
-    let b = 1;
+    let (a, b) = (0, 1);
     loop {
         yield a;
-        let next = a + b;
-        a = b;
-        b = next;
+        (a, b) = (b, a + b);
     }
 }
 
@@ -58,10 +55,10 @@ yield fn leaves(t: Tree) -> str {
     }
 }
 
-let first: List<i64> = fibonacci().take(12).collect();
+let first = fibonacci().take(12).to_list();
 println(f"fib: {first:?}");
 
-let small: List<i64> = take_while(primes(), |p| p < 50).collect();
+let small = take_while(primes(), |p| p < 50).to_list();
 println(f"primes < 50: {small:?}");
 
 let even_fib_sum = take_while(fibonacci(), |x| x < 4_000_000)
@@ -76,14 +73,14 @@ println(f"1000th prime: {primes().nth(999) ?? -1}");
 let squares = yield {
     for i in 1..=5 { yield i * i; }
 };
-println(f"squares: {squares.collect::<List<i64>>():?}");
+println(f"squares: {squares.to_list():?}");
 
 let tree = Tree::Branch([
     Tree::Leaf("a"),
     Tree::Branch([Tree::Leaf("b"), Tree::Branch([Tree::Leaf("c")]), Tree::Leaf("d")]),
     Tree::Leaf("e"),
 ]);
-let names: List<str> = leaves(tree).collect();
+let names = leaves(tree).to_list();
 println(f"leaves: {names:?}");
 ```
 
@@ -100,7 +97,7 @@ leaves: ["a", "b", "c", "d", "e"]
 
 - `yield fn`을 호출해도 본체가 바로 실행되지는 않습니다. 호출은 반복자 `GenIter<T>`를 돌려줍니다. `-> i64`는 반환값이 아니라 `yield`로 내보내는 항목의 타입입니다([4.11.3 명명된 제너레이터 함수](../spec/refs-lang/004-functions/411-generators.html#4113-명명된-제너레이터-함수)).
 - `fibonacci()`와 `primes()`는 무한 제너레이터입니다. 지역 변수(`a`, `b`, `found`)는 `yield` 사이에 보존됩니다. 소비하는 쪽은 `take`, `nth` 등으로 필요한 만큼만 항목을 꺼냅니다([4.11.9 무한 제너레이터](../spec/refs-lang/004-functions/411-generators.html#4119-무한-제너레이터)).
-- 제너레이터는 [`Iterator`](../../std/core/iter.html#trait.Iterator)를 구현하므로 `filter`, `sum`, `collect` 같은 어댑터와 조합할 수 있습니다. 표준 반복자에 없는 `take_while`은 `return;`으로 반복을 끝내는 제네릭 `yield fn` 하나로 만듭니다([컬렉션과 반복자](../learn/08-collections-iterators.html), [제네릭](../learn/07-generics.html)).
+- 제너레이터는 [`Iterator`](../../std/core/iter.html#trait.Iterator)를 구현하므로 `filter`, `sum`, `to_list` 같은 어댑터와 조합할 수 있습니다. `take_while`을 직접 쓰면(표준 반복자에도 있습니다) `return;`으로 반복을 끝내는 제네릭 `yield fn` 하나로 만듭니다([컬렉션과 반복자](../learn/08-collections-iterators.html), [제네릭](../learn/07-generics.html)).
 - `yield { ... }`는 표현식 자리에서 바로 반복자를 만드는 인라인 제너레이터 블록입니다([4.11.4](../spec/refs-lang/004-functions/411-generators.html#4114-인라인-yield-블록-값)).
 - `leaves`는 자기 자신을 호출해서 각 하위 트리의 값을 다시 `yield`로 내보냅니다. 재귀 제너레이터는 중첩된 구조를 평평하게 펼칠 때 흔히 쓰는 방법입니다([합 타입](../learn/05-sum-types.html)).
 

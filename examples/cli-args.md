@@ -54,7 +54,7 @@ struct Options {
 fn parse_args(args: List<str>) throws (ArgError) -> Options {
     let opts = Options { pattern: "" };
     let have_pattern = false;
-    let i: usize = 0;
+    let i = 0;
     while i < args.len() {
         let a = args[i];
         match a {
@@ -80,12 +80,10 @@ fn parse_args(args: List<str>) throws (ArgError) -> Options {
 
 fn search(opts: Options, name: str, text: str) {
     let needle = if opts.ignore_case { opts.pattern.to_lowercase() } else { opts.pattern };
-    let hits: usize = 0;
-    let n: usize = 0;
-    for line in text.lines() {
-        n += 1;
+    let hits = 0;
+    for (n, line) in text.lines().enumerate(start: 1) {
         let hay = if opts.ignore_case { line.to_lowercase() } else { line };
-        if !hay.contains(needle) { continue; }
+        if needle !in hay { continue; }
         hits += 1;
         if !opts.count_only {
             let prefix = if opts.files.len() > 1 { f"{name}:" } else { "" };
@@ -106,23 +104,16 @@ fn run(args: List<str>) throws (ArgError | IoError) {
 }
 
 fn main() -> i32 {
-    let argv = env::args();
-    let args: List<str> = [];
-    for i in 1..argv.len() { args.push(argv[i]); }
+    let args = env::args().skip(1).to_list();
     // No arguments: demonstrate a few invocations on the built-in sample.
-    let runs: List<List<str>> = if args.is_empty() {
+    let runs = if args.is_empty() {
         [["--help"], ["-n", "are"], ["-i", "-c", "ROK"], ["-m", "1", "are"], ["-x", "are"], ["--max"]]
     } else {
         [args]
     };
     let status = 0;
     for r in runs {
-        if args.is_empty() {
-            let line = StrBuf::new();
-            line.push_str("$ mgrep");
-            for a in r { line.push_str(f" {a}"); }
-            println(line.to_str());
-        }
+        if args.is_empty() { println(f"$ mgrep {r.join(" ")}"); }
         try run(r)
         catch e: ArgError { println(f"mgrep: {e}\n(try --help)"); status = 2; }
         catch e: IoError { println(f"mgrep: {e}"); status = 1; };
@@ -159,7 +150,7 @@ mgrep: option '--max' needs a value
 
 ## Walkthrough
 
-- `env::args()` is a `List<str>` with the program name at `[0]`, so only `1..argv.len()` is copied ([`env::args`](../std/std/env.html#fn.args)).
+- `env::args()` is a `List<str>` with the program name at `[0]`, so `skip(1).to_list()` keeps the rest ([`env::args`](../std/std/env.html#fn.args)).
 - The options live in an `Options` struct with field defaults. Fields that have a default can be left out, as in `Options { pattern: "" }` ([Structs, enums and traits](../learn/06-structs-enums-traits.html), [2.3.3 field defaults](../spec/refs-lang/002-types/203-struct.html#233-field-default-values)).
 - String literal patterns joined with `|`, as in `match a { "-i" | "--ignore-case" => ... }`, accept the short and long form at once. Assignment is a statement, not an expression, so those arm bodies are wrapped in a `{ ...; }` block ([Control flow](../learn/04-control-flow.html)).
 - Bad arguments are thrown as the `ArgError` enum. `run` declares `throws (ArgError | IoError)`, and `main` uses one `catch` per type to choose the exit code (2 or 1) ([Errors](../learn/10-errors.html), [3.14.4 `catch`](../spec/refs-lang/003-expressions/314-error-control-flow.html#3144-catch-postfix-handling-expression)).

@@ -14,9 +14,7 @@ struct Matrix {
 
 impl Matrix {
     fn zeros(rows: usize, cols: usize) -> Matrix {
-        let data: List<f64> = List::new();
-        for _ in 0..rows * cols { data.push(0.0); }
-        Matrix { rows: rows, cols: cols, data: data }
+        Matrix { rows: rows, cols: cols, data: List::filled(rows * cols, 0.0) }
     }
 
     fn from_rows(rows: List<List<f64>>) -> Matrix {
@@ -51,8 +49,7 @@ impl index::Index<(usize, usize)> for Matrix {
 }
 
 // ... and m[i, j] = v writes one.
-impl index::IndexSet<(usize, usize)> for Matrix {
-    type Value = f64;
+impl index::IndexSet<(usize, usize), f64> for Matrix {
     fn index_set(ref self, (i, j): (usize, usize), value: f64) {
         self.data[i * self.cols + j] = value;
     }
@@ -61,9 +58,7 @@ impl index::IndexSet<(usize, usize)> for Matrix {
 impl ops::Add for Matrix {
     type Output = Matrix;
     fn add(self, rhs: Matrix) -> Matrix {
-        let out = Matrix::zeros(self.rows, self.cols);
-        for k in 0..self.data.len() { out.data[k] = self.data[k] + rhs.data[k]; }
-        out
+        Matrix { rows: self.rows, cols: self.cols, data: self.data .+ rhs.data }
     }
 }
 
@@ -86,9 +81,7 @@ impl ops::Mul for Matrix {
 impl ops::Mul<f64> for Matrix {
     type Output = Matrix;
     fn mul(self, k: f64) -> Matrix {
-        let out = Matrix::zeros(self.rows, self.cols);
-        for i in 0..self.data.len() { out.data[i] = self.data[i] * k; }
-        out
+        Matrix { rows: self.rows, cols: self.cols, data: self.data .* k }
     }
 }
 
@@ -96,9 +89,7 @@ impl ops::Mul<f64> for Matrix {
 impl ops::DotMul for Matrix {
     type Output = Matrix;
     fn dot_mul(self, rhs: Matrix) -> Matrix {
-        let out = Matrix::zeros(self.rows, self.cols);
-        for k in 0..self.data.len() { out.data[k] = self.data[k] * rhs.data[k]; }
-        out
+        Matrix { rows: self.rows, cols: self.cols, data: self.data .* rhs.data }
     }
 }
 
@@ -162,6 +153,7 @@ A * I == A: true
 
 - Every operator in Rok is a trait method call. With `impl ops::Add for Matrix`, `a + a` desugars to `ops::Add::add(a, a)` ([3.1 Operator dispatch](../spec/refs-lang/003-expressions/301-operator-dispatch.html), [`Add`](../std/core/ops.html#trait.Add), [`Mul`](../std/core/ops.html#trait.Mul)).
 - The same operator can be implemented several times with different right-hand types. `impl ops::Mul for Matrix` is the matrix product and `impl ops::Mul<f64> for Matrix` is scalar multiplication; the compiler picks the impl from the operand types.
-- Dot-prefixed operators such as `.*` desugar to a separate trait family for element-wise operations ([`DotMul`](../std/core/ops.html#trait.DotMul)), so the matrix product `*` and the Hadamard product `.*` can live side by side ([3.3 Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
-- Comma indices are grouped into a tuple, so reading `m[i, j]` goes through [`Index<(usize, usize)>`](../std/core/index.html#trait.Index) and writing `m[i, j] = v` through [`IndexSet`](../std/core/index.html#trait.IndexSet). The write method takes `ref self` to modify the matrix in place ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
+- Dot-prefixed operators such as `.*` desugar to a separate trait family for element-wise operations ([`DotMul`](../std/core/ops.html#trait.DotMul)), so the matrix product `*` and the Hadamard product `.*` can live side by side. Inside, `self.data .+ rhs.data` and `self.data .* k` are the same operators on the `List<f64>` itself, one loop each with no intermediate list ([3.3 Broadcast operators](../spec/refs-lang/003-expressions/303-broadcast-operators.html)).
+- Comma indices are grouped into a tuple, so reading `m[i, j]` goes through [`Index<(usize, usize)>`](../std/core/index.html#trait.Index) and writing `m[i, j] = v` through [`IndexSet<(usize, usize), f64>`](../std/core/index.html#trait.IndexSet), whose second argument is the type of the value written. The write method takes `ref self` to modify the matrix in place ([3.6 Indexing and slicing](../spec/refs-lang/003-expressions/306-indexing-and-slicing.html)).
 - Thanks to `impl Display for Matrix`, `{a}` in an f-string prints the whole matrix. Each element uses `{x:6.1}` for width and precision ([Structs, enums and traits](../learn/06-structs-enums-traits.html)).
+- This example shows how your own type joins the operators. For numeric work the core library already has `Array<T, N>`, an n-dimensional array with slicing, broadcasting and fused dot expressions ([Arrays and numerics](../learn/21-arrays-and-numerics.html)).

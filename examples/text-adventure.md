@@ -36,7 +36,7 @@ fn dir_name(d: Dir) -> str {
 }
 
 fn parse(line: str) -> Command {
-    let words: List<str> = line.trim().to_lowercase().split_whitespace().collect();
+    let words = line.trim().to_lowercase().split_whitespace().to_list();
     if words.is_empty() { return Command::Unknown(""); }
     let arg = if words.len() > 1 { words[1] } else { "" };
     match words[0] {
@@ -78,7 +78,7 @@ impl Game {
             },
             Command::Take(item) => {
                 let items = self.rooms[self.here].items;
-                match items.iter().position(|x| x == item) {
+                match items.position(|x| x == item) {
                     i: usize => {
                         self.bag.push(items.remove(i));
                         println(f"Taken: {item}.");
@@ -87,7 +87,7 @@ impl Game {
                 }
             },
             Command::Use(item) => {
-                if !self.bag.iter().any(|x| x == item) {
+                if item !in self.bag {
                     println(f"You don't have a {item}.");
                 } else if item == "key" && self.rooms[self.here].name == "Hall" {
                     self.door_open = true;
@@ -112,10 +112,10 @@ fn room(name: str, desc: str, exits: Dict<str, usize>, items: List<str>) -> Room
 
 let game = Game {
     rooms: [
-        room("Cellar", "Damp stone walls. Stairs lead north.", {"north": 1usize}, ["lamp"]),
-        room("Hall", "A long hall with a heavy door to the east.", {"south": 0usize, "west": 2usize, "east": 3usize}, []),
-        room("Library", "Dusty shelves everywhere.", {"east": 1usize}, ["book", "key"]),
-        room("Vault", "It is pitch dark.", {"west": 1usize}, []),
+        room("Cellar", "Damp stone walls. Stairs lead north.", {"north": 1}, ["lamp"]),
+        room("Hall", "A long hall with a heavy door to the east.", {"south": 0, "west": 2, "east": 3}, []),
+        room("Library", "Dusty shelves everywhere.", {"east": 1}, ["book", "key"]),
+        room("Vault", "It is pitch dark.", {"west": 1}, []),
     ],
     here: 0,
     bag: [],
@@ -193,4 +193,4 @@ The lamp reveals a pile of gold. You win!
 - Or-patterns such as `"n" | "north" => ...` group aliases, and `"go"` calls `parse` again on the remaining words so `go west` and `west` become the same command ([3.11 Patterns](../spec/refs-lang/003-expressions/311-patterns.html#or-patterns)).
 - `Dict::get` returns `usize | none`. Splitting into `next: usize => ...` and `none => ...` handles "no exit that way" naturally ([`Dict`](../std/core/collections/dict.html#struct.Dict)).
 - The game state `Game` changes in place through `step(ref self, ...)`. A room's `items` is a `List`, so taking it out with `let items = self.rooms[self.here].items;` and calling `remove` also changes the room's own list ([Collections and iterators](../learn/08-collections-iterators.html)).
-- The `script` list is fed in one line at a time instead of standard input. To make it a real game, replace this loop with one that reads from `io::stdin()` ([I/O](../learn/13-io.html)).
+- The `script` list is fed in one line at a time instead of standard input. To make it a real game, replace this loop with `while let line = try io::input("> ") { .. }`, which reads a line until the input ends ([I/O](../learn/13-io.html)).

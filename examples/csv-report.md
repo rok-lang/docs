@@ -40,8 +40,7 @@ enum RowError {
 }
 
 fn parse_row(line: str) throws (RowError) -> Sale {
-    let f: List<str> = [];
-    for part in line.split(",") { f.push(part.trim()); }
+    let f = line.split(",").map(|part| part.trim()).to_list();
     if f.len() != 5 { throw RowError::Fields(f.len()); }
     let units = try f[3].parse::<i64>() catch _ { throw RowError::Number(f[3]); };
     let price = try f[4].parse::<f64>() catch _ { throw RowError::Number(f[4]); };
@@ -56,9 +55,9 @@ fn write_csv(path: str) throws (IoError) {
 }
 
 fn summarize(path: str) throws (IoError) -> Dict<str, Group> {
-    let groups: Dict<str, Group> = Dict::new();
+    let groups = Dict::new();
     using r = BufReader::new(try File::open(path)) {
-        let n: usize = 0;
+        let n = 0;
         try for line in r.lines() {
             n += 1;
             if n == 1 || line.is_empty() { continue; } // header
@@ -69,20 +68,16 @@ fn summarize(path: str) throws (IoError) -> Dict<str, Group> {
                 }
                 continue;
             };
-            let g = groups.get(sale.region) ?? Group {};
-            g.orders += 1;
-            g.units += sale.units;
-            g.revenue += sale.units as f64 * sale.price;
-            groups[sale.region] = g;
+            groups[sale.region, default: Group {}].orders += 1;
+            groups[sale.region].units += sale.units;
+            groups[sale.region].revenue += sale.units as f64 * sale.price;
         }
     }
     groups
 }
 
 fn print_report(groups: Dict<str, Group>) {
-    let regions: List<str> = [];
-    for k in groups.keys() { regions.push(k); }
-    regions.sort();
+    let regions = groups.keys().sorted();
 
     println(f"{"region":<8}|{"orders":>7}|{"units":>6}|{"revenue":>9}|{"avg":>7}");
     println(f"{"":-<8}+{"":-<7}+{"":-<6}+{"":-<9}+{"":-<7}");
@@ -122,5 +117,5 @@ total   |      7|    70|   267.46|
 - The file is created under `env::temp_dir()` and removed in the `finally` of `main`, so no temporary file is left behind even if summarizing fails ([Files and I/O](../learn/13-io.html), [`env::temp_dir`](../std/std/env.html#fn.temp_dir)).
 - Writing goes through a `BufWriter` and reading through a `BufReader`, each bound with `using` ([`using`](../learn/10-errors.html)): the statement `using w = ..;` in `write_csv` closes the file when the function's block ends, the block form in `summarize` when its block ends, and the writer writes out what it still holds first, so a failed write is never lost. `r.lines()` is a fallible iterator, so `try for` takes each line and passes a read error on ([`BufReader`](../std/core/io.html#struct.BufReader), [`fs`](../std/std/fs.html)).
 - `parse_row` throws a `RowError` for a malformed row; the caller prints a warning in its `catch` block and moves on with `continue`. One bad line does not sink the whole report ([Errors](../learn/10-errors.html)).
-- The totals are a `Dict<str, Group>`. `groups.get(region) ?? Group {}` fetches an entry or starts a new one, and `groups[region] = g` stores the updated value back. Every field of `Group` has a default, so `Group {}` alone starts at zero ([Collections and iterators](../learn/08-collections-iterators.html)).
+- The totals are a `Dict<str, Group>`, typed by `summarize`'s return type. `groups[region, default: Group {}].orders += 1` starts a new entry when the region is missing, and the lines after it add to the stored entry in place. Every field of `Group` has a default, so `Group {}` alone starts at zero ([Collections and iterators](../learn/08-collections-iterators.html)).
 - Format specs line up the table: `{name:<8}` left-aligns, `{g.revenue:>9.2}` uses width 9 and two decimals, and `{"":-<8}` fills an empty string with `-` to draw the rule ([2.10.8 align and width](../spec/refs-standard-libraries/200-core/210-fmt.html#2108-align--fill--width--precision)).

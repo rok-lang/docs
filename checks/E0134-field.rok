@@ -1,0 +1,14 @@
+use rok::core::channel::{Sender, channel};
+
+struct Pair { a: Sender<i64>; b: Sender<i64>; }
+
+fn main() {
+    let (t1, _r1) = channel::<i64>();
+    let (t2, _r2) = channel::<i64>();
+    let p: Pair | none = Pair { a: t1, b: t2 };
+    if let x: Pair = p {
+        x.a.close();
+        x.a.close();
+        x.b.close();
+    }
+}

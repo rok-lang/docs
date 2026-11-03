@@ -196,7 +196,7 @@ println(f"{first_of(s):?} {s.get(5):?}");
 "Dune" none
 ```
 
-It is an associated type rather than a type parameter because `Item` is fixed to exactly one type for a given implementor. Users don't need to spell out `Shelf`'s element type.
+It is an associated type rather than a type parameter because `Item` is fixed to exactly one type for a given implementor. Users don't need to spell out `Shelf`'s element type. Every impl gives each associated type the trait declares without a default: leaving `type Item = ..;` out is an error ([E0072](../errors/E0072.html)) whose help writes the line, taking the type from the impl's methods when they name it.
 
 ## Advanced: const generics
 
@@ -356,7 +356,7 @@ show_sum(1.5, 2.0);   // 3.5
 
 - Declare generics with `fn f<T>(..)`, `struct S<A, B>`, and `impl<A, B> S<A, B>`. Type arguments are usually inferred.
 - Bounds like `T: Ord + Clone` determine which operations the body may use. Move long ones to a `where` clause.
-- An associated type `type Item;` is fixed to one type per implementation and is written `C::Item` from outside.
+- An associated type `type Item;` is fixed to one type per implementation, which every impl must give unless the trait has a default, and is written `C::Item` from outside.
 - `const N: usize` takes a value as a type parameter.
 - `-> some Trait` returns one hidden concrete type that callers use only through `Trait`; `x: some Trait` takes any type with `Trait`, one per call; `type X = some Trait;` names a hidden type, fixed by its module's functions, for fields and signatures.
 - Generics are static (monomorphized); `any` is a dynamic slot that exists only where you write it.

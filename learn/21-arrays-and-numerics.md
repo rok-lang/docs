@@ -75,7 +75,19 @@ println(f"{g:?} {r:?}");
 
 `Array::full(shape, v)` repeats one value, and `Array::from(xs)` turns a list into a rank-1 array.
 
-The fixed-size `[T; N]` has its own repeat form, `[v; N]`: `v` is evaluated once and each element gets its own copy. A plain value such as `0.0` is copied as it is; an element that holds a collection is cloned, so `[List::<f64>::new(); 4]` is four separate lists and `[[0.0; 3]; 3]` three separate rows ([chapter 2](02-values-and-types.html)).
+The fixed-size `[T; N]` has its own repeat form, `[v; N]`: `v` is evaluated once and each element gets its own copy. A plain value such as `0.0` is copied as it is; an element that holds a collection is cloned, so `[List::<f64>::new(); 4]` is four separate lists and `[[0.0; 3]; 3]` three separate rows ([chapter 2](02-values-and-types.html)). `array::from_fn(f)` builds a `[T; N]` whose element `i` is `f(i)`, called in order; `N` comes from the expected type or `array::from_fn::<T, N>`. Each element is its own value, so it also builds arrays `[v; N]` cannot: elements that are not `Clone`, or resources with one owner.
+
+```rok
+let xs = [3, 1, 2];
+let tens: [i64; 3] = array::from_fn(|i| xs[i] * 10);
+let lists = array::from_fn::<List<i64>, 2>(|_| []);
+lists[0].push(1);
+println(f"{tens:?} {lists:?}");
+```
+
+```output
+[30, 10, 20] [[1], []]
+```
 
 ## Indexing and slicing
 
@@ -302,6 +314,19 @@ println(f"{num::linspace(0.0, 1.0, 5):?}");
 5 13
 7 9 [-1.0, 0.5, 2.5, 7.0]
 [0.0, 0.25, 0.5, 0.75, 1.0]
+```
+
+`total_cmp` is the IEEE 754 total order: a NaN with the sign bit set comes first, one with it clear last. `f64::NAN` and `f32::NAN` are the quiet NaN with the sign bit clear on every target, so they sort after `inf`; a NaN that arithmetic makes (`0.0 / 0.0`) can have either sign, and x86 sets it.
+
+```rok
+let ys = [1.0, f64::NAN, f64::NEG_INFINITY, -0.0, f64::INFINITY];
+println(f"{ys.sorted_by(|a, b| a.total_cmp(b)):?}");
+println(f"{f64::NAN.is_sign_negative()} {f64::NAN.to_bits():x}");
+```
+
+```output
+[-inf, -0.0, 1.0, inf, NaN]
+false 7ff8000000000000
 ```
 
 `num::Complex<T>` is a complex number over `f32` or `f64`, and the `i` suffix writes the imaginary part: `3.0 + 4.0i`. It has the arithmetic operators, with a real number on either side, and `abs`, `arg`, `conj`, `exp`, `ln`, `sqrt` and `pow`.

@@ -100,7 +100,7 @@ rok toolchain update                   # download the newest release and make it
 rok toolchain update 0.2.0             # exactly 0.2.0 instead
 ```
 
-`rok toolchain update` takes an exact version, not a series. `rok toolchain install` downloads one without changing the default (`--from <archive>` installs a file you already have). The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. When an update moves to a new series, say from 0.1.6 to 0.2.0, it adds a note: projects that must stay on 0.1 pin it with `toolchain: "0.1"`, which `rok new` writes for you, or run `rok +0.1 ..`. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
+`rok toolchain update` takes an exact version, not a series. `rok toolchain install` downloads one without changing the default (`--from <archive>` installs a file you already have). The download is checked against its published SHA-256, and if anything fails the previous default stays in place. Older toolchains are kept. When an update moves to a new series, say from 0.1.6 to 0.2.0, it adds a note: projects that must stay on 0.1 pin it with `toolchain: "0.1"`, which `rok new` writes for you, or run `rok +0.1 ..`. The 0.1 series no longer gets fixes, so plan the move to 0.2. Do not confuse it with `rok update`, which moves the versions pinned in a package's `rok.lock` ([chapter 11](11-modules-packages.html)).
 
 If another `rok` (from a package manager, say) comes before `~/.rok/bin` on your `PATH`, the new default would not take, so `rok toolchain update` and `rok toolchain default` warn:
 

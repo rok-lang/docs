@@ -100,7 +100,7 @@ rok toolchain update                   # download the newest release and make it
 rok toolchain update 0.2.0             # exactly 0.2.0 instead
 ```
 
-`rok toolchain update`에는 시리즈가 아니라 정확한 버전을 적습니다. `rok toolchain install`은 기본값을 바꾸지 않고 내려받기만 합니다(이미 가진 아카이브는 `--from <archive>`로 설치합니다). 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 0.1.6에서 0.2.0으로 가는 것처럼 업데이트가 시리즈를 넘으면 안내가 붙습니다. 0.1에 머물러야 하는 프로젝트는 `toolchain: "0.1"`로 고정하거나(`rok new`가 적어 줍니다) `rok +0.1 ..`로 실행하면 됩니다. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
+`rok toolchain update`에는 시리즈가 아니라 정확한 버전을 적습니다. `rok toolchain install`은 기본값을 바꾸지 않고 내려받기만 합니다(이미 가진 아카이브는 `--from <archive>`로 설치합니다). 내려받은 파일은 공개된 SHA-256으로 검증합니다. 어느 단계에서든 실패하면 이전 기본값이 그대로 남습니다. 이전 toolchain은 지우지 않습니다. 0.1.6에서 0.2.0으로 가는 것처럼 업데이트가 시리즈를 넘으면 안내가 붙습니다. 0.1에 머물러야 하는 프로젝트는 `toolchain: "0.1"`로 고정하거나(`rok new`가 적어 줍니다) `rok +0.1 ..`로 실행하면 됩니다. 0.1 시리즈는 더 이상 수정이 나오지 않으니 0.2로 옮길 계획을 세우세요. 패키지의 `rok.lock`에 고정된 버전을 올리는 `rok update`와 헷갈리지 마세요([11장](11-modules-packages.html)).
 
 패키지 관리자로 설치한 것처럼 다른 `rok`이 `PATH`에서 `~/.rok/bin`보다 앞에 있으면 새 기본값이 적용되지 않습니다. 그래서 `rok toolchain update`와 `rok toolchain default`가 경고합니다.
 

@@ -183,7 +183,7 @@ Stone { name: "textwrap", version: "0.1.0", deps: [], source: Dep::git("https://
 note: dry run; `rok publish` sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
-항목에는 의존성 해소에 필요한 것만 들어갑니다. HEAD 커밋과 그 트리 해시, 의존성, 툴체인 시리즈입니다. 그러니 그 커밋을 먼저 원격 저장소에 올리세요(push). 설명, 라이선스 같은 나머지 메타데이터는 항목과 함께 레지스트리로 가고, 레지스트리는 버전마다 누가 공개했는지와 함께 이를 보여 줍니다. `rok publish`는 토큰과 함께 둘을 레지스트리에 보냅니다(`Published textwrap 0.1.0 to https://rokstones.io`). index에 항목이 들어가면 그 버전이 공개됩니다. 한 버전은 두 번 공개할 수 없습니다. 기존 stone과 대소문자나 `-` / `_`만 다른 이름은 이미 쓰인 것으로 봅니다.
+항목에는 의존성 해소에 필요한 것만 들어갑니다. HEAD 커밋과 그 트리 해시, 의존성, 툴체인 시리즈입니다. 그러니 그 커밋을 먼저 원격 저장소에 올리세요(push). 설명, 라이선스 같은 나머지 메타데이터는 항목과 함께 레지스트리로 가고, 레지스트리는 버전마다 누가 공개했는지와 함께 이를 보여 줍니다. `rok publish`는 토큰과 함께 둘을 레지스트리에 보냅니다(`Published textwrap 0.1.0 to https://rokstones.io`). index에 항목이 들어가면 그 버전이 공개됩니다. 한 버전은 두 번 공개할 수 없습니다. 기존 stone과 대소문자나 `-` / `_`만 다른 이름은 이미 쓰인 것으로 봅니다. index는 0.2 형식이라 rok 0.1은 읽지 못합니다. stone을 추가하고 받아 오고 공개하려면 rok 0.2 이상이 필요합니다.
 
 ### `rok yank`
 

@@ -19,4 +19,4 @@
 
 ## 버전
 
-릴리스마다 문서가 따로 있습니다. Rok 0.1.x는 `docs.rok-lang.org/0.1/`에 있는 식입니다. `latest/`는 최신 릴리스이고 `dev/`는 main 브랜치를 따라갑니다. 언어의 동기와 철학은 [사양 소개](spec/index.html)에 있습니다. 패키지(stone)는 [rokstones.io](https://rokstones.io)에 있습니다.
+릴리스 시리즈마다 문서가 따로 있습니다. Rok 0.2.x는 `docs.rok-lang.org/0.2/`에 있는 식입니다. `latest/`는 최신 릴리스이고 `dev/`는 main 브랜치를 따라갑니다. 수정은 최신 시리즈에만 나옵니다. Rok 0.1은 더 이상 지원하지 않으며, 그 문서는 참고용으로만 `0.1/`에 남아 있습니다. 언어의 동기와 철학은 [사양 소개](spec/index.html)에 있습니다. 패키지(stone)는 [rokstones.io](https://rokstones.io)에 있습니다.

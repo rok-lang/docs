@@ -19,4 +19,4 @@
 
 ## Versions
 
-Each release has its own docs: `docs.rok-lang.org/0.1/` for Rok 0.1.x, and so on; `latest/` is the newest release and `dev/` follows the main branch. The [spec introduction](spec/index.html) gives the motivation and philosophy of the language. Packages (stones) are on [rokstones.io](https://rokstones.io).
+Each release series has its own docs: `docs.rok-lang.org/0.2/` for Rok 0.2.x, and so on; `latest/` is the newest release and `dev/` follows the main branch. Only the latest series gets fixes: Rok 0.1 is no longer supported, and its docs stay at `0.1/` for reference only. The [spec introduction](spec/index.html) gives the motivation and philosophy of the language. Packages (stones) are on [rokstones.io](https://rokstones.io).

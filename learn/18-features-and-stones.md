@@ -183,7 +183,7 @@ Stone { name: "textwrap", version: "0.1.0", deps: [], source: Dep::git("https://
 note: dry run; `rok publish` sends it to the registry API of https://github.com/rok-lang/rokstones.io-index (needs `rok login`), which adds it as te/xt/textwrap
 ```
 
-The entry holds only what resolving needs: the HEAD commit and its tree hash, the dependencies, and the toolchain series. Push that commit first. The description, license and other metadata travel beside it to the registry, which shows them with who published each version. `rok publish` sends both with your token (`Published textwrap 0.1.0 to https://rokstones.io`), and the version is live once the index has it. A version cannot be published twice, and a name differing only in case or `-` / `_` from an existing stone is taken.
+The entry holds only what resolving needs: the HEAD commit and its tree hash, the dependencies, and the toolchain series. Push that commit first. The description, license and other metadata travel beside it to the registry, which shows them with who published each version. `rok publish` sends both with your token (`Published textwrap 0.1.0 to https://rokstones.io`), and the version is live once the index has it. A version cannot be published twice, and a name differing only in case or `-` / `_` from an existing stone is taken. The index is in the 0.2 format, which rok 0.1 cannot read: adding, fetching and publishing stones needs rok 0.2 or later.
 
 ### `rok yank`
 
